@@ -1,0 +1,27 @@
+id: bushbash_vault1
+event: BushBash2026
+category: rev/strings-password
+challenge_name: Hack The Vault I
+status: solved
+flag: "bushbash{th1s-is-just-th3-beginning!}"
+service: "34.40.133.67:7776"
+password: "th3M0ssM4ni5h3re,y0uc4ntcatchm3"
+key_idea: >
+  Stripped ELF vault; password plaintext in .rodata, strncmp against
+  th3M0ssM4ni5h3re,y0uc4ntcatchm3. flag.txt only on remote. Series teaser.
+prerequisites:
+  - strings
+  - basic ELF strcmp pattern
+exploitation_pattern: strings -> confirm strncmp target -> nc submit
+pitfalls:
+  - running only locally (no flag.txt)
+  - over-reversing when password is in strings
+tools:
+  - strings
+  - objdump
+  - socket/nc
+playbook: PLAYBOOKS/rev_strings_password.md
+writeup: ../BushBash2026/rev/Hack The Vault I/writeup/writeup.md
+solver: ../BushBash2026/rev/Hack The Vault I/solve/send.py
+related_series: "Moss Man / Vault II likely"
+time_heuristic: password prompt ELF -> strings first (30s)

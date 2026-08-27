@@ -1,0 +1,22 @@
+{
+    "challenge_id": "bushbash_mystery_server_2",
+    "status": "solved",
+    "flag": "bushbash{u32_0v3rfl1w!}",
+    "attempts": [
+        {
+            "phase": "RECON",
+            "action": "reuse DWARF+disasm from part I for ReadMultipleMessages struct (start:u32, count:u32)",
+            "result": "success"
+        },
+        {
+            "phase": "RECON",
+            "action": "probe normal start/count values to learn semantics (count=additional indices, 0 rejected)",
+            "result": "success"
+        },
+        {
+            "phase": "EXPLOIT",
+            "action": "send start=u32::MAX, count=1 to overflow start+count",
+            "result": "success, panic caught and debug code/flag returned directly"
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+id: bushbash_cachebrowns
+event: BushBash2026
+category: pwn/java-integer-cache
+challenge_name: cachebrowns
+status: solved
+flag: "bushbash{doNt-Dr1nk-jav4-foR-br3kkie}"
+service: "34.40.133.67:7777"
+password: "%xhaaaaaaaaaa:q~"
+key_idea: >
+  auth uses Integer==Integer (reference equality). Only Integer cache range
+  [-128,127] works. Sole usable permitted hash is -110 (128 is trap).
+  Craft len>=16 string with Java hashCode -110 via meet-in-the-middle.
+prerequisites:
+  - Java boxing / Integer cache
+  - String.hashCode base-31 modular arithmetic
+  - meet-in-the-middle
+exploitation_pattern: identify-cache-target -> MITM hashCode -> send password
+pitfalls:
+  - using .equals when bug is ==
+  - targeting 128 outside cache
+  - emoji UnicodeEncodeError on Windows console
+tools:
+  - python
+  - socket
+playbook: PLAYBOOKS/pwn_java_integer_cache.md
+writeup: ../BushBash2026/pwn/cachebrowns/writeup/writeup.md
+solver: ../BushBash2026/pwn/cachebrowns/solve/mitm_hash.py
+time_heuristic: see Integer==Integer -> scan whitelist for [-128,127] first

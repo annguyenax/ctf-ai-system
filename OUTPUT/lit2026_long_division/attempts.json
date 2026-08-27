@@ -1,0 +1,15 @@
+﻿{
+    "flag_status":  "verified",
+    "attempts":  [
+                     {
+                         "action":  "Send INT_MIN / -1",
+                         "hypothesis_id":  "pwn_1",
+                         "t":  "2026-08-03T20:08:00",
+                         "result":  "Success",
+                         "phase":  "EXPLOIT",
+                         "evidence_path":  "D:\\download\\CTFTimeWriteup\\LIT2026\\pwn\\long_division\\solve\\evidence",
+                         "notes":  "Flag found"
+                     }
+                 ],
+    "challenge_id":  "lit2026_long_division"
+}

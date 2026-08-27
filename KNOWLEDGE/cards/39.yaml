@@ -1,0 +1,14 @@
+﻿id: 39
+title: Merkle's Trapdoor
+event: Kali Team CTF 26
+category: Crypto
+tags:
+  - crypto
+  - knapsack
+  - merkle-hellman
+  - brute-force
+description: >
+  The challenge uses a Merkle-Hellman Knapsack Cryptosystem.
+  However, the public key only has 8 elements (for an 8-bit block).
+  This allows a complete bypass of LLL or the private key by simply
+  brute-forcing all 256 possible byte values to match the ciphertexts.

@@ -1,0 +1,16 @@
+id: htbtryout_silicon_data_sleuthing
+event: HTB TryOut
+category: forensics
+challenge_name: Silicon Data Sleuthing
+status: solved
+flag: "HTB{Y0u'v3_m4st3r3d_0p3nWRT_d4t4_3xtr4ct10n!!_<per-instance-hash>}"
+confidence: 1.0
+signals: ["16MiB OpenWrt flash dump", "squashfs xz @0x42c2c8", "JFFS2 overlay nodetype 0xe001/0xe002", "compr 8 = OpenWrt LZMA raw lc0 lp0 pb0 dict0x10000", "nc quiz of 8 questions"]
+key_idea: "Extract JFFS2 overlay /etc configs (custom LZMA), answer the 8-question terminal quiz; flag hash suffix is per-instance."
+exploitation_pattern: "firmware config extraction (squashfs + JFFS2/LZMA) feeding an interactive Q&A oracle"
+verification: {method: "live quiz", evidence: "answers: 23.05.0 / 5.15.134 / root:$1$YfuRJudo... / PPPoE yohZ5ah / SSID VLT-AP01 / key french-halves-vehicular-favorable / ports 1778,2289,8088"}
+pitfalls: ["nodetypes have feature bits (0xe001 not 0x2001)", "OpenWrt JFFS2 LZMA needs reconstructed alone-header lc0 lp0 pb0", "skip zero-length metadata inode nodes", "flag suffix changes per spawn"]
+tools: [python, lzma, custom-jffs2-parser]
+writeup: "HTB-TryOut/forensics/Silicon Data Sleuthing/writeup/writeup.md"
+solver: "HTB-TryOut/forensics/Silicon Data Sleuthing/solve/solve.py"
+last_verified: "2026-08-20"

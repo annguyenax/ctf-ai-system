@@ -1,0 +1,42 @@
+{
+  "challenge_id": "lit2026_faulty_image_3",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-03T20:40:00",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Render image",
+      "result": "red text LITCTF{1mAg3_F1ag_1o3fjs!} + orange border",
+      "evidence_path": "OUTPUT/lit2026_faulty_image_3/raw/notes.txt",
+      "notes": "visible flag rejected -> likely decoy"
+    },
+    {
+      "t": "2026-08-03T22:10:00",
+      "phase": "HYPOTHESES",
+      "hypothesis_id": "H2-border-color",
+      "action": "Hint: colorful + border different color; inspect border pixels",
+      "result": "row0 has 30 non-orange pixels every 7px",
+      "evidence_path": "OUTPUT/lit2026_faulty_image_3/raw/notes.txt",
+      "notes": "even spacing => intentional data"
+    },
+    {
+      "t": "2026-08-03T22:14:00",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2-border-color",
+      "action": "Read R channel of the 30 marks",
+      "result": "LITCTF{p1x3l_p3rf3ct_98xzfq9!}",
+      "evidence_path": "OUTPUT/lit2026_faulty_image_3/raw/notes.txt",
+      "notes": "G/B are noise"
+    },
+    {
+      "t": "2026-08-03T22:15:00",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2-border-color",
+      "action": "Check format/printability",
+      "result": "30 chars, well-formed LITCTF{...}",
+      "evidence_path": "OUTPUT/lit2026_faulty_image_3/raw/notes.txt",
+      "notes": "deterministic"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+id: lit2026_faulty_image_3
+event: LIT CTF 2026
+category: crypto/png-border-color-channel-stego
+challenge_name: faulty_image_3
+status: solved
+flag: "LITCTF{p1x3l_p3rf3ct_98xzfq9!}"
+confidence: 1.0
+artifact_hashes:
+  - "corrupt3.png sha256=f92cedbd46bc1c7c2498993164659d7ba88cfb18b18e67577bc87a2d25b43006"
+signals:
+  - "Visible red text is a DECOY (LITCTF{1mAg3_F1ag_1o3fjs!})"
+  - "Hint: 'colorful' + 'part of the border a different color'"
+  - "Top border row y=0 has 30 non-orange (blue-ish) pixels spaced every 7px"
+key_idea: >
+  The visible red flag is a decoy. Real flag is hidden in the top orange border:
+  30 pixels every 7px whose colour differs from the orange; their RED channel bytes
+  spell the flag (G/B are noise so the marks merely look "colorful").
+prerequisites:
+  - PNG per-scanline filter types
+exploitation_pattern: "Collect non-orange pixels on row y=0; take each pixel R channel -> ASCII flag."
+verification:
+  method: deterministic decode; 30 marks -> printable ASCII, well-formed LITCTF{...}
+  evidence: "R channel = LITCTF{p1x3l_p3rf3ct_98xzfq9!} (30 chars)"
+pitfalls:
+  - "The visible flag is a DECOY; do not submit LITCTF{1mAg3_F1ag_1o3fjs!}."
+  - "Data hidden in ONE colour channel: split R/G/B of odd-coloured pixels, don't judge by blended colour."
+  - "Even spacing (7px) signals intentional data, not filter noise."
+failed_paths: []
+tools:
+  - python
+  - PIL
+hexstrike:
+  used: false
+  useful: false
+  notes: "Just view the image."
+sources: []
+playbook: ""
+writeup: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_3\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_3\solve\solve.py
+time_heuristic: "<10 min: heed colour hint, read R channel of border marks."
+last_verified: "2026-08-03"

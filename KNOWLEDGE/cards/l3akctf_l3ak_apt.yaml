@@ -1,0 +1,50 @@
+id: l3akctf_l3ak_apt
+event: L3akCTF2026
+category: forensics/windows-thumbnail-cache
+challenge_name: L3ak APT
+status: solved
+flag: ""
+confidence: 1.0
+artifact_hashes:
+  - "sha256:e681d3bacaa0b8ad36715e6b355981201816341dcef11d0829f80a7ac46c5a98"
+signals:
+  - "Recent LNKs reference a deleted archive and ARS image paths"
+  - "uTorrent resume state proves full download with no corruption or hash failures"
+  - "ActivitiesCache WAL records Photos opening the missing images"
+  - "thumbcache_1280.db contains duplicate high-resolution JPEG payloads"
+key_idea: >
+  Use LNK and ActivitiesCache as path/timeline evidence, then recover deleted image
+  content from Windows Explorer thumbnail cache by parsing CMMM entry length fields.
+prerequisites:
+  - windows-recent-lnk
+  - activitiescache-sqlite-wal
+  - windows-thumbnail-cache
+exploitation_pattern: missing image -> Recent/Activity correlation -> CMMM entry parsing -> duplicate payload verification
+verification:
+  method: two cache keys with identical payload plus deterministic archive-to-JPEG replay
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/solve/evidence/manifest.md
+pitfalls:
+  - carving MFT or USN before checking high-resolution thumbnail caches
+  - opening ActivitiesCache without its WAL
+  - carving JPEG solely by SOI/EOI instead of CMMM length fields
+  - contacting torrent peers when local cache content already answers the question
+failed_paths:
+  - "raw JPEG signature carving produced truncated false positives; replaced by CMMM parsing"
+tools:
+  - python-zipfile
+  - python-sqlite3
+  - ripgrep
+  - Pillow-for-visual-triage
+hexstrike:
+  used: false
+  useful: false
+  notes: local triage artefacts and a small focused parser were sufficient
+sources:
+  - https://github.com/libyal/libwtcdb/blob/main/documentation/Windows%20Explorer%20Thumbnail%20Cache%20database%20format.asciidoc
+  - https://github.com/EricZimmerman/WxTCmd
+  - https://learn.microsoft.com/en-us/windows/apps/develop/windows-integration/user-activities
+playbook: PLAYBOOKS/forensics_windows_thumbcache_recovery.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/solve/solve.py
+time_heuristic: "deleted image + Recent/Activity path + thumbcache present -> parse largest cache before MFT carving, ~10 min"
+last_verified: "2026-08-01"

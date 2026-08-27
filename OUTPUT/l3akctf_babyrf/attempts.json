@@ -1,0 +1,51 @@
+{
+  "challenge_id": "l3akctf_babyrf",
+  "flag_status": "needs_verification",
+  "attempts": [
+    {
+      "t": "2026-08-01T00:30:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-multimode",
+      "action": "Full-band overview spectrogram of 96kHz wav",
+      "result": "distinct time/frequency regions -> multi-mode RF-styled audio",
+      "evidence_path": "OUTPUT/l3akctf_babyrf/raw/decoded_parts.txt",
+      "notes": "6 parts expected; part4 uppercase per prompt"
+    },
+    {
+      "t": "2026-08-01T00:34:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1-multimode",
+      "action": "Demod 11.6kHz OOK, cluster dot/dash, decode Morse",
+      "result": "R3QU1RES (all uppercase) - reproducible",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/BabyRF/solve/analyze.py",
+      "notes": "likely part 4"
+    },
+    {
+      "t": "2026-08-01T00:38:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1-multimode",
+      "action": "Read spectrogram texts; reverse audio where glyphs mirrored",
+      "result": "Pr0c3ss1ng (reversed), 3851642 (fwd digits), 31337 (fwd high-band)",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/BabyRF/solve/evidence/manifest.md",
+      "notes": "orientation differs per segment"
+    },
+    {
+      "t": "2026-08-01T00:42:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2-speech",
+      "action": "Zoom 0-4kHz of the 'noise' regions",
+      "result": "fundamental+formants = human speech (0-22s, 42-51s), buried under broadband noise",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/BabyRF/solve/evidence/speech_formants_proof.png",
+      "notes": "remaining parts are spoken; extracted speech1/speech2 clean clips"
+    },
+    {
+      "t": "2026-08-01T00:45:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2-speech",
+      "action": "Attempt ASR (whisper/vosk/ffmpeg)",
+      "result": "unavailable offline -> cannot transcribe; PAUSE without fabricating flag",
+      "evidence_path": "OUTPUT/l3akctf_babyrf/raw/decoded_parts.txt",
+      "notes": "hand off clean clips; next: listen + assemble 6 parts"
+    }
+  ]
+}

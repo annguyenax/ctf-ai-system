@@ -1,0 +1,38 @@
+id: babyheap-v2-revenge
+event: PTIT-CTF-2026
+category: pwn
+points: 108
+platform: glibc 2.35 (Ubuntu 22.04), Full RELRO / PIE / NX / canary
+status: solved (flag captured live)
+flag: "PTITCTF2026{17_w45_n07_dda2dc230a39_345y_r1gh7}"
+summary: >-
+  Heap menu with UAF (Delete frees without zeroing ptr/size), unbounded Read leak,
+  and Edit that writes the STORED size with only a heap-wide [heap_start,heap_end]
+  bounds check (so a small chunk's edit overflows into the next chunk's header).
+  Full libc write is blocked by the heap bounds, so code exec uses a glibc-internal
+  largebin attack (p1->bk_nextsize = _IO_list_all-0x20) to point _IO_list_all at a
+  controlled chunk, then House of Apple 2 (fake _IO_FILE_plus with _IO_wfile_jumps
+  vtable) is triggered by the SIGALRM(60s)->exit(0) flush.
+
+primitives:
+  heap_leak: tcache freed chunk mangled next -> heap>>12
+  libc_leak: large (0x418+) freed chunk unsorted fd -> main_arena+0x60; base = leak-0x21ace0
+  largebin_attack: UAF-edit p1->bk_nextsize -> _IO_list_all-0x20; malloc inserts p2 writing p2_chunk to _IO_list_all
+key_offsets_libc_235:
+  system: 0x50d70
+  _IO_list_all: 0x21b680
+  _IO_wfile_jumps: 0x2170c0
+  unsorted_leak: 0x21ace0
+fsop_fake_file:
+  vtable: _IO_wfile_jumps
+  dirty: _IO_write_base=0, _IO_write_ptr=1
+  __doallocate: system via fake _wide_vtable+0x68
+  trigger: SIGALRM handler (alarm(60)) -> exit(0) -> _IO_flush_all_lockp
+critical_gotcha: >-
+  _IO_wfile_overflow returns WEOF early if fp->_flags & _IO_NO_WRITES (0x8).
+  _flags = fake FILE chunk+0 = its prev_size, normally garbage. Fix: overflow the
+  preceding guard chunk (create size 0x18) so its stored-size edit writes 0x18 bytes
+  past g1_user into the next chunk's header, setting prev_size = " sh\0"
+  (edit(g1, b"X"*0x10 + p64(0x687320))). This clears _IO_NO_WRITES and makes
+  __doallocate=system(fp)=system(" sh") spawn an interactive sh.
+verified: live shell -> cat /flag.txt returned the flag

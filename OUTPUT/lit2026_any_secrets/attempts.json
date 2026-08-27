@@ -1,0 +1,33 @@
+{
+  "challenge_id": "lit2026_any_secrets",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-03T19:10:00",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-caesar-ascii",
+      "action": "Match cipher prefix 'HEP?PB' to known plaintext 'LITCTF'; compute per-char delta",
+      "result": "constant +4 shift over ASCII byte values",
+      "evidence_path": "OUTPUT/lit2026_any_secrets/raw/decode.txt",
+      "notes": "Ciphertext contains symbols/digits -> shift is mod 256, not mod 26."
+    },
+    {
+      "t": "2026-08-03T19:12:00",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1-caesar-ascii",
+      "action": "Brute all 256 shifts, filter results starting LITCTF{ and ending }",
+      "result": "shift +4 -> LITCTF{ASCII-jUl1us-c43s4r-gewowa}",
+      "evidence_path": "OUTPUT/lit2026_any_secrets/raw/decode.txt",
+      "notes": "Only +4 produces a valid flag."
+    },
+    {
+      "t": "2026-08-03T19:13:00",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1-caesar-ascii",
+      "action": "Re-encrypt recovered flag with shift -4",
+      "result": "reproduces original ciphertext byte-for-byte",
+      "evidence_path": "OUTPUT/lit2026_any_secrets/raw/decode.txt",
+      "notes": "Strong verification: decrypt-then-reencrypt."
+    }
+  ]
+}

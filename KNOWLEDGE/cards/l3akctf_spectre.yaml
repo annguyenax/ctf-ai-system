@@ -1,0 +1,53 @@
+id: l3akctf_spectre
+event: L3akCTF2026
+category: hardware/signal-image
+challenge_name: Spectre
+status: solved
+flag: ""
+confidence: 1.0
+artifact_hashes:
+  - "sha256:e85821313acfb8f480eba24472917c670bbc0fb27d3d4356cf1705c59d8acbbf"
+signals:
+  - grayscale image with dimensions 4494x192
+  - prompt explicitly implies a spoken message
+  - 107 stable time-localized energy groups over a wide threshold range
+key_idea: interpret the PNG as an 80 dB mel power spectrogram, invert the mel basis, estimate phase with Griffin-Lim, and transcribe overlapping activity-aligned windows
+prerequisites:
+  - spectrogram and mel-scale basics
+  - decibel-to-power conversion
+  - Griffin-Lim phase reconstruction
+exploitation_pattern: image pixels -> flip frequency axis -> dB to mel power -> mel-to-STFT -> seeded Griffin-Lim -> overlapping ASR windows
+verification:
+  method: replay with two phase seeds and compare invariant signal properties plus overlapping transcripts from two ASR model sizes
+  evidence: event solve evidence records 107 units, identical sample count and duration across seeds, and selected model-agreement excerpts
+pitfalls:
+  - assuming a compatible height proves a linear STFT
+  - forgetting to reverse the displayed frequency axis
+  - treating grayscale dB values as linear magnitude
+  - trusting one ASR transcript or isolated one-token recognition
+failed_paths:
+  - linear STFT inversion with n_fft 382 in both vertical orientations
+  - Windows dictation and restricted single-token recognition
+  - nearest-neighbor clustering of resized activity patches
+tools:
+  - python
+  - pillow
+  - librosa
+  - soundfile
+  - whisper-tiny.en
+  - whisper-base.en
+hexstrike:
+  used: false
+  useful: false
+  notes: local signal processing was sufficient; no scanning capability was relevant
+sources:
+  - https://librosa.org/doc/0.11.0/generated/librosa.feature.inverse.mel_to_audio.html
+  - https://librosa.org/doc/0.11.0/generated/librosa.griffinlim.html
+  - https://github.com/openai/whisper
+  - https://huggingface.co/openai/whisper-tiny.en
+playbook: PLAYBOOKS/hardware_spectrogram_image_reconstruction.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/hardware/Spectre/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/hardware/Spectre/solve/reconstruct.py
+time_heuristic: prefer the representation whose reconstructed duration agrees with the stable activity-group count before scaling ASR
+last_verified: "2026-08-02"
+

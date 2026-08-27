@@ -1,0 +1,71 @@
+id: l3akctf_lattiavm
+event: L3akCTF2026
+category: pwn/custom-vm-escape
+challenge_name: LattiaVM
+status: paused
+flag: ""
+confidence: 0.85
+artifact_hashes:
+  - "sha256:7b1b0d01f3197a37c4faa314a4e4e828e9d6d03cb3185fba2a9c94a4276020e7"  # pwn_lattiavm.tar.gz
+signals:
+  - "wrapper reads <=256 hex chars -> argv[1] of /app/lattia-vm (bytecode <=128 bytes)"
+  - "stack VM, int stack[256] at vm+0, sp (int) at vm+0x400; PIE+canary+NX+Full RELRO; glibc 2.42"
+  - "push() (0x13f6) has NO bounds check -> writes stack[sp], sp++"
+  - "vm struct is a LOCAL in main() at rbp-0x410 -> overflow hits main's canary/rbp/return"
+opcodes:
+  "0": PUSH_IMM (next byte)
+  "1": POP
+  "2": ADD
+  "3": SUB
+  "4": MUL
+  "5": DIV (refuses if either operand 0)
+  "6": JMP (target=next byte)
+  "7": JE
+  "8": JNE
+  "9": JG
+  "10": PRINT ("%d\n", pops -> LEAK primitive)
+  "11": DUP
+  "12": SWAP n (swap stack[sp-1] and stack[sp-1-n], n=next byte 0..255; checks n>=0 and sp-1-n>=0)
+  "13": HALT (leave;ret -> returns to main normally; needed so main's ret is taken)
+key_idea: >
+  Unbounded push into main's stack frame. stack[i] at main_rbp-0x410+4i:
+  stack[256]=sp field (vm+0x400), stack[258,259]=main canary, stack[260,261]=saved rbp,
+  stack[262,263]=main return address (into __libc_start_call_main => libc leak).
+  Trick: at sp==256, push writes stack[256]=the sp field itself, so sp becomes (pushed_value)+1
+  -> JUMP sp past the canary WITHOUT overwriting stack[257..263]. Then SWAP/PRINT leaks the
+  return (libc) and canary, and writes a one_gadget/ret2libc over stack[262,263] via SWAP
+  (leaving the canary intact), then HALT -> main ret -> shell. PRINT("%d") = signed 32-bit leak.
+prerequisites:
+  - custom-vm-reversing
+  - stack-frame-layout
+  - ret2libc / one_gadget (glibc 2.42)
+  - bytecode-golf under tight limits
+blockers:
+  - "reaching sp==256 is constrained by 512-instruction iteration limit + 128-byte bytecode"
+  - "linear DUP/PUSH maxes ~sp=128 (<256); need a loop, but a counted loop costs ~7 instr/increment (255*7 >> 512)"
+  - "viable: unrolled loop (K>=8 DUPs per outer cycle + counter) fits ~510 instr; OR exploit the sp==256 filler-jump (set filler=target so sp leaps to filler+1 at 256) but 'landing' cleanly needs care"
+  - "developing this blind is error-prone; local test on Kali (HexStrike execute_command, binary runs) strongly recommended"
+progress_DONE:
+  - "IMPORTANT correction: op7=JNE (jump if a!=b), op8=JE (jump if a==b), op9=JG. (initially mislabeled)"
+  - "INFLATION SOLVED (22-byte bytecode, ~420 iters, sp lands 264, canary+return intact). Build filler 263 via arithmetic (PUSH255 PUSH8 ADD) then loop: DUP*8 + DUP + (build263) + JE loopstart. At sp=256 the DUP writes 263 to the sp field -> sp jumps to 264; loop exits when top!=263 (return_high)."
+  - "LEAK WORKS ON LIVE INSTANCE: append PRINT,PRINT,HALT -> prints stack[263]=return_high, stack[262]=return_low. Got return=0x7a47f08fcf75; return low12=0xf75."
+  - "R (return offset in libc) = 0x29f75 (call [rsp+8]->main returns to 'mov edi,eax' in __libc_start_call_main). libc_base = leaked_return - 0x29f75 (verified page-aligned)."
+  - "offsets in provided libc 2.42: system=0x54790, pop_rdi;ret=0x2a9b7, ret=0x2a9b8, /bin/sh=0x1aaea4."
+  - "WRITE PRIMITIVE VERIFIED IN SIM (value-independent): SWAP1, build_const(delta), ADD, SWAP1 -> sets stack[262]=leaked_low+delta while keeping stack[263]=leaked_high. build_const emits base-16 digit chain (PUSH d0; [PUSH16 MUL PUSH dg ADD]...). Deltas: high32 unchanged since delta<<0x100000."
+next_actions:
+  - "FINISH = one write. Easiest: one_gadget (single stack[262] delta) -> get glibc-2.42 one_gadget offsets via the one_gadget tool on Kali (HexStrike), then bytecode = inflation + [SWAP1, build_const(onegadget_off-0x29f75), ADD, SWAP1, HALT]. Verify register constraints (at main ret rax=0)."
+  - "OR ret2libc ROP (pop_rdi/binsh/system) needs writing 3 qwords at stack[262..267] (all highs = leaked_high, lows = leaked_low + {0xA42,0x180F2F,0x2A81B}); build in sim (interleave L+d / H) -> ~feasible under 128 bytes with care."
+  - "scratch has sim.py (faithful VM), leak.py (working leak), build.py (write-primitive prototype) under ctf-scratch/l3akctf_lattiavm before cleanup"
+tools:
+  - python
+  - objdump
+  - one_gadget (on the provided libc.so.6)
+hexstrike:
+  used: false
+  useful: true
+  notes: Kali can RUN the ELF for local bytecode iteration (the efficient path for this VM golf)
+sources: []
+writeup: ""
+solver: ""
+time_heuristic: "hard VM escape; budget real time + local testing"
+last_verified: "2026-08-02"

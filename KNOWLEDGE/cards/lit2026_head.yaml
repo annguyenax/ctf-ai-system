@@ -1,0 +1,15 @@
+﻿id: lit2026_head
+challenge_name: head
+event: LIT CTF 2026
+category: web
+status: verified
+key_idea: Web challenge exploitation
+verification_method: Submit flag
+verification: Found flag LITCTF{y0u_f0umd_h3@d_239seaj9}
+tools:
+  - Python
+  - curl
+writeup: D:\download\CTFTimeWriteup\LIT2026\web\head\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\web\head\solve\solve.py
+time_heuristic: 5 minutes
+last_verified: 2026-08-03

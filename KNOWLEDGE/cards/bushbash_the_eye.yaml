@@ -1,0 +1,26 @@
+id: bushbash_the_eye
+event: BushBash2026
+category: osint/astronomy-image
+challenge_name: The Eye
+status: solved
+flag: "bushbash{happy-MAT4RlKI,k1-a-k0E-e-HiW4!}"
+key_idea: Matariki poem -> Pleiades star mapping -> read eight image labels -> AES-ECB decrypt
+prerequisites:
+  - osint entity resolution
+  - constellation geometry
+  - image label verification
+  - aes-ecb
+exploitation_pattern: ordered cultural clues -> star registration -> visual label ownership -> decrypt and validate plaintext
+pitfalls:
+  - nearest-centroid association selects a neighboring star label
+  - OCR confuses D/B and 6/8
+  - accepting valid PKCS7 padding without coherent plaintext
+tools:
+  - hexstrike
+  - python
+  - opencv
+  - pycryptodome
+playbook: PLAYBOOKS/osint_annotated_starfield.md
+writeup: ../CTFTimeWriteup/BushBash2026/osint/The Eye/writeup/writeup.md
+solver: ../CTFTimeWriteup/BushBash2026/osint/The Eye/solve/solve.py
+time_heuristic: identify named system first; fit the full constellation; visually verify every ambiguous label before AES

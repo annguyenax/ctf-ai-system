@@ -1,0 +1,33 @@
+{
+  "challenge_id": "lit2026_double_disguise",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-03T19:25:00",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-base64-outer",
+      "action": "Recognize Base64 by charset/padding and decode",
+      "result": "22 non-printable bytes -> inner layer exists",
+      "evidence_path": "OUTPUT/lit2026_double_disguise/raw/decode.txt",
+      "notes": "Title 'double disguise' implies a second layer."
+    },
+    {
+      "t": "2026-08-03T19:27:00",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2-single-xor",
+      "action": "XOR decoded bytes with known prefix LITCTF{",
+      "result": "constant key 0x2A -> single-byte XOR -> LITCTF{F1fa_W0rld_cup}",
+      "evidence_path": "OUTPUT/lit2026_double_disguise/raw/decode.txt",
+      "notes": "All key bytes identical confirms single-byte XOR."
+    },
+    {
+      "t": "2026-08-03T19:28:00",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2-single-xor",
+      "action": "Re-encrypt flag: base64(xor(flag,0x2A))",
+      "result": "equals original ciphertext string exactly",
+      "evidence_path": "OUTPUT/lit2026_double_disguise/raw/decode.txt",
+      "notes": "Strong verification."
+    }
+  ]
+}

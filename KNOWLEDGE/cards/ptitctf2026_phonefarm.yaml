@@ -1,0 +1,40 @@
+id: ptitctf2026_phonefarm
+event: PTITCTF2026
+category: Reverse
+challenge_name: PhoneFarm
+status: solved
+flag: "PTITCTF{5d41402abc4b2a76b9719d911017c592}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Android APK vn.vichanger.app Xposed
+  - native changeDevice length-5 hello compare
+  - decoy cryptor static key 8F3K...
+key_idea: >
+  Cracked license is the native compare against "hello" in
+  Main::changeDevice; MD5 that string. Ignore the 30-char cryptor key.
+prerequisites:
+  - Capstone AArch64
+  - APK unzip
+exploitation_pattern: JNI native std::string length+memcmp → MD5
+verification:
+  method: ARM64 disasm of 0x147a0 plus hashlib.md5(b'hello')
+  evidence: OUTPUT/ptitctf2026_phonefarm/raw/changeDevice_cmp.txt
+pitfalls:
+  - submitting MD5 of cryptor_static_base::m_key
+  - trusting Java-only empty checks
+failed_paths:
+  - OSINT luongvd
+  - MD5(8F3K5nX29tZaQ1BpYrW7JL6Cd4EmHo)
+tools:
+  - Python + Capstone AArch64
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: PLAYBOOKS/rev_strings_password.md
+writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\PhoneFarm\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\PhoneFarm\solve\disasm_change.py
+time_heuristic: native compare beats OSINT on cracker nickname
+last_verified: "2026-08-22"

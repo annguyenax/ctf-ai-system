@@ -1,0 +1,15 @@
+﻿{
+    "flag_status":  "verified",
+    "attempts":  [
+                     {
+                         "action":  "Brute forced neighbor permutations and decoded the CA rule bits",
+                         "hypothesis_id":  "read_rules_1",
+                         "t":  "2026-08-03T19:38:00",
+                         "result":  "Success",
+                         "phase":  "EXPLOIT",
+                         "evidence_path":  "D:\\download\\CTFTimeWriteup\\LIT2026\\misc\\read_the_rules\\solve\\evidence",
+                         "notes":  "Flag perfectly decoded"
+                     }
+                 ],
+    "challenge_id":  "lit2026_read_rules"
+}

@@ -1,0 +1,33 @@
+{
+  "challenge_id": "l3akctf_transrenov",
+  "flag_status": "needs_verification",
+  "attempts": [
+    {
+      "t": "2026-08-01T01:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-jumplist",
+      "action": "unzip (dead7852); connect ncat --ssl; read 7 questions",
+      "result": "questions about NoNeedToWonder folder; jump lists provided",
+      "evidence_path": "OUTPUT/l3akctf_transrenov/raw/answers.txt",
+      "notes": "automaticDestinations = OLE compound file"
+    },
+    {
+      "t": "2026-08-01T01:10:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1-jumplist",
+      "action": "olefile parse DestList -> stream 46 LNK -> TrackerDataBlock + share",
+      "result": "hostname logging-vm, DroidFileId ec2ab952-7e4d-11f1-89ad-a2dead7852ad, share \\\\tsclient\\HauntedHouse",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/Transcendent Renovation/solve/solve.py",
+      "notes": "droid lowercase-no-braces; format answer 'OLE CF'"
+    },
+    {
+      "t": "2026-08-01T01:20:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1-jumplist",
+      "action": "submit answers to live service",
+      "result": "6/7 accepted (Q1-Q6). Q7 original name unresolved.",
+      "evidence_path": "OUTPUT/l3akctf_transrenov/raw/service_6of7.log",
+      "notes": "SoulSearch (rename remnant) rejected in all forms; no hint; not fabricating flag"
+    }
+  ]
+}

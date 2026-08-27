@@ -1,0 +1,39 @@
+id: ptitctf2026_nhh
+event: PTITCTF2026
+category: Crypto
+challenge_name: That Should Be nhh
+status: solved
+flag: "PTITCTF{7h47_5h0uld_b3_nhh,_h0ld1n9_y0ur_h4nd}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - RSA p = 32-bit-smooth A plus 80-bit s
+  - e ≈ K v / u with tiny primes u,v
+  - AES key sha256(str(p))
+key_idea: >
+  CF recovers u,v; Brent ρ factors K=A(q-r) into 31–32-bit primes;
+  Howgrave-Graham on x+A recovers s; AES-CBC with sha256(str(p)).
+prerequisites:
+  - gmpy2, sympy LLL, PyCryptodome
+exploitation_pattern: CF → K(t) → ρ 32-bit A → Coppersmith s → AES
+verification:
+  method: p divides n and AES plaintext is PTITCTF{...}
+  evidence: OUTPUT/ptitctf2026_nhh/raw/flag_check.txt
+pitfalls:
+  - 32-bit factors need ρ not trial-2^16
+  - extra 22/25-bit factors do not belong in A
+  - Python Fraction LLL stalls
+failed_paths:
+  - canonical t=0 K only
+tools:
+  - Python gmpy2 sympy
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: PLAYBOOKS/crypto_rsa.md
+writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Crypto\That Should Be nhh\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\PTITCTF2026\Crypto\That Should Be nhh\solve\hg_sympy.py
+time_heuristic: CF then ρ then sympy LLL Coppersmith
+last_verified: "2026-08-22"

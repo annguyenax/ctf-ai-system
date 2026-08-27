@@ -1,0 +1,23 @@
+{
+  "challenge_id": "bushbash_langlerangle2",
+  "status": "solved",
+  "flag": "bushbash{ma5B3_sf1NAe_neXt?}",
+  "attempts": [
+    {
+      "phase": "TRIAGE",
+      "action": "distinguish from Z3-constraint sibling; find GEUE + HPFP 16",
+      "result": "success"
+    },
+    {
+      "phase": "EXPLOIT",
+      "action": "reverse 16-round Feistel on 9 pairs",
+      "result": "success",
+      "notes": "body ma5B3_sf1NAe_neXt?"
+    },
+    {
+      "phase": "VERIFY",
+      "action": "re-encrypt matches CT",
+      "result": "success"
+    }
+  ]
+}

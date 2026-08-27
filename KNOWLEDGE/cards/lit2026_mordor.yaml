@@ -1,0 +1,16 @@
+﻿id: lit2026_mordor
+challenge_name: one does not simply hide a flag
+event: LIT CTF 2026
+category: misc
+status: verified
+key_idea: Multi-layer stego with riddles providing passwords for ZIPs and Vigenere ciphers. LSB was inverted (0=black/foreground).
+verification_method: Executed Python Vigenere script.
+verification: Extracted and found flag LITCTF{riddles_wrapped_in_pixels_and_verse}
+tools:
+  - Python
+  - exiftool
+hexstrike_usefulness: Low (initial reconnaissance only)
+writeup: D:\download\CTFTimeWriteup\LIT2026\misc\one_does_not_simply_hide_a_flag\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\misc\one_does_not_simply_hide_a_flag\solve\solve.py
+time_heuristic: 20 minutes
+last_verified: 2026-08-03

@@ -1,0 +1,16 @@
+id: fault-cartography
+event: KaliCTF2026
+category: rev
+tags:
+  - vm
+  - prng
+  - reverse
+description: "A custom VM with a 16x16 grid of nodes representing execution blocks. The PRNG used for generating the target stream is continuously updated using the path coordinates and the 3rd QWORD of each executed node."
+solution: |
+  1. Parse the header to extract the initial `r9_key` and coordinates.
+  2. Decrypt all 256 nodes using the initial `r9_key` (only nodes are decrypted with this constant key).
+  3. Traverse the VM grid for 104 steps to find the exact execution path. Critically, update `PRNG_VAL` along the path using `state_x`, `state_y`, `step`, and the 3rd QWORD of each visited node.
+  4. Generate the final target stream using the final `PRNG_VAL` and XOR with the target bytes from the header.
+  5. Run the extracted path backward, applying the inverse of each VM instruction (types 0, 1, 2) on the target registers.
+  6. XOR the recovered initial registers with the initial stream generated from `r9_key` to reveal the flag.
+flag: KaliTeam{faults_draw_the_only_honest_path}

@@ -1,0 +1,23 @@
+id: bushbash_langlerangle
+event: BushBash2026
+category: rev/template-z3
+challenge_name: langleranglelanglerangle
+status: solved
+flag: "bushbash{d1d_y0U_Us3_z3?}"
+key_idea: >
+  214 FlagValue ints constrained by 1581 SFINAE templates (Equ/Lt/Lteq/Gt/Gteq/Divides).
+  Compiles only when constraints hold; solve as SMT with Z3 printable ASCII.
+prerequisites:
+  - C++ templates / enable_if
+  - Z3 or other SMT
+exploitation_pattern: parse-constraints -> z3 Int[32..126] -> sat -> chr decode
+pitfalls:
+  - nested FlagValue<i>::Value * k parsing
+  - underconstrained without ASCII bounds
+tools:
+  - python
+  - z3-solver
+playbook: PLAYBOOKS/rev_template_z3.md
+writeup: ../BushBash2026/rev/langleranglelanglerangle/writeup/writeup.md
+solver: ../BushBash2026/rev/langleranglelanglerangle/solve/solve_z3.py
+time_heuristic: if out.cpp is giant template constraints, go Z3 immediately

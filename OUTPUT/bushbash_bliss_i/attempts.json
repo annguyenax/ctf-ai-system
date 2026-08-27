@@ -1,0 +1,12 @@
+{
+  "challenge_id": "bushbash_bliss_i",
+  "attempts": [
+    {"t":"2026-07-31T21:32:25+07:00","phase":"HYPOTHESIS","hypothesis_id":"H1","action":"Treat cloud as damaged QR/Data Matrix","command_or_step":"Rectify, threshold, repair borders and decode","result":"fail","evidence_path":"raw/recovered.png","notes":"No decoder result; assumed symbology unsupported."},
+    {"t":"2026-07-31T21:44:10+07:00","phase":"EXPLOIT","hypothesis_id":"H2","action":"Inspect RGB bit planes","command_or_step":"Generate and inspect bit-plane contact sheet","result":"fail","evidence_path":"raw/bitplanes_small_rgb.jpg","notes":"No coherent text, marker, or flag payload."},
+    {"t":"2026-07-31T21:51:04+07:00","phase":"EXPLOIT","hypothesis_id":"H3","action":"Subtract aligned clean Bliss background","command_or_step":"Feature-align background and inspect difference","result":"fail","evidence_path":"raw/difference_crop.jpg","notes":"Difference residue did not encode the flag."},
+    {"t":"2026-08-01T09:10:06+07:00","phase":"EXPLOIT","hypothesis_id":"H1","action":"Brute common offline grid traversals","command_or_step":"Run row, column, serpentine and rotation candidates","result":"fail","evidence_path":"raw/decode_grid.py","notes":"Final bounded QR attempt; path abandoned."},
+    {"t":"2026-08-01T09:17:43+07:00","phase":"EXPLOIT","hypothesis_id":"H4","action":"Parse Svelte DOM cells and CSS media queries","command_or_step":"Map square-N selectors to characters in clue order","result":"success","evidence_path":"raw/route_node_22.js","notes":"Segments: bushbash, alWaY$, quEsTi0N, yoUR, m3d1a!."},
+    {"t":"2026-08-01T09:19:00+07:00","phase":"VERIFY","hypothesis_id":"H4","action":"Run deterministic offline solver","command_or_step":"python solve/solve.py and preserve the literal hyphens drawn between inner runes","result":"success","evidence_path":"raw/solver_stdout.txt","notes":"Corrected output exactly matches final_flag.txt; the earlier direct concatenation omitted three visible delimiters."},
+    {"t":"2026-08-01T09:17:43+07:00","phase":"WRITEUP","hypothesis_id":"STACK","action":"Check HexStrike API health without scanners","command_or_step":"GET http://127.0.0.1:8888/health","result":"partial","evidence_path":"raw/hexstrike_health.json","notes":"API healthy, only 4/127 tools and 0/8 essential tools available."}
+  ]
+}

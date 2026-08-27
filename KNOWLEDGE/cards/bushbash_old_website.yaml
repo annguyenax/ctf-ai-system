@@ -1,0 +1,37 @@
+id: bushbash_old_website
+event: BushBash2026
+category: web/nextjs-server-actions-rce
+challenge_name: Old website
+status: solved
+flag: "bushbash{youWillNeverCatchMe!IDugATunnelOut}"
+confidence: 1.0
+signals:
+  - Next.js App Router headers and behavior
+  - challenge build matched a Server Actions advisory
+key_idea: match the exact framework build to the relevant Server Actions advisory, then reproduce the protocol flaw against the scoped challenge
+prerequisites:
+  - Next.js App Router and React Server Components basics
+  - multipart/React Flight protocol inspection
+exploitation_pattern: fingerprint exact build -> verify affected range and feature -> harmless differential -> scoped flag-read PoC -> preserve request/response
+verification:
+  method: scoped server response and event solve evidence
+  evidence: OUTPUT/bushbash_old_website/raw/
+pitfalls:
+  - selecting a CVE from headers without version/configuration match
+  - confusing unrelated Next.js router and middleware advisories
+  - storing antivirus-triggering PoC payloads in always-loaded documentation
+failed_paths: []
+tools:
+  - curl
+  - browser
+  - python
+hexstrike:
+  used: false
+  useful: false
+  notes: exact local/manual reproduction was sufficient
+sources: []
+playbook: PLAYBOOKS/web_nextjs_server_actions_rce.md
+writeup: ../CTFTimeWriteup/BushBash2026/web/Old website/writeup/writeup.md
+solver: ../CTFTimeWriteup/BushBash2026/web/Old website/solve/
+time_heuristic: framework fingerprint plus exact affected version should trigger advisory matching before generic route fuzzing
+last_verified: "2026-08-01"

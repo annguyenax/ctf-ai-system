@@ -1,0 +1,22 @@
+[
+  {
+    "hypothesis": "The poem describes Matariki and its eight children",
+    "result": "confirmed",
+    "evidence": "Waiti=fresh water, Waita=sea, Pohutukawa=dead/eldest, Hiwa=youngest/wishes, Tupuanuku=earth, Ururangi=wind, Waipuna=rain, Tupuarangi=birds/trees"
+  },
+  {
+    "hypothesis": "The ZIP contains hidden/polyglot payloads or useful PNG metadata",
+    "result": "rejected",
+    "evidence": "HexStrike file/unzip/binwalk/exiftool showed three ordinary members and no useful metadata"
+  },
+  {
+    "hypothesis": "Nearest bright-star centroid always owns the nearest red label",
+    "result": "rejected",
+    "evidence": "merged halos and nearby sources caused plausible wrong labels, especially D957 near Electra"
+  },
+  {
+    "hypothesis": "The eight red codes form the bytes.fromhex AES-ECB key in poem order",
+    "result": "confirmed",
+    "evidence": "key F02E029F23582DC829F034681057B7A8 decrypts and unpads to UTF-8 karakia plus the flag"
+  }
+]

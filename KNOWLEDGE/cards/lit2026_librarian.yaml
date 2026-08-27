@@ -1,0 +1,11 @@
+category: pwn
+date: '2026-08-03'
+event: LIT2026
+flag: LITCTF{RET-2-LIBC-Is-sUp3R-4w2S0m3!!!}
+id: lit2026_librarian
+name: librarian
+status: solved
+tags:
+- buffer-overflow
+- ret2libc
+- stack-pivot

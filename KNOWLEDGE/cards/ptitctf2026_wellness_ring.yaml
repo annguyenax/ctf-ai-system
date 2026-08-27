@@ -1,0 +1,46 @@
+id: ptitctf2026_wellness_ring
+event: PTITCTF2026
+category: Pwn
+challenge_name: The Wellness Ring Bypass
+status: solved
+flag: "PTITCTF{h3y_th1s_r1ng_1s_y0ur_c0ngr4tul4t10n_8f9f9eee06eb}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Oura Ring firmware debug menu fwdbg
+  - custom bucket heap + rx-guard sentinel after context alloc
+  - context descriptor OOB into next 0x80 slot
+  - CET IBT+SHSTK note, Full RELRO, glibc 2.39
+key_idea: >
+  Free a 0x80 cache before allocating the context so the live cache occupies
+  context+0x80 (OOB), not the lost rx-guard sentinel. Arbitrary R/W via
+  desc+0x10 pair {src,dest}. House of Apple 2 on stderr; menu 10 returns to
+  exit() flush. Live libc is 2.39-0ubuntu8.8 (puts 0x87cc0) not the zip libc.
+prerequisites:
+  - pwntools FileStructure house of apple 2
+  - glibc 2.39-0ubuntu8.8
+exploitation_pattern: free-list reorder overlap → arb RW → stderr FSOP → exit
+verification:
+  method: remote cat /home/oura/flag.txt after menu 10; PTITCTF{...} then missing /flag.txt
+  evidence: OUTPUT/ptitctf2026_wellness_ring/raw/remote_flag.txt
+pitfalls:
+  - ctx-then-cache hits rx-guard sentinel (64726175672d7872)
+  - menu7 extra deref *(desc+0x10); size must be >= dump len
+  - hex parse must skip fw-sleep-stage-window prefix
+  - zip libc puts 0x87bd0 vs live 0x87cc0
+  - smash stdout breaks printf; smash stderr
+failed_paths:
+  - ROP on libc+0x2a264 (init, not main)
+  - apple2 with bundled 2.39 offsets (unaligned libc base)
+tools:
+  - Python pwntools
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: ""
+writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Pwn\The Wellness Ring Bypass\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\PTITCTF2026\Pwn\The Wellness Ring Bypass\_work\win.py
+time_heuristic: if menu6 is rx-guard, free a same-size cache before context
+last_verified: "2026-08-22"

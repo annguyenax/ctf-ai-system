@@ -1,0 +1,42 @@
+id: l3akctf_rsa_eclipse
+event: L3akCTF2026
+category: crypto/rsa-near-power-of-two
+challenge_name: RSA Eclipse
+status: solved
+flag: "L3AK{Th3_P3numbr4_H1d35_Th3_Fl4w_In_Th3_Mers3nne_V01d}"
+confidence: 1.0
+artifact_hashes:
+  - "sha256:b84b7e1d6c7f6b5d6dca558f7b9e0bae2d3f503f0ec228d2bb978a7e502c0c3e"  # crypto_rsa-eclipse.tar.gz
+signals:
+  - unbalanced primes (607-bit and 521-bit) -> Fermat won't work
+  - N in hex shows long runs of 0xFF then 0x00 (near 2^1128)
+  - primes shaped p=2^607-a, q=2^521-b with tiny a,b
+key_idea: >
+  Mersenne-void primes. p=2^607-a, q=2^521-b => N = 2^1128 - b*2^607 - a*2^521 + a*b.
+  a*b = N mod 2^521 (tiny, exact); b = (2^1128 - N) >> 607; a = a*b/b. Rebuild p,q, decrypt.
+prerequisites:
+  - rsa
+  - modular-arithmetic
+  - binary-structure-inspection
+exploitation_pattern: view N in hex -> spot near-power-of-2 -> N mod 2^bq = a*b, top of 2^(bp+bq)-N = b -> factor -> RSA decrypt
+verification:
+  method: p*q == N exact + clean ASCII flag with L3AK{} framing
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Crypto/RSA Eclipse/solve/evidence/manifest.md
+pitfalls:
+  - trying Fermat on unbalanced primes (they are far apart, ~2^86)
+  - trusting a pre-existing solve/ stub (old one only built pub.key)
+failed_paths:
+  - ECM/general factoring (521-bit factor too large)
+tools:
+  - python
+  - sympy
+hexstrike:
+  used: false
+  useful: false
+  notes: pure structural math
+sources: []
+playbook: PLAYBOOKS/crypto_rsa_near_power_of_two.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Crypto/RSA Eclipse/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Crypto/RSA Eclipse/solve/solve.py
+time_heuristic: "RSA + N all-0xFF at top -> assume 2^n-k primes, ~2 min"
+last_verified: "2026-08-02"

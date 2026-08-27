@@ -1,0 +1,10 @@
+{
+  "challenge_id": "lit2026_faulty_image_2",
+  "flag_status": "verified",
+  "attempts": [
+    {"t":"2026-08-03T20:20:00","phase":"TRIAGE","hypothesis_id":"H1-chunks","action":"Enumerate chunks + CRC","result":"IDAT ok; tEXt ok; custom tIGr CRC WRONG; IEND ok","evidence_path":"OUTPUT/lit2026_faulty_image_2/raw/notes.txt","notes":"Bad-CRC custom chunk = hidden data"},
+    {"t":"2026-08-03T20:22:00","phase":"TEST","hypothesis_id":"H1-chunks","action":"Render IDAT","result":"decoy image 'Nothing here lol!'","evidence_path":"OUTPUT/lit2026_faulty_image_2/raw/notes.txt","notes":"Flag not in pixels"},
+    {"t":"2026-08-03T20:24:00","phase":"EXPLOIT","hypothesis_id":"H2-xor","action":"tEXt key 'codetiger'; XOR tIGr[4:] (skip len prefix)","result":"LITCTF{c0d3t1g3r_w4s_h3r3_x0r!}","evidence_path":"OUTPUT/lit2026_faulty_image_2/raw/notes.txt","notes":"len prefix 0x20=32"},
+    {"t":"2026-08-03T20:25:00","phase":"VERIFY","hypothesis_id":"H2-xor","action":"round-trip re-XOR","result":"reproduces tIGr body; ends with }","evidence_path":"OUTPUT/lit2026_faulty_image_2/raw/notes.txt","notes":"strong"}
+  ]
+}

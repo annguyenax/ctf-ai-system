@@ -1,0 +1,24 @@
+{
+  "challenge_id": "l3akctf_rsa_eclipse",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-02T00:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-near-power-of-two",
+      "action": "view N in hex",
+      "result": "long 0xFF runs -> primes near 2^607 and 2^521",
+      "evidence_path": "OUTPUT/l3akctf_rsa_eclipse/raw/output.txt",
+      "notes": "unbalanced -> Fermat not applicable"
+    },
+    {
+      "t": "2026-08-02T00:01:00Z",
+      "phase": "EXPLOIT+VERIFY",
+      "hypothesis_id": "H1-near-power-of-two",
+      "action": "a*b=N mod 2^521=4895451; b=(2^1128-N)>>607=1749; a=2799; p=2^607-a; q=2^521-b; RSA decrypt",
+      "result": "p*q==N True; flag L3AK{Th3_P3numbr4_H1d35_Th3_Fl4w_In_Th3_Mers3nne_V01d}",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Crypto/RSA Eclipse/solve/solve.py",
+      "notes": "verified"
+    }
+  ]
+}

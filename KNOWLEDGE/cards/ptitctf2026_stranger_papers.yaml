@@ -1,0 +1,46 @@
+id: ptitctf2026_stranger_papers
+event: PTITCTF2026
+category: crypto/monoalphabetic-substitution
+challenge_name: Stranger Papers
+status: solved
+flag: "PTITCTF{21.0286_105.8356}"
+confidence: 0.8
+artifact_hashes:
+  - "Stranger Papers.zip sha256: 676c0c1983a0a34efc910add08d62ae7c866585ce023d8489cf579b023ac90bd"
+signals:
+  - 502 photos (455 jpg + 47 HEIC) but only 22 unique SHA256 hashes
+  - filename order 1..502 gives a 502-symbol sequence over 22 glyphs
+  - each unique glyph is a large handwritten letter on blintz-folded paper (only corner stroke fragments visible)
+  - Index of Coincidence 0.078 (too high for English 0.066, matches Vietnamese-without-diacritics)
+  - 22 symbols == the 22-letter Vietnamese alphabet without diacritics (no f/j/w/z)
+key_idea: The plaintext is VIETNAMESE (diacritics stripped, spaces removed), not English. English quadgram/dictionary solvers collapse into a spurious AND/AND/AND local optimum; a Vietnamese char-quadgram model + simulated annealing cracks it directly.
+prerequisites:
+  - Vietnamese text corpus (vi.wikipedia.org, diacritics removed)
+  - char-quadgram log-probabilities + simulated annealing
+exploitation_pattern: Hash-dedupe photos -> 502-symbol ciphertext -> anneal the 22-glyph substitution against a Vietnamese quadgram model -> read the recovered paragraph -> recognise Van Mieu - Quoc Tu Giam -> its coordinates are the flag.
+verification:
+  method: Deterministic replay (Vietnamese quadgram SA converges to the same coherent paragraph across restarts); landmark phrases (Khue Van Cac, turtle steles, tam quan, hieu hoc) are exact. Flag coordinates NOT scoreboard-verified.
+  evidence: OUTPUT/ptitctf2026_stranger_papers/raw/plaintext_vi.txt
+pitfalls:
+  - Assuming English: IC and the 22-glyph count both point to Vietnamese, not English.
+  - Treating EXIF GPS (21.2792,105.7208 and 21.00845,105.81793) as the answer — those are the photographers' locations.
+  - Trying to read the folded glyphs visually — the substitution is broken statistically, no unfolding needed.
+failed_paths:
+  - English quadgram / trigram / char-4gram SA (word-salad local optimum)
+  - quipqiup / word-pattern dictionary backtracking (assumed English)
+  - reversing / even-odd split transpositions
+  - vision models on folded glyphs (fold pattern confuses letter recognition)
+tools:
+  - Python 3
+  - requests (vi.wikipedia scraping)
+hexstrike:
+  used: false
+  useful: false
+  notes: No network scanner was relevant.
+sources:
+  - "https://latitude.to/map/vn/vietnam/cities/ha-djong/articles/10069/temple-of-literature-hanoi - Temple of Literature coordinates 21.0286, 105.8356"
+playbook: ""
+writeup: D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/Stranger Papers/writeup/writeup.md
+solver: D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/Stranger Papers/solve/solve.py
+time_heuristic: Long; the pivot from English to Vietnamese is the whole puzzle.
+last_verified: "2026-08-22"

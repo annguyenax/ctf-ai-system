@@ -1,0 +1,16 @@
+{
+  "challenge_id": "REPLACE",
+  "flag_status": "none",
+  "attempts": [
+    {
+      "t": "YYYY-MM-DDTHH:MM:SSZ",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "",
+      "command_or_step": "",
+      "result": "partial",
+      "evidence_path": "raw/",
+      "notes": ""
+    }
+  ]
+}

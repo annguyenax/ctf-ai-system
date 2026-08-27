@@ -1,0 +1,40 @@
+id: ptitctf2026_winux
+event: PTITCTF2026
+category: Reverse
+challenge_name: Winux
+status: solved
+flag: "PTITCTF{1_7h1nk_y0u_kn0w_h0w_70_cr4ck_p1r473d_50f7w4r3_R19H7???}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - PE fake Linux distro Winux 24.04 LTS
+  - WUX2 rootfs plus winuxsvc.dll
+  - per-character SHA256 proofs winux:char:v3
+key_idea: >
+  The 64-byte package key checked in WnxService is the flag.
+  Each byte is SHA256("winux:char:v3" || le32(i) || salt16[i] || (key[i]^pad[i]))
+  against an embedded 32-byte digest. Brute independently.
+prerequisites:
+  - Capstone x64
+  - hashlib.sha256
+exploitation_pattern: dump rdata tables → 64 independent SHA256 brute
+verification:
+  method: all 64 SHA256 iovecs recomputed from PE rdata match
+  evidence: OUTPUT/ptitctf2026_winux/raw/sha256_proofs.txt
+pitfalls:
+  - decrypting WUX2 records with AES/XOR of SHA256(key) (garbage)
+  - Admin recovery shell still needs the package key
+failed_paths:
+  - AES-ECB/CBC and repeating-XOR of WUX2 blobs
+tools:
+  - Python + Capstone + pefile
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: PLAYBOOKS/rev_strings_password.md
+writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Winux\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Winux\solve\crack_key.py
+time_heuristic: follow corrupted-package-key string into per-char hash, do not unpack rootfs first
+last_verified: "2026-08-22"

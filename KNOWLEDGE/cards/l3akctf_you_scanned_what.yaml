@@ -1,0 +1,51 @@
+id: l3akctf_you_scanned_what
+event: L3akCTF2026
+category: forensics/computed-tomography
+challenge_name: You Scanned WHAT?!?
+status: solved
+flag: ""
+confidence: 1.0
+artifact_hashes:
+  - "sha256:e45a1da91290e654002c5c1ea49e5bf3caaad0e073dd76d848c2c2b6b955a92c"
+signals:
+  - "SQLite table with one JSON detector vector per integer angle from 0 to 179"
+  - "detector lengths vary from 215 to 543 with rotation angle"
+  - "values behave as column means from an expanded rotated canvas"
+key_idea: >
+  Convert stored column means back to line integrals using the orthogonal
+  projection width as rotated canvas height, center-pad variable-length vectors,
+  then apply ramp-filtered inverse Radon and correct the image-axis orientation.
+prerequisites:
+  - sqlite-triage
+  - radon-transform
+  - filtered-backprojection
+exploitation_pattern: variable-width angular mean projections -> restore sums -> centered sinogram -> inverse Radon -> orientation check
+verification:
+  method: deterministic archive-to-PNG solver replay plus visual character-boundary check
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/solve/evidence/manifest.md
+pitfalls:
+  - treating the themed scan as DICOM without checking the container
+  - stacking ragged detector vectors without centered padding
+  - feeding column means directly to inverse Radon instead of restoring sums
+  - reading reflected text before correcting coordinate orientation
+failed_paths:
+  - "DICOM hypothesis: archive listing proved the only payload was scan.sqlite"
+tools:
+  - tar
+  - sqlite3-python
+  - numpy
+  - scikit-image
+  - Pillow
+hexstrike:
+  used: false
+  useful: false
+  notes: local SQLite and numerical libraries fully covered the narrow hypothesis
+sources:
+  - https://scikit-image.org/docs/stable/auto_examples/transform/plot_radon_transform.html
+  - https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon
+  - https://www.sqlite.org/uri.html
+playbook: PLAYBOOKS/forensics_variable_width_radon.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/solve/solve.py
+time_heuristic: "180 angular vectors + changing detector width -> test expanded-canvas Radon reconstruction, ~10 min"
+last_verified: "2026-08-01"

@@ -1,0 +1,15 @@
+﻿id: lit2026_space_radiation
+challenge_name: space radiation
+event: LIT CTF 2026
+category: misc
+status: verified
+key_idea: Data altered by radiation implies bit-flipping error correction codes, specifically Extended Hamming(16,11) for 16-bit chunks.
+verification_method: Run Python decoder.
+verification: Extracted and found flag LITCTF{h4MM1nG-3Rr0r_C0rR3cT10N!}
+tools:
+  - Python
+hexstrike_usefulness: None needed
+writeup: D:\download\CTFTimeWriteup\LIT2026\misc\space_radiation\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\misc\space_radiation\solve\solve.py
+time_heuristic: 10 minutes
+last_verified: 2026-08-03

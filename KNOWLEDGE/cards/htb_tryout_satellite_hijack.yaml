@@ -1,0 +1,11 @@
+id: htb_tryout_satellite_hijack
+name: "Satellite Hijack"
+category: "Reversing"
+event: "HTB Try Out"
+state: "solved"
+flag: "HTB{l4y3r5_0n_l4y3r5_0n_l4y3r5!}"
+lessons:
+  - "Import of memfrob(3) = XOR 42; strong tell for runtime self-modifying unpack (mmap RWX + memcpy .text + memfrob)."
+  - "getenv() used as a decrypt gate (env var name built by decrementing bytes of constants, e.g. SAT_PRODENVIRONMENT)."
+  - "For PIE where .text vaddr == file offset, decode in-file (byte[i]^42) and disassemble instead of running dynamically."
+  - "Check form input[i] XOR key[i] == i  =>  recover inner[i] = key[i] ^ i; key sits as movabs constants overlapped on the stack."

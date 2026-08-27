@@ -1,0 +1,40 @@
+id: ptitctf2026_mmo
+event: PTITCTF2026
+category: Reverse
+challenge_name: MMO
+status: solved
+flag: "PTITCTF{https://raw.githubusercontent.com/HungHT1890/free_proxy_list_api/refs/heads/main/api.json}"
+confidence: 1.0
+artifact_hashes:
+  - sha256:5cbe2adb59cde80413b5a248f52ed30fca4071c425862ca2f9df50f672a25890 files/main.exe
+signals:
+  - Nuitka onefile NUITKA_ONEFILE_PARENT
+  - RT_RCDATA 27 KAY zstd
+  - PyQt5 proxy checker hunght1890
+key_idea: >
+  Unpack Nuitka onefile RCDATA/27 (KAY+zstd) and take the inner
+  ProxyChecker.get_config_api URL, not api.myip.com.
+prerequisites:
+  - Python zstandard
+  - PE resource parse
+exploitation_pattern: extract KAY+zstd archive → strings inner main.exe
+verification:
+  method: literal ASCII URL in unpacked/main.exe at 0x1073380
+  evidence: OUTPUT/ptitctf2026_mmo/raw/url_hit.txt
+pitfalls:
+  - confusing live-check api.myip.com with the proxy-list API
+  - Nuitka leading u on unicode constants
+failed_paths:
+  - PyInstaller extract
+tools:
+  - Python pe/zstandard
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: PLAYBOOKS/rev_strings_password.md
+writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\MMO\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\MMO\solve\README.md
+time_heuristic: unpack then strings, skip GUI
+last_verified: "2026-08-22"

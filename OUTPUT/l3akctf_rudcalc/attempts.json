@@ -1,0 +1,33 @@
+{
+  "challenge_id": "l3akctf_rudcalc",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-02T02:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-bignum-canary",
+      "action": "disasm run(); locate bignum/len/canary/return offsets; checksec",
+      "result": "PIE+canary+NX+RELRO; canary=limb97,98; return=limb101,102; win=0x1289; ret_into_main=0x1a9b",
+      "evidence_path": "OUTPUT/l3akctf_rudcalc/raw/run_transcript.txt",
+      "notes": "value-controlled bignum write to return is infeasible; need scanf write + leak"
+    },
+    {
+      "t": "2026-08-02T02:10:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2-scanf-null-and-len-leak",
+      "action": "leak: set len=103 -> to_base_10 prints stack; parse canary+ret. write: scanf-null overwrite canary+win",
+      "result": "leak self-consistent (canary LSB 0, ret&0xfff==0xa9b); wrote canary+win",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/pwn/Rudimentary Calculator/solve/exploit.py",
+      "notes": "reconnect if canary/win bytes include whitespace"
+    },
+    {
+      "t": "2026-08-02T02:12:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2-scanf-null-and-len-leak",
+      "action": "quit -> ret to win() on live instance",
+      "result": "FLAG L3AK{s3Arch_f0r_Sm0otH} (attempt 0)",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/pwn/Rudimentary Calculator/solve/evidence/run_transcript.txt",
+      "notes": "verified end-to-end against official server"
+    }
+  ]
+}

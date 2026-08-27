@@ -1,0 +1,33 @@
+{
+  "challenge_id": "l3akctf_babylcg",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-01T00:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-known-modulus-lcg",
+      "action": "Extract tar.gz; read chall.py + output.txt",
+      "result": "LCG state=(a*state+c)%m; output leaks m,s0,s1,s2,ct; 4th output XORed with flag",
+      "evidence_path": "OUTPUT/l3akctf_babylcg/raw/output.txt",
+      "notes": "3 consecutive outputs + known m => recover a,c by diff of recurrences"
+    },
+    {
+      "t": "2026-08-01T00:01:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1-known-modulus-lcg",
+      "action": "a=(s2-s1)*inv(s1-s0) mod m; c=s1-a*s0; key=a*s2+c; flag=ct^key",
+      "result": "flag = L3AK{n3v3r_trU5t_b4s1c_LCG5_frfr}",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/BabyLCG/solve/solve.py",
+      "notes": "both LCG recurrence asserts pass"
+    },
+    {
+      "t": "2026-08-01T00:02:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1-known-modulus-lcg",
+      "action": "Re-run solver independently; check ASCII framing and length",
+      "result": "clean ASCII, correct L3AK{} framing, 33 bytes matching FLAG placeholder",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/BabyLCG/solve/evidence/manifest.md",
+      "notes": "verified; deterministic replay"
+    }
+  ]
+}

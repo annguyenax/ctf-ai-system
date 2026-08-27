@@ -1,0 +1,24 @@
+{
+  "challenge_id": "bushbash_xored",
+  "status": "solved",
+  "flag": "bushbash{to-x0r-or-nOt-To-Xor}!",
+  "attempts": [
+    {
+      "phase": "TRIAGE",
+      "action": "read encrypt.py + flag.enc length",
+      "result": "success",
+      "notes": "repeating XOR, 31 bytes"
+    },
+    {
+      "phase": "EXPLOIT",
+      "action": "known-plaintext prefix bushbash recover 8-byte key",
+      "result": "success",
+      "notes": "key 3a3bebb319914818"
+    },
+    {
+      "phase": "VERIFY",
+      "action": "re-encrypt match flag.enc",
+      "result": "success"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+id: htbtryout_router_web
+event: HTB TryOut
+category: pwn
+challenge_name: Router Web
+status: needs_verification
+flag: ""
+confidence: 0.8
+signals: ["ARM32 Buildroot QEMU versatilepb port 31337", "Crow router-web-panel", "hardcoded admin:router123", "ping_handler -> execCommand -> popen", "dev_mode_enabled gate"]
+key_idea: "Basic auth admin:router123 -> enable dev mode via config subsystem -> POST /admin/ping ip='127.0.0.1; cat flag.txt' (popen shell injection)."
+exploitation_pattern: "OS command injection via popen; hardcoded firmware creds"
+verification: {method: "static (ext2 extract + capstone)", evidence: "execCommand@0x1ffec calls popen; ping_handler@0x66c68 concatenates POST ip into 'ping -c 1 '; flag /opt/router-web-panel/flag.txt"}
+pitfalls: ["service runs as rweb not root", "must flip dev_mode_enabled(0x85654) first"]
+tools: [python-ext2-reader, capstone]
+writeup: "HTB-TryOut/pwn/Router Web/writeup/writeup.md"
+solver: "HTB-TryOut/pwn/Router Web/solve/solve.py"
+last_verified: "2026-08-19"

@@ -1,0 +1,41 @@
+id: l3akctf_me_fr
+event: L3akCTF2026
+category: misc/keyboard-shift-cipher
+challenge_name: me fr
+status: solved
+flag: "L3AK{WHY_D0_1_dO_TH1S_s0_0f73N...}"
+confidence: 1.0
+artifact_hashes:
+  - "sha256:f927e419925139b6680de3884333dfb4dbdd0795b9a3ff6ae90f3d00b277891a"  # me_fr.txt
+signals:
+  - "near-English text where each wrong letter is a physically-adjacent QWERTY key"
+  - prompt references monkeytype / typing
+  - right-hand keys shifted one column right (j=h, o=i, m=n, l=k)
+key_idea: >
+  Keyboard shift cipher. Right hand typed one key to the right on QWERTY; decode
+  by mapping each right-hand key to the key one column to its LEFT on the same
+  physical row, preserving shift state. Left hand / digits 1-5 / space unchanged.
+prerequisites:
+  - qwerty-layout
+  - substitution-cipher
+exploitation_pattern: detect adjacent-key typos -> build QWERTY shift map (both shift layers) -> apply -> read plaintext + flag
+verification:
+  method: single substitution decodes BOTH coherent English prose AND the flag consistently
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/me fr/solve/evidence/manifest.md
+pitfalls:
+  - wrong shift direction (left vs right hand)
+  - forgetting number row + punctuation/shift layer (e.g. '|'->'}', '+'->'_')
+  - treating '...' in flag as a redaction placeholder (it is literal, from '///')
+failed_paths: []
+tools:
+  - python
+hexstrike:
+  used: false
+  useful: false
+  notes: trivial offline substitution
+sources: []
+playbook: PLAYBOOKS/misc_keyboard_shift_cipher.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/me fr/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/me fr/solve/solve.py
+time_heuristic: "near-English with adjacent-key typos -> QWERTY shift ±1, ~3 min"
+last_verified: "2026-08-01"

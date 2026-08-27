@@ -1,0 +1,55 @@
+id: l3akctf_transrenov
+event: L3akCTF2026
+category: forensics/windows-jumplists
+challenge_name: Transcendent Renovation
+status: needs_verification
+flag: ""
+confidence: 0.85
+artifact_hashes:
+  - "sha256:82b2d7c18545b83a7975cbb6dc427692dc3ecba17b6cca3e0de3dd8a5e880549"  # TranscendentRenovation.zip
+signals:
+  - Windows Jump Lists (*.automaticDestinations-ms = OLE compound file)
+  - unknown Desktop folder NoNeedToWonder
+  - ncat --ssl Q&A service gates the flag on 7 answers
+  - "\\tsclient\\ share -> folder arrived via RDP redirected drive"
+key_idea: >
+  Parse the Explorer jump list (f01b4d95...automaticDestinations-ms) with olefile.
+  DestList maps the NoNeedToWonder entry to numbered stream 46 (a LNK). The LNK's
+  TrackerDataBlock gives hostname (logging-vm) and DroidFileId GUID; LinkInfo/share
+  gives \\tsclient\HauntedHouse; the overwritten LNK remnant in the same stream holds
+  the pre-rename name SoulSearch.
+prerequisites:
+  - ole-compound-file
+  - lnk-shell-link
+  - jumplist-destlist
+  - distributed-link-tracking-droid
+answers:
+  q1_format: "OLE CF"
+  q2_file: "f01b4d95cf55d32a.automaticDestinations-ms"
+  q3_share: "\\tsclient\\HauntedHouse"
+  q4_stream: "46"
+  q5_filedroid_guid: "ec2ab952-7e4d-11f1-89ad-a2dead7852ad"
+  q6_hostname: "logging-vm"
+  q7_original_name: "SoulSearch (forensic) - REJECTED by service, unresolved"
+verification:
+  method: "live ncat service accepted 6/7; flag gated on all 7. Q7 unresolved."
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/Transcendent Renovation/solve/evidence/manifest.md
+pitfalls:
+  - "answer format matters: droid GUID lowercase no-braces; format is 'OLE CF' not 'CDF V2'"
+  - "DestList entry droid fields are offset ~8 bytes vs the LNK TrackerDataBlock; trust the tracker"
+  - "OLE streams are not truncated on shorter overwrite -> old LNK tail (rename remnant) persists"
+next_actions:
+  - "resolve Q7 'original name': service rejects SoulSearch/NoNeedToWonder/HauntedHouse + all variants; confirm author's expected string"
+tools:
+  - python
+  - olefile
+hexstrike:
+  used: false
+  useful: false
+  notes: manual OLE/LNK parsing
+sources: []
+playbook: PLAYBOOKS/forensics_windows_jumplist.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/Transcendent Renovation/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/Transcendent Renovation/solve/solve.py
+time_heuristic: "jumplist -> olefile DestList -> stream LNK -> TrackerDataBlock for host/droid"
+last_verified: "2026-08-01"

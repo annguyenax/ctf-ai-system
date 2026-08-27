@@ -1,0 +1,16 @@
+id: htbtryout_debug
+event: HTB TryOut
+category: hw
+challenge_name: Debug
+status: solved
+flag: "HTB{547311173_n37w02k_c0mp20m153d}"
+confidence: 1.0
+signals: ["hw_debug.sal = Saleae Logic 2 capture (zip: meta.json + digital-N.bin)", "25 MS/s, 2 digital ch TX/RX", "internal digital format type=100", "min bit period ~8.68us -> 115200 baud"]
+key_idea: "Open .sal in Logic 2, add Async Serial analyzer on the serial channel (8N1 @115200), read boot log; flag = HTB{satellite_network_compromised} in leetspeak."
+exploitation_pattern: "logic-analyzer UART capture -> Async Serial decode 8N1 115200"
+verification: {method: "flag submitted, accepted", evidence: "HTB{547311173_n37w02k_c0mp20m153d}; 547311173=SATELLITE"}
+pitfalls: ["digital-N.bin internal type=100 (mipmap), not the documented type-0 export; easiest path is Logic 2 GUI", "baud from smallest bit width ~8.68us"]
+tools: ["Saleae Logic 2", python]
+writeup: "HTB-TryOut/hw/Debug/writeup/writeup.md"
+solver: "HTB-TryOut/hw/Debug/solve/solve.py"
+last_verified: "2026-08-20"

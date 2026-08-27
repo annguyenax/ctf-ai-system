@@ -1,0 +1,37 @@
+{
+    "challenge_id": "bushbash_vault3",
+    "status": "solved",
+    "flag": "bushbash{th1rd-times-th3-chArM!}",
+    "attempts": [
+        {
+            "phase": "TRIAGE",
+            "action": "hex header + strings vault",
+            "result": "success",
+            "notes": "ELF64 PIE, no plaintext password, 'Securely storing password in memory' hint"
+        },
+        {
+            "phase": "TRIAGE",
+            "action": "objdump -d -M intel full disassembly (stripped, ~14KB, no symbols)",
+            "result": "success",
+            "notes": "found custom sbrk pool allocator; password loaded via fopen/fread into a pool chunk"
+        },
+        {
+            "phase": "HYPOTHESIS",
+            "hypothesis_id": "H1",
+            "action": "freelist reuse ignores original chunk size -> write() overflow reaches adjacent chunks",
+            "result": "success"
+        },
+        {
+            "phase": "EXPLOIT",
+            "action": "write() with 144 bytes filler + chosen password + embedded NUL + newline, overflowing decoy chunks A,B into password chunk C",
+            "result": "success",
+            "evidence_path": "solve/solve.py"
+        },
+        {
+            "phase": "VERIFY",
+            "action": "auth with chosen password against live remote 34.40.133.67:6002",
+            "result": "success",
+            "notes": "printed flag.txt content: bushbash{th1rd-times-th3-chArM!}"
+        }
+    ]
+}

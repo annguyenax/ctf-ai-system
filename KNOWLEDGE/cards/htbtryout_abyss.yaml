@@ -1,0 +1,17 @@
+id: htbtryout_abyss
+event: HTB TryOut
+category: pwn
+challenge_name: Abyss
+status: needs_verification
+flag: ""
+confidence: 0.85
+signals: [".creds random 15:15 per deploy", "unbounded non-NUL copy in cmd_login", "loop counter i on stack in write path", "cmd_read arbitrary file read gated by logged_in"]
+key_idea: "Overwrite loop index i so copy jumps over saved RBP and partially overwrites cmd_login ret with 0x4014eb (inside cmd_read after skipping the logged_in load) -> arbitrary read of flag.txt."
+exploitation_pattern: "self-modifying loop-counter overflow -> partial ret overwrite -> auth-check skip"
+verification: {method: "faithful copy-loop simulator", evidence: "RET->0x4014eb with USER=b'a'*17+0x1c+b'k'*11+b'\xeb\x14\x40', PASS=b'b'*507"}
+pitfalls: ["single linear 512-read cannot reach ret; frame sized to prevent it", "eax nonzero at 0x4014eb makes jne bypass logged_in"]
+tools: [objdump, capstone, python]
+writeup: "HTB-TryOut/pwn/Abyss/writeup/writeup.md"
+solver: "HTB-TryOut/pwn/Abyss/solve/solve.py"
+sources: ["https://blog.ukatemi.com/blog/2024-05-17-hackthebox-business-pwn-abyss/"]
+last_verified: "2026-08-19"

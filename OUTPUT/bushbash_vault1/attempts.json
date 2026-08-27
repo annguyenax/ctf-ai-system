@@ -1,0 +1,10 @@
+{
+  "challenge_id": "bushbash_vault1",
+  "status": "solved",
+  "flag": "bushbash{th1s-is-just-th3-beginning!}",
+  "password": "th3M0ssM4ni5h3re,y0uc4ntcatchm3",
+  "attempts": [
+    {"phase": "TRIAGE", "action": "file + strings vault", "result": "success"},
+    {"phase": "EXPLOIT", "action": "nc :7776 submit rodata password", "result": "success"}
+  ]
+}

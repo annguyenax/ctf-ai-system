@@ -1,0 +1,15 @@
+id: htb_tryout_omniwatch
+name: "OmniWatch"
+category: "Web"
+event: "HTB Try Out"
+state: "solved"
+difficulty: "hard"
+flag: "HTB{h3110_41w4y5_i_s3e_y0u4nd_1m_w4tch1ng_01df607f55a36f0a4512e62e8fa22a28}"
+lessons:
+  - "Architecture from source: Varnish cache (1337) -> Flask controller (3000) + Zig oracle (4000); flag readable only via setuid /readflag at /controller/admin for account_type=administrator."
+  - "CRLF injection: reflected value copied into a response header without stripping CR/LF => inject arbitrary headers."
+  - "Varnish cache poisoning: vcl_hash keyed only on req.http.CacheKey => inject Content-Type:text/html + CacheKey to plant arbitrary HTML in a cache slot (~10s)."
+  - "No container egress => exfil IN-BAND: poison an 'absent' slot with a fake login, Selenium bot types moderator creds, JS base64s them into a second slot (own CacheKey) you can read."
+  - "Header absent != empty: you must poison the slot for the ABSENT CacheKey, not an empty one."
+  - "LFI via firmware patch=/app/jwt_secret.txt -> secret -> forge HS256 admin JWT."
+  - "Stacked SQLi where middleware compares str != bytes: insert signature as a '...' STRING literal, NOT 0x-hex (hex returns bytes and the str!=bytes check always fails)."

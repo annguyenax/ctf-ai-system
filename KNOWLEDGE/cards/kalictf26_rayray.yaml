@@ -1,0 +1,28 @@
+id: kalictf26_rayray
+event: Kali Team CTF 26
+challenge: rayray
+category: pwn
+technique: glibc-srand-time-predict
+status: solved-local
+signals:
+  - "random pattern" / hidden block / many slots
+  - PLT: srand, rand, time, fgets, snprintf
+  - asks for index/block number after filling array
+  - flag written into one of N cells via fgets
+decision:
+  primary: predict glibc rand()%N after srand(time(NULL))
+  reject_early:
+    - stack BOF when read length is tiny
+    - brute force N when N is large without PRNG model
+recipe:
+  - reimplement glibc TYPE_3 srandom/random (not Python random)
+  - selftest srand(1)->1804289383
+  - seed window [now-1, now+1]
+  - send predicted index
+verify:
+  - output contains DATA: and flag format
+  - pure python PRNG matches challenge libc for fixed seeds
+reusable: true
+related:
+  - SKILLS/PWN.md
+  - cards/kalictf26_warmy.yaml

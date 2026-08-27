@@ -1,0 +1,51 @@
+id: ptitctf2026_son_tung_mtp
+event: PTITCTF2026
+category: forensics/audio-spectrogram
+challenge_name: "Sơn Tùng M-TP"
+status: unsolved
+flag: ""
+confidence: 0.0
+artifact_hashes:
+  - "sha256:40d74ae84433c3c28579b117b3709231bf444e92905bffa996bc06e1c1b2d5cd"
+  - "sha256:01a78ea1b28d71ca2b955d11048427e3acfe4d72ce6cfb15eb7e7581204dc713"
+signals:
+  - "48 kHz stereo PCM music with a clean RIFF container"
+  - "time-localized high-energy glyphs at 1.7-19.2 s and 15.2-18.85 kHz"
+  - "raw strings and low bit-plane scans negative"
+key_idea: "Ultrasonic spectrogram is a planted decoy (n1c3_try_ju57_try_h4rd3r_i_gu355). Cover is Hãy Trao Cho Anh. Real flag not recovered."
+prerequisites:
+  - RIFF/WAV triage
+  - short-time Fourier transform
+  - spectrogram reading
+exploitation_pattern: "WAV + attempt limit -> spectrogram 'try harder' is decoy -> identify cover song -> subtract -> hunt second layer"
+verification:
+  method: "unsolved; spectrogram independently readable as decoy on original and on residual after Hãy Trao Cho Anh subtract"
+  evidence: "../CTFTimeWriteup/PTITCTF2026/Forensics/Sơn Tùng M-TP/solve/evidence/manifest.md"
+pitfalls:
+  - "listening alone misses the ultrasonic message"
+  - "deep LSB/carving is unnecessary after a localized spectral anomaly appears"
+  - "submitting spectrogram text when it reads 'nice try / try harder'"
+  - "misreading n1c3_try_ju57 as N0T_JUST_MUSIC"
+failed_paths:
+  - "accepting spectrogram decoy as flag"
+  - "RIFF metadata/custom chunks/trailing data"
+  - "raw flag regex"
+  - "sample bit planes 0 through 3"
+  - "Morse / SSTV / QR / phase"
+  - "YouTube-AAC subtract of Hãy Trao Cho Anh (only decoy remains)"
+tools:
+  - 7-Zip
+  - Python wave
+  - NumPy
+  - SciPy
+  - Pillow
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local DSP was sufficient; no remote scanner or carving capability was needed."
+sources: []
+playbook: PLAYBOOKS/rf_multimode_audio_spectrogram.md
+writeup: "../CTFTimeWriteup/PTITCTF2026/Forensics/Sơn Tùng M-TP/writeup/writeup.md"
+solver: "../CTFTimeWriteup/PTITCTF2026/Forensics/Sơn Tùng M-TP/solve/solve.py"
+time_heuristic: "For a clean 48/96 kHz WAV, overview the entire Nyquist band before deep bit-plane work; crop isolated high-frequency regions."
+last_verified: "2026-08-22"

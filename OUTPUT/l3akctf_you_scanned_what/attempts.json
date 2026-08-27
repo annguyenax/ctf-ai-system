@@ -1,0 +1,42 @@
+{
+  "challenge_id": "l3akctf_you_scanned_what",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-01T13:47:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-dicom",
+      "action": "List the 7z without extraction",
+      "result": "Archive contains only scan.sqlite, not DICOM files",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/files/scan.7z",
+      "notes": "Killed the file-format hypothesis; retained the CT-theme hypothesis"
+    },
+    {
+      "t": "2026-08-01T13:50:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2-radon-projections",
+      "action": "Inspect SQLite integrity, schema, angle coverage, and detector lengths",
+      "result": "quick_check=ok; 180 angles (0..179); JSON vectors match detector_count; widths 215..543",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/solve/solve.py",
+      "notes": "Variable widths match expanded rotation of a rectangular source"
+    },
+    {
+      "t": "2026-08-01T13:55:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2-radon-projections",
+      "action": "Convert column means to line integrals, center-pad, and apply ramp-filtered inverse Radon",
+      "result": "Clear object and flag-shaped text reconstructed after vertical-axis correction",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/solve/evidence/manifest.md",
+      "notes": "No HexStrike or external challenge solution used"
+    },
+    {
+      "t": "2026-08-01T13:58:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2-radon-projections",
+      "action": "Replay the complete solver twice from the original 7z and hash both outputs",
+      "result": "Both PNG files have SHA-256 aabee2bc31d0fca483346ed663ce37e9ecfd2d8b2fff8fc7cabd7bfd9cf2fdba",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/solve/evidence/manifest.md",
+      "notes": "Verified; flag intentionally omitted from the knowledge layer"
+    }
+  ]
+}

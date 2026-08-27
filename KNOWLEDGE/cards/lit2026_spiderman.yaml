@@ -1,0 +1,11 @@
+category: pwn
+date: '2026-08-03'
+event: LIT2026
+flag: LITCTF{p01nt3r-Po1ntEr-wh3re-4rE-y0U}
+id: lit2026_spiderman
+name: spiderman
+status: solved
+tags:
+- buffer-overflow
+- function-pointer
+- ret2win

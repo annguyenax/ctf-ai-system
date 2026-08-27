@@ -1,0 +1,11 @@
+category: pwn
+date: '2026-08-03'
+event: LIT2026
+flag: LITCTF{whY_d1d_7hE_pr1s0ner_ch00s3_th3_w1n_0v3r_7h3_bread?}
+id: lit2026_key
+name: key
+status: solved
+tags:
+- buffer-overflow
+- ret2win
+- stack-alignment

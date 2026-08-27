@@ -1,0 +1,47 @@
+id: lit2026_faulty_image_1
+event: LIT CTF 2026
+category: crypto/png-repair
+challenge_name: faulty_image_1_haha
+status: solved
+flag: "LITCTF{y0u_f1x3d_m3_85hf91j!}"
+confidence: 1.0
+artifact_hashes:
+  - "corrupt.png sha256=0b546ef81de12a5bc74cb35f330fb3ceb319fd95f65cd5dd945b5aaa1854c8f0"
+  - "recovered.png sha256=16167c288f5bbdc3eb1b0a1d1596b5cea0cae22aa842bd598723e869f2643b23"
+signals:
+  - "PNG opens fail; IDAT CRC wrong; zlib 'invalid literal/lengths set'"
+  - "Challenge text repeats 'haha'"
+  - "Bytes 68 61 68 61 ('haha') appear at file offsets 100,204,308,... every 104 bytes"
+key_idea: >
+  Tamper INSERTS a fixed 4-byte marker b'haha' every 100 original bytes (stride
+  104). Reverse by keeping 100 bytes then skipping the 4-byte marker, which
+  restores the original IDAT; it decompresses to 150*(1+400*3)=180150 bytes.
+prerequisites:
+  - PNG chunk structure (IHDR/IDAT/IEND, CRC)
+  - zlib/DEFLATE; raw scanline size = h*(1+w*channels)
+exploitation_pattern: >
+  Locate periodic inserted marker -> strip it on the fixed stride -> reparse IDAT
+  -> zlib.decompress -> rebuild clean PNG -> render to read flag text.
+verification:
+  method: deterministic reconstruction; decompressed size matches exact raw size
+  evidence: "raw len 180150 == 150*(1+400*3); image renders the flag; solver replay identical"
+pitfalls:
+  - "Insertion (reversible) vs overwrite (lossy): equal spacing + fixed marker => insertion."
+  - "Repetitive compressed bytes (e.g. 70836001) can be legit deflate of flat color, not damage."
+  - "Partial zlib decompress yields nothing: a dynamic-Huffman block is atomic; must repair first."
+failed_paths:
+  - "Trying to partial-decompress the corrupt stream (0 output before error)."
+tools:
+  - python
+  - zlib
+  - PIL
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local PNG/zlib repair; no external tooling needed."
+sources: []
+playbook: PLAYBOOKS/crypto_png_inserted_marker_repair.md
+writeup: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_1_haha\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_1_haha\solve\solve.py
+time_heuristic: "<10 min: parse chunks, grep repeated marker, strip on stride, decompress."
+last_verified: "2026-08-03"

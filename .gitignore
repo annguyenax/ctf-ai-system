@@ -1,0 +1,40 @@
+# ── Local secrets / environment ──
+.env
+*.key
+*-key.txt
+*.pem
+
+# ── Challenge raw material & binaries (portfolio keeps the analysis, not the challenge files) ──
+**/raw/
+*.zip
+*.tar
+*.tar.*
+*.tgz
+*.7z
+*.rar
+*.iso
+*.vmdk
+*.img
+*.bin
+*.dmp
+*.mem
+*.pcap
+*.pcapng
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.exe
+*.dll
+*.pyd
+*.so
+*.so.*
+
+# ── Tooling cruft ──
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+.DS_Store
+Thumbs.db

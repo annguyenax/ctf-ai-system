@@ -1,0 +1,10 @@
+{
+  "challenge_id": "lit2026_faulty_image_1",
+  "flag_status": "verified",
+  "attempts": [
+    {"t":"2026-08-03T20:00:00","phase":"TRIAGE","hypothesis_id":"H1-png-struct","action":"Parse chunks + CRC","result":"IHDR ok(400x150 RGB); IDAT CRC wrong; IEND misplaced; zlib fails at ~byte116","evidence_path":"OUTPUT/lit2026_faulty_image_1/raw/notes.txt","notes":"Damage inside IDAT deflate stream"},
+    {"t":"2026-08-03T20:03:00","phase":"HYPOTHESES","hypothesis_id":"H2-inserted-marker","action":"grep b'haha' (68616861) offsets","result":"offsets 100,204,308,... spacing 104 -> marker inserted every 100 bytes","evidence_path":"OUTPUT/lit2026_faulty_image_1/raw/notes.txt","notes":"Insertion is reversible"},
+    {"t":"2026-08-03T20:05:00","phase":"EXPLOIT","hypothesis_id":"H2-inserted-marker","action":"Strip marker on stride, zlib.decompress IDAT","result":"raw 180150 == 150*(1+400*3); PNG renders flag","evidence_path":"OUTPUT/lit2026_faulty_image_1/raw/notes.txt","notes":"Flag LITCTF{y0u_f1x3d_m3_85hf91j!}"},
+    {"t":"2026-08-03T20:07:00","phase":"VERIFY","hypothesis_id":"H2-inserted-marker","action":"Re-run solver, compare pixels","result":"deterministic identical image","evidence_path":"OUTPUT/lit2026_faulty_image_1/raw/notes.txt","notes":"Strong verification"}
+  ]
+}

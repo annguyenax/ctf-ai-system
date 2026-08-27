@@ -1,0 +1,9 @@
+{
+  "challenge_id": "lit2026_carnival_game",
+  "flag_status": "none",
+  "attempts": [
+    {"t":"2026-08-03T21:10:00","phase":"TRIAGE","hypothesis_id":"H1-time-seed","action":"Read carnival-game.py","result":"seed=random.Random(int(time.time())).randbytes(16).hex(); commitment=sha256(seed); roll deterministic","evidence_path":"OUTPUT/lit2026_carnival_game/raw/local_run.txt","notes":"seed space = 1/sec; commitment is verify oracle"},
+    {"t":"2026-08-03T21:14:00","phase":"EXPLOIT","hypothesis_id":"H1-time-seed","action":"Brute int(time.time()) window, match sha256(Random(t).randbytes(16).hex())==commitment","result":"exact seed recovered; predict roll(seed,round)","evidence_path":"OUTPUT/lit2026_carnival_game/raw/local_run.txt","notes":"predicted 5/5 rolls"},
+    {"t":"2026-08-03T21:18:00","phase":"VERIFY","hypothesis_id":"H1-time-seed","action":"Run exact server code as subprocess, play with attack","result":"win 5/5; server prints flag (dummy local)","evidence_path":"OUTPUT/lit2026_carnival_game/raw/local_run.txt","notes":"real flag needs live server; not captured offline; not fabricated"}
+  ]
+}

@@ -1,0 +1,16 @@
+id: htbtryout_blessed
+event: HTB TryOut
+category: crypto
+challenge_name: Blessed
+status: solved
+flag: "HTB{uNv31leD_5eCre7s_0f_BLS_r0gu3_k3y_4t7aCk_w1th_cu5t0m_zkp_4nd_ec-lcg!!_62773e24b8287635ec3fe1c4a83efe2b}"
+confidence: 0.9
+signals: ["py_ecc BLS12-381 G2ProofOfPossession", "FastAggregateVerify over verified robots", "custom P-256 rng leaks Wn.x>>32,Wn.y>>32", "interactive verify Sigma-protocol with coin=next(rng)&1", "4 pre-created verified robots with hidden sk"]
+key_idea: "Predict the EC-PRNG coins (recover a P-256 point from 224 MSBs via bivariate Coppersmith) -> verify a rogue BLS key (Sigma-protocol needs no sk per branch if coin known) -> rogue-key attack: pk_rogue = t*G1 - Sum(other verified pk), forge agg_sig = t*H(msg) -> unveil_secrets flag."
+exploitation_pattern: "predictable-PRNG-defeats-interactive-PoP + BLS rogue-key on FastAggregateVerify"
+verification: {method: "static + numeric", evidence: "f(u,v)=(Y0+v)^2-(X0+u)^3-a(X0+u)-b ≡0 mod p verified at true low bits; per-branch verify responses need no sk"}
+pitfalls: ["4 hidden-sk robots always in the aggregate -> must cancel via rogue key", "count rng consumption: each create/join=1 output, each verify round=1", "recover_point bound u,v~p^(1/8): easy for Coppersmith but needs sage/fpylll", "network exploit + py_ecc required for live"]
+tools: [python, "sage/fpylll (needed)", "py_ecc (needed)"]
+writeup: "HTB-TryOut/crypto/Blessed/writeup/writeup.md"
+solver: "HTB-TryOut/crypto/Blessed/solve/solve.py"
+last_verified: "2026-08-20"

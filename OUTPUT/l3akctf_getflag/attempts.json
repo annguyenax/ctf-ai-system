@@ -1,0 +1,33 @@
+{
+  "challenge_id": "l3akctf_getflag",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-01T00:20:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-xss-exfil",
+      "action": "Read app.js CSP on /pages/:file and cookie flags",
+      "result": "connect-src/frame-src 'none' + httpOnly => cannot fetch/iframe/steal cookie to read /flag",
+      "evidence_path": "OUTPUT/l3akctf_getflag/raw/run_transcript.txt",
+      "notes": "kill XSS-exfil path; pivot to state-changing CSRF"
+    },
+    {
+      "t": "2026-08-01T00:22:00Z",
+      "phase": "HYPOTHESES",
+      "hypothesis_id": "H2-method-override-csrf",
+      "action": "Analyze methodOverride order vs csrfOnPostOnly (guards only POST)",
+      "result": "POST ...?_method=GET flips req.method to GET, bypassing CSRF while body still changes password",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/Get The Flag/writeup/writeup.md",
+      "notes": "changePassword targets req.session.userId (admin bot)"
+    },
+    {
+      "t": "2026-08-01T00:25:00Z",
+      "phase": "EXPLOIT+VERIFY",
+      "hypothesis_id": "H2-method-override-csrf",
+      "action": "Upload auto-submit form, /report to bot, login admin with new pw, GET /flag (live instance)",
+      "result": "FLAG = L3AK{m37h0D_0V3rRide_c5Rf_Bypass_g0_bRRRR}",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/Get The Flag/solve/evidence/run_transcript.txt",
+      "notes": "verified against official challenge server"
+    }
+  ]
+}

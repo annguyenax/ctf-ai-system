@@ -1,0 +1,34 @@
+{
+  "challenge_id": "ptitctf2026_nhh",
+  "flag_status": "verified",
+  "status": "solved",
+  "attempts": [
+    {
+      "t": "2026-08-22T16:00:00",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Read enc.sage: p=A+s smooth A, e≈Kv/u",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Crypto\\That Should Be nhh\\files\\enc.sage",
+      "notes": "Howgrave-Graham known MSBs of p"
+    },
+    {
+      "t": "2026-08-22T16:30:00",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "CF e/N limit_denominator 2^100",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Crypto\\That Should Be nhh\\solve\\cf_only.py",
+      "notes": "u 96-bit prime, v 88-bit prime"
+    },
+    {
+      "t": "2026-08-22T17:30:00",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H3",
+      "action": "Brent rho on K(t=40) then sympy LLL Howgrave-Graham",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Crypto\\That Should Be nhh\\writeup\\final_flag.txt",
+      "notes": "p=A+s divides N; AES flag"
+    }
+  ]
+}

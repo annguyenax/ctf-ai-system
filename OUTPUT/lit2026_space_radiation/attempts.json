@@ -1,0 +1,15 @@
+﻿{
+    "flag_status":  "verified",
+    "attempts":  [
+                     {
+                         "action":  "Implemented Hamming(15,11) error correction script",
+                         "hypothesis_id":  "space_1",
+                         "t":  "2026-08-03T19:29:00",
+                         "result":  "Success",
+                         "phase":  "EXPLOIT",
+                         "evidence_path":  "D:\\download\\CTFTimeWriteup\\LIT2026\\misc\\space_radiation\\solve\\evidence",
+                         "notes":  "Flag perfectly decoded"
+                     }
+                 ],
+    "challenge_id":  "lit2026_space_radiation"
+}

@@ -1,0 +1,44 @@
+id: l3akctf_po1337nomial_revenge
+event: L3akCTF2026
+category: crypto/mt19937-state-recovery
+challenge_name: po1337nomial-revenge
+status: paused
+flag: ""
+confidence: 0.3
+signals:
+  - "Python MT19937: a = [getrandbits(32) for _ in range(1337)]"
+  - "option 1 shuffles a copy and prints it -> leaks the MULTISET (order lost)"
+  - "option 2 'Evaluate' prints 'y: REDACTED' (confirmed on live instance) -> NO poly-eval leak"
+  - "option 3 needs input == randbytes(1337).hex() -> requires predicting MT state"
+  - each option usable once
+key_idea: >
+  Revenge of Crew CTF 2025 po1337nomial. Original leaked y = sum a_i*1337^i (recover
+  ordered coeffs via base-1337 backtracking, then randcrack MT). This version REDACTS y,
+  so the only leak is option-1's shuffled multiset of the first 1337 getrandbits(32).
+  Need to recover MT19937 state from an UNORDERED multiset -> hard cryptanalysis
+  (arrange the untempered multiset to satisfy the MT GF(2) recurrence over the 713 extra
+  values). Info-theoretically possible (~30k bits > 19937) but no quick algorithm found.
+prerequisites:
+  - mt19937
+  - untempering
+  - gf2-linear-algebra
+next_actions:
+  - "recover order: model each output bit as GF(2)-linear in the 19937 seed bits; use the 713 recurrence constraints (u_{624+i}=f(u_i,u_{i+1},u_{i+397})) to match multiset values to positions"
+  - "alternative: search literature for 'MT19937 state from shuffled/multiset outputs'"
+  - "once state recovered: advance RNG past shuffle+randrange, predict randbytes(1337), send hex to option 3"
+pitfalls:
+  - "the pre-existing repo solve.py is for the NON-revenge version (parses 'y: <int>') and FAILS here (y is redacted)"
+  - each option only once; order of options changes RNG consumption
+tools:
+  - python
+  - randcrack (for the ordered-recovery step, if order is found)
+hexstrike:
+  used: false
+  useful: false
+  notes: pure crypto
+sources:
+  - "https://7rocky.github.io/en/ctf/other/crewctf/po1337nomial/ (original, y-leak version)"
+writeup: ""
+solver: ""
+time_heuristic: "hard MT-from-multiset; budget carefully or skip"
+last_verified: "2026-08-02"

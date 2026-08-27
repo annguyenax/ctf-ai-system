@@ -1,0 +1,8 @@
+id: 22
+name: "Havok Trail"
+category: "Guests"
+state: "solved"
+flag: "KaliTeam{2024_Riyadh_79}" # Probable rank based on OSINT
+lessons:
+  - "Historical CTF rankings can often be found by searching news reports of universities (e.g. Zarqa University) and cybersecurity portals."
+  - "Team Havok (Khaled Safi) participated in Black Hat MEA 2024 in Riyadh."

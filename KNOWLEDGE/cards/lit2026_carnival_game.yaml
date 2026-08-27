@@ -1,0 +1,43 @@
+id: lit2026_carnival_game
+event: LIT CTF 2026
+category: crypto/prng-time-seed-commitment
+challenge_name: carnival_game
+status: needs_verification   # exploit verified locally; real flag needs live server
+flag: ""                      # remote-only; not captured offline; do not fabricate
+confidence: 1.0               # confidence in the exploit technique
+artifact_hashes: []
+signals:
+  - "seed = random.Random(int(time.time())).randbytes(16).hex()"
+  - "server publishes commitment = sha256(seed)"
+  - "roll(seed, round) = int(sha256(f'{seed}-{round}'),16) % 100; win = 5 correct"
+key_idea: >
+  The seed depends only on int(time.time()) (MT19937 seeded with whole seconds).
+  The published sha256(seed) is a verification oracle: brute a small window of
+  integer seconds, recompute random.Random(t).randbytes(16).hex(), match the
+  commitment, then predict every roll and guess 5 in a row.
+prerequisites:
+  - Python random is time-seedable / not cryptographic
+  - commitment schemes; sha256
+exploitation_pattern: >
+  read commitment -> for t in [now+5 .. now-120]: sha256(Random(t).randbytes(16).hex())
+  == commitment -> seed -> guess roll(seed, round) each round.
+verification:
+  method: end-to-end local run of the exact server code (subprocess) wins 5/5 and prints flag
+  evidence: "solve/evidence/local_run.txt: 'Congratulations! Here's your flag ...' WIN True"
+pitfalls:
+  - "Client/server clock skew: brute a window of seconds, not one value."
+  - "Do not fabricate the real flag; it lives server-side (offline learning = not captured)."
+failed_paths: []
+tools:
+  - python
+  - socket
+hexstrike:
+  used: false
+  useful: false
+  notes: "No scanner needed; pure logic exploit against a network service."
+sources: []
+playbook: PLAYBOOKS/crypto_prng_time_seed_commitment.md
+writeup: D:\download\CTFTimeWriteup\LIT2026\crypto\carnival_game\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\crypto\carnival_game\solve\solve.py
+time_heuristic: "<10 min: spot time-seeded random + commitment; brute seconds window."
+last_verified: "2026-08-03"

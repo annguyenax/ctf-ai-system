@@ -1,0 +1,10 @@
+{
+  "challenge_id": "ptitctf2026_signaling",
+  "flag_status": "none",
+  "attempts": [
+    {"t":"2026-08-22T12:00:00+07:00","phase":"TRIAGE","hypothesis_id":"H1","action":"Separate hands from ticks by continuous ray length","command_or_step":"Classify ~164 px as long and ~114 px as short","result":"success","evidence_path":"raw/ordered_hands_stdout.txt","notes":"Recovered 47 ordered symbols without tick contamination."},
+    {"t":"2026-08-22T12:05:00+07:00","phase":"TEST","hypothesis_id":"H1","action":"Decode ordered hands under global dihedral transforms","command_or_step":"Run solve/extract_ordered_hands.py","result":"partial","evidence_path":"raw/ordered_hands_stdout.txt","notes":"All 47 symbols decode to valid semaphore letters, but the result is still ciphertext."},
+    {"t":"2026-08-22T12:15:00+07:00","phase":"TEST","hypothesis_id":"H2","action":"Test simple relations between hands and outer sectors","command_or_step":"Bounded XOR/add/subtract, angular, cross-pairing, Vigenere-index, and lag tests","result":"fail","evidence_path":"raw/analysis_summary.txt","notes":"No fixed rule produced PTITCTF or readable English."},
+    {"t":"2026-08-22T12:20:00+07:00","phase":"TEST","hypothesis_id":"H3","action":"Check MP4 for a non-visual payload","command_or_step":"Inspect atoms, strings, appended bytes, and shallow LSB statistics","result":"fail","evidence_path":"raw/analysis_summary.txt","notes":"Normal MP4 structure; no flag marker or convincing LSB stream."}
+  ]
+}

@@ -1,0 +1,9 @@
+[
+  {"what": "English quadgram SA (no-space, 22 letters)", "result": "word-salad local optimum (AND/AND/AND)", "verdict": "dead-end"},
+  {"what": "English trigram + word-list SA (G=space)", "result": "garbage", "verdict": "dead-end"},
+  {"what": "English word-pattern dictionary backtracking (G=space)", "result": "0 solutions", "verdict": "dead-end"},
+  {"what": "quipqiup online", "result": "connection refused", "verdict": "dead-end"},
+  {"what": "reverse / even-odd split transpositions", "result": "still word salad", "verdict": "dead-end"},
+  {"what": "vision models (gemini-2.5-pro/flash, gpt-4o) on folded glyphs", "result": "inconsistent letter guesses", "verdict": "dead-end"},
+  {"what": "Vietnamese char-quadgram SA (22 letters, no space)", "result": "coherent Vietnamese paragraph", "verdict": "SOLVED"}
+]

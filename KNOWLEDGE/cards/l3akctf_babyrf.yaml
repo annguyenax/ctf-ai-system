@@ -1,0 +1,57 @@
+id: l3akctf_babyrf
+event: L3akCTF2026
+category: hardware-rf/multimode-audio
+challenge_name: BabyRF
+status: paused
+flag: ""
+confidence: 0.6
+artifact_hashes:
+  - "sha256:f0ff1d468102ff294c8d7f66b8977f8de273252ae97b0973d23aece825ed87dd"  # BabyRF.wav
+signals:
+  - 96 kHz mono wav (wide band -> multiple stacked signals)
+  - OOK tone at ~11.6 kHz (Morse)
+  - text drawn in spectrogram, some MIRRORED (reversed-audio segments)
+  - low-freq 0-4 kHz region with fundamental+formants (human speech under broadband noise)
+key_idea: >
+  Multi-mode RF-styled audio: split by time/frequency band. Morse OOK @11.6kHz,
+  spectrogram-drawn text (orientation per-segment: reverse audio when mirrored),
+  spectrogram digits, and two speech segments carrying remaining parts.
+prerequisites:
+  - spectrogram-reading
+  - audio-reverse
+  - morse
+  - speech-vs-noise-formants
+exploitation_pattern: overview spectrogram -> segment by band -> decode each mode (morse auto, text visual, speech by ear)
+verification:
+  method: "PARTIAL. Morse decode reproducible via solver; spectrogram texts read visually. Flag NOT assembled (2 parts in speech need ASR)."
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyRF/solve/evidence/manifest.md
+partial_results:
+  part4_uppercase: "R3QU1RES (Morse, all-uppercase)"
+  spectrogram_reversed: "Pr0c3ss1ng"
+  spectrogram_digits: "3851642"
+  spectrogram_highband: "31337"
+  speech_intro_outro: "DECODED via whisper: intro (0-22s) 'welcome to L3akCTF 2026 hardware/RF... flag split into six parts... we will give you the first two parts. The first one is...'; outro (41-51s) 'those with the knowledge and audacity to descend into the signal will find what they are searching for. Good luck and happy hacking.'"
+  spoken_part1: "22.3-30.5s, SPELLED letter-by-letter -> whisper (all models incl large-v3) FAIL/hallucinate; need human ears"
+  spoken_part2: "31.7-41s, SPELLED -> whisper partial ~'n s l 1 _ a g/t' (unreliable); need human ears"
+part_model: "6 parts. Narrator GIVES parts 1&2 (spoken/spelled). Parts 3-6 = the 4 ENCODED (Morse R3QU1RES=p4 uppercase, spectrogram Pr0c3ss1ng, digits 3851642, highband 31337). Flag = L3AK{spoken1_spoken2_ + three of {Pr0c3ss1ng,3851642,31337} + R3QU1RES as p4}."
+pitfalls:
+  - treating the broadband 'noise' as filler (it hides speech in 0-4 kHz)
+  - assuming one orientation for all drawn text (each segment can be forward or reversed)
+  - "whisper hallucinates on SPELLED letters in noise (produces fake sentences); it works only on the natural-speech intro/outro"
+next_actions:
+  - "LISTEN (human) to solve/evidence/part1_spoken_clean.wav (+_slow) and part2_spoken_clean.wav (+_slow) -> spell out parts 1 and 2 (leetspeak, case-sensitive)"
+  - "assemble: L3AK{part1_part2_p3_R3QU1RES_p5_p6}; order p3,p5,p6 from {Pr0c3ss1ng,3851642,31337}; verify framing"
+tools:
+  - python
+  - numpy
+  - matplotlib
+hexstrike:
+  used: false
+  useful: false
+  notes: pure DSP/visual; no scanner
+sources: []
+playbook: PLAYBOOKS/rf_multimode_audio_spectrogram.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyRF/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyRF/solve/analyze.py
+time_heuristic: "96kHz wav + multi-band -> split & decode per band; check low-freq for speech"
+last_verified: "2026-08-01"

@@ -1,0 +1,16 @@
+﻿id: lit2026_pw_zip
+challenge_name: pw.zip
+event: LIT CTF 2026
+category: misc
+status: verified
+key_idea: Standard zip password cracking using john the ripper and rockyou.
+verification_method: zip extraction successful.
+verification: Extracted and found flag LITCTF{password_123456_103flkj3}
+tools:
+  - zip2john
+  - john
+hexstrike_usefulness: High (provided access to john and large wordlists)
+writeup: D:\download\CTFTimeWriteup\LIT2026\misc\pw_zip\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\misc\pw_zip\solve\solve.py
+time_heuristic: 10 minutes
+last_verified: 2026-08-03

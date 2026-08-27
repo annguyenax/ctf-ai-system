@@ -1,0 +1,11 @@
+category: misc
+date: '2026-08-03'
+event: LIT2026
+flag: LITCTF{r3fl0g_1s_y0ur_g1t_t1m3_m4ch1n3}
+id: lit2026_git_genug
+name: git_genug
+status: solved
+tags:
+- git
+- reflog
+- forensics

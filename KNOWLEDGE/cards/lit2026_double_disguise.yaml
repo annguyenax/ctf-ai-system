@@ -1,0 +1,40 @@
+id: lit2026_double_disguise
+event: LIT CTF 2026
+category: crypto/encoding-xor
+challenge_name: double_disguise
+status: solved
+flag: "LITCTF{F1fa_W0rld_cup}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Title 'double disguise' -> two layers"
+  - "String matches Base64 (charset + '==' padding + length multiple of 4)"
+  - "After base64 decode bytes are non-printable -> another layer"
+  - "Known flag prefix LITCTF{"
+key_idea: >
+  Outer layer Base64, inner layer single-byte XOR. XOR the base64-decoded bytes
+  with the known prefix 'LITCTF{'; all key bytes equal 0x2A -> single-byte XOR.
+prerequisites:
+  - Base64 recognition/decoding
+  - single-byte XOR + known-plaintext key recovery
+exploitation_pattern: >
+  base64.b64decode -> key = raw[i]^prefix[i] (constant 0x2A) -> xor all bytes.
+verification:
+  method: re-encrypt (xor 0x2A then base64) equals original string
+  evidence: "reenc == 'ZmN+aX5sUWwbTEt1fRpYRk51SV9aVw=='"
+pitfalls:
+  - "Base64 is encoding, not encryption; expect a real cipher underneath."
+  - "If key bytes are not constant, it's repeating-key XOR, not single-byte."
+failed_paths: []
+tools:
+  - python
+hexstrike:
+  used: false
+  useful: false
+  notes: "Trivial offline crypto."
+sources: []
+playbook: ""
+writeup: D:\download\CTFTimeWriteup\LIT2026\crypto\double_disguise\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\crypto\double_disguise\solve\solve.py
+time_heuristic: "<5 min: base64 -> xor-with-known-prefix -> constant key."
+last_verified: "2026-08-03"

@@ -1,0 +1,32 @@
+﻿id: kalictf26_lockout
+event: Kali Team CTF 26
+category: web/execution-after-redirect
+challenge: Lock Out
+date: 2026-08-05
+status: solved
+
+signals:
+  - "Accessing a restricted page returns a 302 redirect but the response body still contains sensitive HTML/data."
+
+key_idea: |
+  Exploit an "Execution After Redirect" (EAR) vulnerability where the developer forgot to call exit() or die() after header("Location: ..."). Send the required parameters directly and ignore the redirect.
+
+verification: |
+  Using curl or setting llow_redirects=False in Python equests reveals the flag in the 302 response body.
+
+pitfalls:
+  - Testing exclusively with a standard web browser, which automatically follows 302 redirects and hides the leaked response body.
+
+tools:
+  - curl
+  - requests
+  - Burp Suite
+
+hexstrike_usefulness: none
+
+sources:
+  - CWE-698
+
+playbook: "PLAYBOOKS/web_execution_after_redirect.md"
+writeup: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\web\\Lock Out\\writeup\\writeup.md"
+solver: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\web\\Lock Out\\solve\\solve.py"

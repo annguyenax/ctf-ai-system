@@ -1,0 +1,42 @@
+{
+  "challenge_id": "l3akctf_spectre",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-02T01:00:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Treat 192 rows as a linear STFT with n_fft=382 and test both orientations",
+      "result": "rejected",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/hardware/Spectre/solve/evidence/reconstruction.txt",
+      "notes": "Both WAVs were only 19.56 seconds and local ASR confidence was near zero."
+    },
+    {
+      "t": "2026-08-02T01:05:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2",
+      "action": "Interpret pixels as an 80 dB mel power spectrogram and apply mel-to-STFT plus Griffin-Lim",
+      "result": "success",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/hardware/Spectre/solve/reconstruct.py",
+      "notes": "The output was 104.327256 seconds and aligned with 107 stable activity groups."
+    },
+    {
+      "t": "2026-08-02T01:10:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "Replay with two phase seeds and compare overlapping transcripts from tiny.en and base.en",
+      "result": "success",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/hardware/Spectre/solve/evidence/reconstruction.txt",
+      "notes": "Signal invariants and long transcript fragments agreed; challenge-specific text is omitted here."
+    },
+    {
+      "t": "2026-08-02T01:12:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H3",
+      "action": "Cluster resized activity patches by nearest-neighbor similarity",
+      "result": "rejected",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/hardware/Spectre/solve/evidence/reconstruction.txt",
+      "notes": "Only 42.4 percent of repeated-position nearest neighbors shared the proposed symbol label."
+    }
+  ]
+}

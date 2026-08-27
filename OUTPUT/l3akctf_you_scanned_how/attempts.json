@@ -1,0 +1,42 @@
+{
+  "challenge_id": "l3akctf_you_scanned_how",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-01T14:49:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-multislice-volume",
+      "action": "Inspect SQLite table naming, schema, row counts, and detector profile",
+      "result": "617 uniformly spaced slices; each has 180 projections; 800x400 expanded-rotation geometry",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/writeup/writeup.md",
+      "notes": "3D volume hypothesis confirmed; full per-slice FBP deferred"
+    },
+    {
+      "t": "2026-08-01T14:57:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2-projection-stack",
+      "action": "Stack one projection angle across all slices for 12 angles at 15-degree intervals",
+      "result": "Angle 0 preserves a full oblique text plane; views near 90 degrees are edge-on",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/solve/solve.py",
+      "notes": "Selected the cheapest informative view without reconstructing 617 slices"
+    },
+    {
+      "t": "2026-08-01T15:02:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2-projection-stack",
+      "action": "Restore angle-0 line integrals, stack by z, scale z by table spacing 3, and PCA-deskew",
+      "result": "Calibrated radiograph exposes coherent flag-shaped text",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/solve/evidence/manifest.md",
+      "notes": "Spacing correction fixed the threefold z-axis compression"
+    },
+    {
+      "t": "2026-08-01T15:07:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2-projection-stack",
+      "action": "Replay the full solver twice from scan2.7z and compare PNG hashes",
+      "result": "Both runs produced SHA-256 354c5578d38b5efd4e32094a5c3d15875a1be445ca9c77b24cee87dfd4b76004",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/solve/evidence/manifest.md",
+      "notes": "Verified; flag intentionally omitted from knowledge layer"
+    }
+  ]
+}

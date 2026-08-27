@@ -1,0 +1,43 @@
+id: l3akctf_babylcg
+event: L3akCTF2026
+category: crypto/lcg
+challenge_name: BabyLCG
+status: solved
+flag: "L3AK{n3v3r_trU5t_b4s1c_LCG5_frfr}"
+confidence: 1.0
+artifact_hashes:
+  - "sha256:d43183961f2cbbadcee66983f72c0c5c5548acb4b97784234ccc080d84ad6e8d"  # beginner_baby-lcg.tar.gz
+signals:
+  - "state = (a*state + c) % m"
+  - modulus m disclosed in output
+  - three consecutive LCG outputs disclosed (s0,s1,s2)
+  - next output used as XOR keystream on flag
+key_idea: >
+  Known-modulus LCG recovery. With m and 3 consecutive states, subtract two
+  recurrences to cancel c: a = (s2-s1)*inv(s1-s0) mod m; c = s1-a*s0; then predict
+  next output key = a*s2+c and XOR with ciphertext.
+prerequisites:
+  - modular-arithmetic
+  - modular-inverse
+  - lcg
+exploitation_pattern: recover a via diff-of-recurrences -> recover c -> predict next output -> XOR decrypt -> verify by replaying recurrence
+verification:
+  method: deterministic solver replay + LCG recurrence asserts + clean ASCII flag with correct L3AK{} framing
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyLCG/solve/evidence/manifest.md
+pitfalls:
+  - using the sample m hard-coded in chall.py instead of the real m from output.txt
+  - flag longer than modulus byte-length (33B flag vs 256-bit m) — do not reduce flag_int mod m
+  - s1-s0 not invertible if gcd(s1-s0,m) != 1 (general case needs gcd handling)
+failed_paths: []
+tools:
+  - python
+hexstrike:
+  used: false
+  useful: false
+  notes: pure offline math; no tool needed
+sources: []
+playbook: PLAYBOOKS/crypto_lcg_recover.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyLCG/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyLCG/solve/solve.py
+time_heuristic: "LCG + known m + >=3 outputs -> apply a=Δs2·Δs1^-1 formula, ~2 min"
+last_verified: "2026-08-01"

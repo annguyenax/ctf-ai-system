@@ -1,0 +1,30 @@
+id: kalictf26_warmy
+event: Kali Team CTF 26
+challenge: Warmy
+category: pwn
+technique: ret2win-gets
+status: solved-local
+signals:
+  - ELF64 with symbols win + vuln
+  - PLT contains gets
+  - checksec: no canary, NX yes, no PIE
+  - prompt flavor like "simple" / warmup pwn
+decision:
+  primary: ret2win — overwrite saved RIP with win() that prints flag file
+  reject_early:
+    - format string (no printf(user_buf))
+    - full libc ROP (unnecessary when win exists and no PIE)
+static_recipe:
+  - locate vuln: gets into [rbp-0xN]
+  - offset_to_rip = N + 8
+  - payload = padding + p64(win)
+verify:
+  - local: process with bundled ld/libc/flag.txt
+  - expect banner then "The Flag:" / flag format
+  - post-win SIGSEGV on return is OK
+reusable: true
+notes:
+  - Do not store real remote flags in this card
+  - Related playbook signal: classic stack BOF ret2win
+related:
+  - SKILLS/PWN.md

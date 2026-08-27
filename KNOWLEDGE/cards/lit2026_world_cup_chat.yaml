@@ -1,0 +1,15 @@
+﻿id: lit2026_world_cup_chat
+challenge_name: world_cup_chat
+event: LIT CTF 2026
+category: web
+status: verified
+key_idea: Web challenge exploitation
+verification_method: Submit flag
+verification: Found flag LITCTF{ent1ty_m4g1c_1fj10d}
+tools:
+  - Python
+  - curl
+writeup: D:\download\CTFTimeWriteup\LIT2026\web\world_cup_chat\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\web\world_cup_chat\solve\solve.py
+time_heuristic: 5 minutes
+last_verified: 2026-08-03

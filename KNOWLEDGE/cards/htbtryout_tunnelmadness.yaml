@@ -1,0 +1,18 @@
+id: htbtryout_tunnelmadness
+event: HTB TryOut
+category: rev
+challenge_name: TunnelMadness
+status: solved
+flag: "HTB{tunn3l1ng_ab0ut_in_3d_<per-instance-hash>}"
+confidence: 0.9
+signals: ["20x20x20 maze embedded in .rodata", "get_cell addr=maze+16*(400x+20y+z)", "cell.val 3=exit reads /flag.txt"]
+key_idea: "Extract embedded maze from .rodata, BFS (0,0,0)->exit, emit L/R/F/B/U/D key sequence."
+exploitation_pattern: "embedded-data graph extraction + BFS; client holds all topology"
+verification:
+  method: "offline BFS + step replay (unique 59-move shortest path)"
+  evidence: "solve/evidence/solve_summary.txt; path UUURFURURRFRRFFUUFURRUFUFFRFUFUUUUFFRRUUUFURFDFFUFFRRRRRFRR"
+pitfalls: ["HTB{fake_flag_for_testing} in .rodata is only fallback", "L/R=x F/B=y D/U=z (decode jump table)"]
+tools: [capstone, python]
+writeup: "HTB-TryOut/rev/TunnelMadness/writeup/writeup.md"
+solver: "HTB-TryOut/rev/TunnelMadness/solve/solve.py"
+last_verified: "2026-08-20"

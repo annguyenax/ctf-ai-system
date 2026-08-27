@@ -1,0 +1,48 @@
+id: ptitctf2026_cia_integrity
+event: PTITCTF2026
+category: crypto
+challenge_name: "CIA - What does 'I' stand for?"
+status: solved
+flag: "PTITCTF{1_574nd5_f0r_1n736r17y_4nd_7c3199444034_h45h1n6_h31p_3n5ur3_7h15_pr0p3rtY}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Top-level zip password = sha256(FLAG).hexdigest()  (PASSWORD_MODE='sha256_digest')"
+  - "RSA moduli are 280-bit (two 140-bit primes) => factorable by ECM/SIQS/GNFS"
+  - "Nested 3-layer zips: chall.zip -> secret.zip -> flag.zip (random_password layers)"
+  - "flag.txt inside final zip is a DECOY whose sha256 does NOT match the top password"
+  - "sub-challenge plaintexts are hex strings that decode to REVERSED flag fragments"
+key_idea: "I = Integrity. The outer zip password is the SHA-256 of the real flag, so the flag is the unique string whose sha256 equals the recovered password (preimage cannot be forged). The decoy flag inside flag.txt is rejected. Reconstruct the real flag by solving the flag-bearing sub-challenges (chall3 batch-gcd, chall6 Hastad e=3, chall7 Rabin), each yielding a reversed hex fragment."
+prerequisites:
+  - RSA decryption from factored 280-bit modulus
+  - AES-zip password opening (Python zipfile/pyzipper)
+  - Hastad broadcast (CRT + integer cube root, e=3)
+  - Rabin decryption (sqrt mod p,q = 3 mod 4 via CRT)
+  - RSA batch-GCD (shared prime among moduli)
+exploitation_pattern: "factor small RSA moduli -> recover sha256 password -> unpack nested AES zips -> solve flag sub-challenges -> decode+reverse hex fragments -> concatenate -> verify sha256(flag)==password"
+verification:
+  method: "Deterministic solver replay + independent SHA-256 preimage check. The recovered top password opens chall.zip (AES decrypt verified); sha256(reconstructed flag) equals that password exactly."
+  evidence: "sha256(PTITCTF{1_574nd5_...pr0p3rtY}) == 1fcbf4aa0eb78c74f822684fa93cda458e431365e96b2c04abe5cdd56fca9733 == working chall.zip password. All 3 zip layers opened with password derived from RSA segment decryptions."
+pitfalls:
+  - "Submitting the flag inside flag.txt (decoy) gets rejected; must satisfy the integrity hash."
+  - "chall3 batch-gcd loop must skip comparing a modulus with itself (gcd == n)."
+  - "Hastad needs integer cube root (gmpy2.iroot), not float ** (1/3)."
+  - "Bundled chall.py PUBLIC_SEGMENTS may be a stale copy that does not re-encrypt the recovered chunks; verify by decrypting the zips."
+failed_paths:
+  - "Pure-Python sympy.factorint too slow for 280-bit moduli (140-bit primes); need ECM/GMP-ECM or SIQS."
+  - "Naive ECM stage-2 re-sieving every curve is too slow; precompute prime list once."
+tools:
+  - "GMP-ECM (Kali, extracted from .deb without root)"
+  - "custom C ECM using GMP (Windows, 24 cores)"
+  - "pycryptodome, gmpy2, sympy"
+hexstrike:
+  used: true
+  useful: true
+  notes: "Ran GMP-ECM factoring of the four 280-bit moduli on the Kali server (server_health ok, gmp-ecm built from Debian .deb). ECMScaled; final factorization confirmed by zip decryption."
+sources:
+  - "Challenge files: files/chall.py, files/chall.zip"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/CIA - What does 'I' stand for/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/CIA - What does 'I' stand for/solve/solve.py"
+time_heuristic: "Factoring 4x280-bit moduli is the bottleneck (~10-60 min on 24 cores with ECM); sub-challenge solving is minutes."
+last_verified: "2026-08-22"

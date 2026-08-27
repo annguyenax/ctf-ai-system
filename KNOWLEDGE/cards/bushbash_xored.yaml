@@ -1,0 +1,20 @@
+id: bushbash_xored
+event: BushBash2026
+category: crypto/xor-repeating
+challenge_name: xored
+status: solved
+flag: "bushbash{to-x0r-or-nOt-To-Xor}!"
+key_idea: repeating-key XOR recovered via flag prefix crib bushbash
+prerequisites:
+  - xor
+  - known-plaintext
+exploitation_pattern: crib-prefix -> recover key period -> decrypt -> re-encrypt verify
+pitfalls:
+  - wrong flag prefix length
+  - forgetting re-encrypt check
+tools:
+  - python
+playbook: PLAYBOOKS/crypto_xor_repeating.md
+writeup: ../BushBash2026/crypto/xored/writeup/writeup.md
+solver: ../BushBash2026/crypto/xored/solve/solve.py
+time_heuristic: try event-name prefix first; key len often 8

@@ -1,0 +1,3 @@
+- Embedding-only LoRA adapters leave a sparse fingerprint in the embedding layer.
+- Delta-norm analysis can recover the memorized tokens even when plain generation is noisy.
+- Prompts that mention the trained vocabulary (`code`, `launch`) can surface hidden flag-like content.

@@ -1,0 +1,42 @@
+{
+    "challenge_id": "bushbash_mystery_server_1",
+    "status": "solved",
+    "flag": "bushbashctf{n0w_d0_t5e_oth4r_tw0}",
+    "attempts": [
+        {
+            "phase": "TRIAGE",
+            "action": "checksec + strings on client binary (has DWARF)",
+            "result": "success"
+        },
+        {
+            "phase": "RECON",
+            "action": "readelf --debug-dump=info for struct/enum layout",
+            "result": "success"
+        },
+        {
+            "phase": "RECON",
+            "action": "objdump -d on Msg::encode dispatch + encode_raw fns",
+            "result": "success, recovered field tags 1-5"
+        },
+        {
+            "phase": "VALIDATE",
+            "action": "replay client-generated store/echo/read bytes at live server",
+            "result": "success, confirmed framing model"
+        },
+        {
+            "phase": "EXPLOIT",
+            "action": "send hand-crafted empty ReadFlag (22 00)",
+            "result": "failure, Bad encoding error (doubled)"
+        },
+        {
+            "phase": "EXPLOIT",
+            "action": "hand-craft read index=0 explicit zero varint to test theory",
+            "result": "failure, same Bad encoding error -> confirms canonical-default rejection rule"
+        },
+        {
+            "phase": "EXPLOIT",
+            "action": "pad ReadFlag with junk inner content (22 02 08 01)",
+            "result": "success, flag returned"
+        }
+    ]
+}

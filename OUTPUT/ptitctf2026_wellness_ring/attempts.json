@@ -1,0 +1,42 @@
+{
+  "challenge_id": "ptitctf2026_wellness_ring",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-22T18:00:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "ctx then cache, menu6",
+      "result": "64726175672d7872 rx-guard sentinel",
+      "evidence_path": "OUTPUT/ptitctf2026_wellness_ring/raw/rx_guard.txt",
+      "notes": "1d0c alloc after context"
+    },
+    {
+      "t": "2026-08-22T18:20:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "free cache0 then context, menu6",
+      "result": "heap+PIE leak",
+      "evidence_path": "OUTPUT/ptitctf2026_wellness_ring/raw/remote_flag.txt",
+      "notes": "cache1 at context+0x80"
+    },
+    {
+      "t": "2026-08-22T18:25:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H3",
+      "action": "apple2 stderr with zip libc 0x87bd0",
+      "result": "libc base not page aligned",
+      "evidence_path": "OUTPUT/ptitctf2026_wellness_ring/raw/libc_mismatch.txt",
+      "notes": "puts leak nibble cc0"
+    },
+    {
+      "t": "2026-08-22T18:28:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H4",
+      "action": "apple2 stderr glibc 2.39-0ubuntu8.8",
+      "result": "verified flag",
+      "evidence_path": "OUTPUT/ptitctf2026_wellness_ring/raw/remote_flag.txt",
+      "notes": "puts 0x87cc0 system 0x58750"
+    }
+  ]
+}

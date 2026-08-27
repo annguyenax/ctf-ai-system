@@ -1,0 +1,47 @@
+id: l3akctf_getflag
+event: L3akCTF2026
+category: web/csrf-method-override
+challenge_name: Get The Flag
+status: solved
+flag: "L3AK{m37h0D_0V3rRide_c5Rf_Bypass_g0_bRRRR}"
+confidence: 1.0
+artifact_hashes:
+  - "sha256:1ad2664bc063d561c37eaa5a1c69815392f696f5f7891a4b2217739cc5cdd661"  # get-the-flag.zip
+signals:
+  - express method-override middleware enabled globally (?_method=)
+  - CSRF middleware guards only when req.method === POST
+  - admin-only /flag + puppeteer admin bot visiting user-uploaded /pages/*.html
+  - upload served with CSP sandbox connect-src none / frame-src none (blocks fetch/iframe/cookie exfil)
+key_idea: >
+  method-override runs before the CSRF check, so POST /account/change-password?_method=GET
+  flips req.method to GET (skipping csrfOnPostOnly) while the body still carries the new
+  password. Auto-submitting that form in the admin bot's browser resets the admin password;
+  then log in as admin and read /flag. CSP blocks XSS-exfil, so account takeover is the path.
+prerequisites:
+  - csrf
+  - http-method-override
+  - xss-bot-challenge
+  - csp-sandbox
+exploitation_pattern: register -> upload auto-submit CSRF page -> /report to admin bot -> admin pw reset -> login admin -> GET /flag
+verification:
+  method: end-to-end exploit against official instance; read admin-gated /flag
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/Get The Flag/solve/evidence/run_transcript.txt
+pitfalls:
+  - trying to read /flag via XSS fetch/iframe (blocked by CSP connect-src/frame-src none)
+  - forgetting the new password must be >= 8 chars
+  - assuming CSRF applies to all verbs (it only guards POST here)
+failed_paths:
+  - cookie theft (httpOnly) — not viable
+  - fetch/XHR exfil (connect-src 'none') — not viable
+tools:
+  - python-requests
+hexstrike:
+  used: false
+  useful: false
+  notes: manual source review + scripted HTTP chain; no scanner needed
+sources: []
+playbook: PLAYBOOKS/web_csrf_method_override_bypass.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/Get The Flag/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/Get The Flag/solve/exploit.py
+time_heuristic: "method-override + verb-gated security check -> flip verb via ?_method= , ~10 min"
+last_verified: "2026-08-01"

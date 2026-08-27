@@ -1,0 +1,12 @@
+category: rev
+date: '2026-08-03'
+event: LIT2026
+flag: LITCTF{g0ing_b4ck_1n_t1m3}
+id: lit2026_cellular_automaton
+name: cellular_automaton
+status: solved
+tags:
+- gf2
+- cellular-automaton
+- rule-90
+- linear-algebra

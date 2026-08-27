@@ -1,0 +1,60 @@
+{
+  "challenge_id": "ptitctf2026_cia_integrity",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-22T22:40:00",
+      "phase": "factor",
+      "hypothesis_id": "H1",
+      "action": "sympy.factorint on 280-bit n0",
+      "result": "failed (too slow, timed out)",
+      "evidence_path": "scratch/cia_integrity/",
+      "notes": "Pure-Python factoring infeasible; switch to ECM"
+    },
+    {
+      "t": "2026-08-22T22:45:00",
+      "phase": "factor",
+      "hypothesis_id": "H1",
+      "action": "weak-key checks: gcd pairs, Fermat, Pollard p-1",
+      "result": "no common factors, no Fermat, p-1 not smooth",
+      "evidence_path": "scratch/cia_integrity/weak.py",
+      "notes": "rules out shortcuts; ECM/GNFS required"
+    },
+    {
+      "t": "2026-08-22T22:55:00",
+      "phase": "factor",
+      "hypothesis_id": "H1",
+      "action": "run GMP-ECM (Kali) + custom C ECM (Windows 24 cores)",
+      "result": "factored 4 moduli; password recovered",
+      "evidence_path": "scratch/cia_integrity/ecm.c",
+      "notes": "stage2 prime list precomputed once for speed"
+    },
+    {
+      "t": "2026-08-22T23:05:00",
+      "phase": "unpack",
+      "hypothesis_id": "H2",
+      "action": "AES-zip decrypt chall.zip with sha256 password",
+      "result": "success; nested secret.zip + 10 sub-challenges",
+      "evidence_path": "files/chall.zip",
+      "notes": "password confirmed by successful decryption"
+    },
+    {
+      "t": "2026-08-22T23:08:00",
+      "phase": "unpack",
+      "hypothesis_id": "H2",
+      "action": "open secret.zip and flag.zip with derived layer passwords",
+      "result": "success; flag.txt = DECOY (sha256 mismatch)",
+      "evidence_path": "files/chall.zip",
+      "notes": "decoy violates integrity hash"
+    },
+    {
+      "t": "2026-08-22T23:12:00",
+      "phase": "reconstruct",
+      "hypothesis_id": "H3",
+      "action": "solve chall3 (batch-gcd), chall6 (Hastad e=3), chall7 (Rabin); decode hex + reverse",
+      "result": "assembled flag sha256 matches top password",
+      "evidence_path": "solve/solve.py",
+      "notes": "flag verified via two independent paths"
+    }
+  ]
+}

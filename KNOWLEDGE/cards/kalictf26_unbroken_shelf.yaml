@@ -1,0 +1,53 @@
+id: kalictf26_unbroken_shelf
+event: Kali Team CTF 26
+category: osint/historic-newspaper
+challenge_name: The Unbroken Shelf
+status: solved
+flag: "KaliTeam{NEW_YORK_TRIBUNE_1920_08_21_157_EIGHTH_AVENUE_2040}"
+confidence: 0.9
+artifact_hashes:
+  - "sha256:afc167e019da99059928a4a8dd559398e737a13f4cf9d2b795e330953e5826bc" # The-Unbroken-Shelf-Final.png
+signals:
+  - "ảnh mẩu báo cắt, tiêu đề in đậm rất đặc trưng + thân bài có địa danh/tên riêng"
+  - "cần NEWSPAPER + ngày + địa chỉ + giờ => phải định danh đúng SỐ BÁO gốc"
+  - "chi tiết OCR-able: 'Eighth Avenue', 'Battalion Chief Lawrence McGuire', clerk 'Slater'"
+key_idea: |
+  Định danh số báo lịch sử bằng full-text search cụm TIÊU ĐỀ CHÍNH XÁC trên
+  Chronicling America (LOC). Cụm "Blows Firemen Out of Drug Store" khớp DUY NHẤT
+  New-York Tribune 1920-08-21 p.1 (LCCN sn83030214). Đọc toàn văn OCR để lấy
+  địa chỉ (157 Eighth Avenue) và giờ (about 8:40 p.m. -> 2040).
+prerequisites:
+  - "Chronicling America full-text search (cụm chính xác)"
+  - "hiểu ALTO XML / fo=json -> fulltext_service -> tile.loc.gov"
+exploitation_pattern: |
+  1) Trích cụm chữ độc nhất (tiêu đề) từ ảnh.
+  2) Search toàn văn cụm chính xác -> 1 số báo.
+  3) Đối chiếu thân bài để xác nhận đúng trang.
+  4) Đọc OCR nguồn cấp một -> số nhà + giờ; đổi am/pm sang 24h.
+verification:
+  method: "unique exact-phrase match + toàn văn OCR trùng khớp mẩu báo từng chi tiết"
+  evidence: "solve/evidence/article_ocr.txt; loc.gov resource sn83030214/1920-08-21 sp=1"
+pitfalls:
+  - "Google/Bing/DDG KHÔNG index tốt OCR báo cũ -> phải dùng archive chuyên dụng."
+  - "Match theo từ rời dễ false-positive (vd Evening World 1904 p.11 là trang cáo phó)."
+  - "loc.gov sau Cloudflare JS-challenge: curl/WebFetch/proxy/curl_cffi đều 403."
+  - "Chrome HEADLESS vẫn bị Cloudflare chặn; phải HEADED (có desktop) mới pass."
+  - "Tên báo 'New-York Tribune' có gạch nối; OCR ra 'NEW YORK TRIBUNE' -> lưu ý format flag."
+failed_paths:
+  - "curl/WebFetch tới chroniclingamerica/www.loc.gov/tile.loc.gov -> 403 Cloudflare"
+  - "allorigins/corsproxy/r.jina.ai/translate.goog/curl_cffi -> vẫn dính CF"
+  - "Wayback/Internet Archive: không có bản chụp trang OCR này"
+tools:
+  - "Chrome (headed) + CDP (websocket-client)"
+  - "Chronicling America (LOC) full-text search + fo=json + ALTO XML"
+hexstrike:
+  used: false
+  useful: false
+  notes: "OSINT web-archive; không dùng HexStrike."
+sources:
+  - "https://www.loc.gov/resource/sn83030214/1920-08-21/ed-1/?sp=1&st=text (New-York Tribune, định danh số báo + toàn văn)"
+playbook: "PLAYBOOKS/osint_historic_newspaper_fulltext.md"
+writeup: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\osint\\The Unbroken Shelf\\writeup\\writeup.md"
+solver: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\osint\\The Unbroken Shelf\\solve\\solve.py"
+time_heuristic: "10-25 phút nếu vào thẳng Chronicling America; lâu hơn nếu vướng Cloudflare khi tự động hoá"
+last_verified: "2026-08-05"

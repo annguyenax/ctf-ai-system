@@ -1,0 +1,12 @@
+category: rev
+date: '2026-08-03'
+event: LIT2026
+flag: LITCTF{((())((()))())(((()())))(()(()((((()())))))((()((())((())(()))))(())))}
+id: lit2026_pathfinder
+name: pathfinder
+status: solved
+tags:
+- dp
+- unranking
+- parentheses
+- combinatorics

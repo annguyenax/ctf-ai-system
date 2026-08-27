@@ -1,0 +1,51 @@
+{
+  "challenge_id": "l3akctf_l3ak_apt",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-01T14:14:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-recent-user-files",
+      "action": "Inventory archive names and inspect Recent LNK strings",
+      "result": "Recovered paths for important files.7z, ARS-CB-047.png, and ARS-SEC-154.png",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/files/L3AK_APT.zip",
+      "notes": "Original archive and extracted images were absent from normal profile paths"
+    },
+    {
+      "t": "2026-08-01T14:18:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H1-recent-user-files",
+      "action": "Inspect uTorrent torrent metadata and resume state",
+      "result": "downloaded=7168714 equals torrent length; corrupt=0; hashfails=0",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/writeup/writeup.md",
+      "notes": "Proved the deleted archive had existed completely; no tracker contact needed"
+    },
+    {
+      "t": "2026-08-01T14:23:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2-activity-cache",
+      "action": "Query ActivitiesCache with WAL and correlate Windows Search/registry",
+      "result": "Photos activities named both ARS images; first record included NTFS ObjectId",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/writeup/writeup.md",
+      "notes": "Confirmed user interaction but did not recover image content"
+    },
+    {
+      "t": "2026-08-01T14:28:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H3-thumbnail-cache",
+      "action": "Parse CMMM entry sizes in thumbcache_1280.db",
+      "result": "Two cache hashes yielded the same complete 185015-byte JPEG",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/solve/solve.py",
+      "notes": "Length-based parsing replaced unreliable SOI/EOI signature carving"
+    },
+    {
+      "t": "2026-08-01T14:32:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H3-thumbnail-cache",
+      "action": "Require duplicate cache-key agreement and replay from the original ZIP twice",
+      "result": "Both runs produced SHA-256 daa218b9d1713248f7069667ace2e21bcc46b42980e8b87c955ab1ec341701a2",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/solve/evidence/manifest.md",
+      "notes": "Verified; flag intentionally omitted from knowledge layer"
+    }
+  ]
+}

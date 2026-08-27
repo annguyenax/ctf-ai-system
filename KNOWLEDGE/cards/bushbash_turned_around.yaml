@@ -1,0 +1,22 @@
+id: bushbash_turned_around
+event: BushBash2026
+category: rev/esolang-orientation
+challenge_name: Turned Around
+status: solved
+flag: "bushbash{(d0Ub13*-*b4ck!}"
+key_idea: >
+  Vanilla BF prints decoy. Orientation transforms reveal two complementary
+  15-char halves with '_' masks; zip-merge to password (d0Ub13*-*b4ck!.
+prerequisites:
+  - brainfuck basics
+  - willingness to invert program orientation
+exploitation_pattern: decoy-run -> reverse/flip semantics -> dual halves -> mask merge
+pitfalls:
+  - accepting decoy as real flag path
+  - incomplete orientation search
+tools:
+  - custom BF interpreter / transform scripts
+playbook: PLAYBOOKS/rev_esolang_orientation.md
+writeup: ../BushBash2026/rev/Turned Around/writeup/writeup.md
+solver: ../BushBash2026/rev/Turned Around/solve/solve_merge.py
+time_heuristic: decoy text + challenge name orientation hint => flip first

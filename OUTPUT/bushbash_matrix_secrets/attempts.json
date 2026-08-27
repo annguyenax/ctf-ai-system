@@ -1,0 +1,14 @@
+[
+    {
+        "step": "inspect adapter tensors",
+        "result": "LoRA targets only embed_tokens"
+    },
+    {
+        "step": "compute embedding delta norms",
+        "result": "tokens such as bush/bash/code/launch/0/3 were strongly highlighted"
+    },
+    {
+        "step": "sample with prompts like The code and The launch",
+        "result": "repeatedly recovered bushbash{vect0rl3ak}"
+    }
+]

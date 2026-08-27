@@ -1,0 +1,47 @@
+id: lit2026_faulty_image_2
+event: LIT CTF 2026
+category: crypto/png-hidden-chunk-xor
+challenge_name: faulty_image_2
+status: solved
+flag: "LITCTF{c0d3t1g3r_w4s_h3r3_x0r!}"
+confidence: 1.0
+artifact_hashes:
+  - "corrupt2.png sha256=d2f8404a2051ed0bd62efc13df0f3ef23ac45087f851972768517336b3428dab"
+signals:
+  - "IDAT intact -> decoy image 'Nothing here lol!'"
+  - "tEXt chunk: XOR-Key = 636f64657469676572 (hex for 'codetiger')"
+  - "Non-standard chunk 'tIGr' with WRONG CRC (viewers ignore it)"
+  - "tIGr starts 00 00 00 20 = 4-byte length prefix (32)"
+key_idea: >
+  Flag hidden in a custom PNG chunk. tEXt supplies the XOR key ('codetiger').
+  tIGr = [4-byte big-endian length][ciphertext]; ciphertext XOR key = flag
+  (null-padded to the declared length).
+prerequisites:
+  - PNG ancillary/custom chunks and CRC
+  - repeating-key XOR
+exploitation_pattern: >
+  Enumerate all chunks; render IDAT (decoy); read tEXt key (decode hex);
+  read tIGr, skip 4-byte length prefix, XOR body with key.
+verification:
+  method: round-trip XOR + length-prefix match + trailing '}'
+  evidence: "re-XOR reproduces tIGr body; len prefix 32 == 31 flag chars + null"
+pitfalls:
+  - "Don't stop at the visible image; it can be a decoy."
+  - "tEXt value may be hex-encoded key; decode it."
+  - "Skip payload header/length bytes before XOR (XOR from byte 0 looked like garbage)."
+  - "Wrong CRC on a custom chunk is a deliberate 'hide here' signal."
+failed_paths:
+  - "XOR whole tIGr from offset 0 -> garbage (missed 4-byte length prefix)."
+tools:
+  - python
+  - PIL
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local PNG chunk parsing + XOR."
+sources: []
+playbook: ""
+writeup: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_2\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_2\solve\solve.py
+time_heuristic: "<10 min: enumerate chunks, spot bad-CRC custom chunk + tEXt key, XOR."
+last_verified: "2026-08-03"

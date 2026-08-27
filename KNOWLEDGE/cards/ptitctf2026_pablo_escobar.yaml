@@ -1,0 +1,53 @@
+id: ptitctf2026_pablo_escobar
+event: PTITCTF2026
+category: Reverse
+challenge_name: Pablo Escobar
+status: paused
+flag: ""
+confidence: 0.4
+artifact_hashes:
+  - sha256:66adf83ef86d8e76605063c7d01dc61fdd87cac446f34696a305b3a394c6aae7 Tool.exe
+  - sha256:7b546c39e853fe2907c07d54ede5d5c08f183e9360953079ad6ff51f0f1bfb54 config.enc
+signals:
+  - Go PE WebView2 / configurable-webview
+  - config.enc pbkdf2-sha256 210000 AES-256-GCM JSON envelope
+  - obfuscated configkey.Key XOR tables (73*i+0x5D)
+  - Vinext photo vault cookie anhhop_session
+  - last inbox JPEG is a Vietnamese police factory inspection (OSINT)
+key_idea: decrypt WebView config to reach a user inbox; flag is the last location photo (id4 OSINT or admin id3), not a second crypto blob
+prerequisites:
+  - Python cryptography
+  - PE offsets for configkey.Key
+exploitation_pattern: recover 44-byte PBKDF2 password from PE tables → AES-GCM config.enc → login luongvd → dump /api/images
+verification:
+  method: ""
+  evidence: ""
+pitfalls:
+  - do not submit guessed toponyms (Man Xa, Ikoyi, Trung Dong) without pixel match or scoreboard
+  - cookie anhhop_session is not proven to be the admin username
+  - Pexels Lagos photo is image 1, not the last createdAt
+failed_paths:
+  - admin login guesses (~377) all 401
+  - Next middleware / IDOR / mass-assignment / NoSQL no image 3
+  - reverse-image and news compares (Man Xa, Franking, Nha Trang ketamin, Hung Yen oil) not the same frame
+  - LSB/EXIF/binwalk on inbox JPEGs
+tools:
+  - Python 3 + cryptography
+  - urllib (avoid PowerShell curl JSON/cookie corruption)
+  - Yandex/Bing reverse image
+hexstrike:
+  used: true
+  useful: false
+  notes: steghide/zsteg/ghidra false or unused; local Python+capstone sufficient
+sources:
+  - D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\notes\SESSION.md
+playbook: ""
+writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\solve\decrypt_config.py
+time_heuristic: long
+last_verified: ""
+paths:
+  writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\writeup\writeup.md
+  notes: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\notes\SESSION.md
+  output: C:\Users\ADMIN\.grok\skills\ctf-ai-system\OUTPUT\ptitctf2026_pablo_escobar\report.md
+  scratch: D:\download\ctf-scratch\ptitctf2026_pablo_escobar\

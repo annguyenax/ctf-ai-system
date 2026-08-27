@@ -1,0 +1,9 @@
+{
+  "challenge_id": "bushbash_turned_around",
+  "status": "solved",
+  "flag": "bushbash{(d0Ub13*-*b4ck!}",
+  "attempts": [
+    {"phase": "TRIAGE", "action": "run standard BF", "result": "partial", "notes": "decoy"},
+    {"phase": "EXPLOIT", "action": "orientation transforms + merge halves", "result": "success"}
+  ]
+}

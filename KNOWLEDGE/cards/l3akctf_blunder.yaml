@@ -1,0 +1,24 @@
+id: l3akctf_blunder
+event: L3akCTF2026
+category: misc/chess-coordinate-glyphs
+challenge_name: Blunder
+status: solved
+flag: ""
+key_idea: repeated destinations of one chess piece form polyline glyphs when plotted on the board
+prerequisites:
+  - pgn-and-san-basics
+  - coordinate-plotting
+exploitation_pattern: parse PGN -> isolate side and piece -> collect destination squares -> render paths -> read glyphs in game order -> verify from original hash
+pitfalls:
+  - assuming the title requires engine analysis
+  - including the piece starting square as an encoded point
+  - failing to handle SAN capture and check suffixes
+  - changing game order
+tools:
+  - python
+  - svg
+playbook: PLAYBOOKS/misc_chess_coordinate_glyphs.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Misc/Blunder/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Misc/Blunder/solve/render_queen_paths.py
+time_heuristic: inspect per-piece coordinate paths before deep engine analysis when moves look deliberately repetitive
+

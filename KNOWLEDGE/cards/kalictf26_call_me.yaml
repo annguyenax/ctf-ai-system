@@ -1,0 +1,22 @@
+id: kalictf26_call_me
+event: Kali Team CTF 26
+challenge: call me
+category: misc
+technique: spectrogram-text-and-morse
+status: solved
+signals:
+  - WAV with "call me" / signal naming
+  - first segment broadband energy then pure tone OOK
+  - prompt "so ezzz" + author LinkedIn link
+decision:
+  primary: view spectrogram for painted flag text
+  secondary: decode CW Morse for narrative/hint
+recipe:
+  - STFT/log spectrogram of first ~15s
+  - contrast stretch; read leetspeak flag
+  - envelope OOK of ~800 Hz for Morse
+verify:
+  - flag readable on spectrogram image
+reusable: true
+related:
+  - PLAYBOOKS/rf_multimode_audio_spectrogram.md

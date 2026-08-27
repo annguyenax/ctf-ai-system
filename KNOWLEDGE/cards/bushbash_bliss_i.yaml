@@ -1,0 +1,25 @@
+id: bushbash_bliss_i
+event: BushBash2026
+category: misc/css-media-query
+challenge_name: Bliss I
+status: needs_verification
+flag: ""
+key_idea: the CSS media-query extraction belongs to chained challenge Bliss II, not Bliss I; recover Bliss I from bliss.png Data Matrix
+prerequisites:
+  - html-dom
+  - css-media-queries
+  - static-client-analysis
+exploitation_pattern: hidden route -> archive DOM/CSS -> extract selected IDs -> map IDs to characters -> order clue segments -> verify offline
+pitfalls:
+  - forcing the cloud into a QR or Data Matrix model
+  - assuming stylesheet order without reading the pictogram clue
+  - relying on hardware emulation instead of static parsing
+  - dropping literal separators drawn between clue pictograms
+tools:
+  - browser
+  - curl
+  - python
+playbook: PLAYBOOKS/misc_css_media_query_extraction.md
+writeup: ../CTFTimeWriteup/BushBash2026/misc/Bliss I/writeup/writeup.md
+solver: ../CTFTimeWriteup/BushBash2026/misc/Bliss I/solve/solve.py
+time_heuristic: after two shallow image failures, inspect client routes and rare @media rules

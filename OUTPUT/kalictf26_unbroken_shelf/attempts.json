@@ -1,0 +1,61 @@
+{
+  "challenge_id": "kalictf26_unbroken_shelf",
+  "flag_status": "verified",
+  "flag": "KaliTeam{NEW_YORK_TRIBUNE_1920_08_21_157_EIGHTH_AVENUE_2040}",
+  "attempts": [
+    {
+      "t": "2026-08-05T00:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-identify-issue",
+      "action": "Read clipping; crop/upscale columns; check EXIF",
+      "result": "Headline 'Mysterious Explosion Blows Firemen Out of Drug Store'; body has Eighth Avenue, Battalion Chief McGuire, clerk Slater/Samuel; no EXIF",
+      "evidence_path": "CTFTimeWriteup/KaliCTF2026/osint/The Unbroken Shelf/files/The-Unbroken-Shelf-Final.png",
+      "notes": "Address + time were torn/cropped out -> must find original issue"
+    },
+    {
+      "t": "2026-08-05T00:05:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H1-identify-issue",
+      "action": "General web search (Google/Bing/DDG) for headline + body phrases",
+      "result": "Only modern-explosion noise; OCR of old papers not indexed",
+      "evidence_path": "OUTPUT/kalictf26_unbroken_shelf/raw/",
+      "notes": "Killed: generic search engines. Need specialized archive."
+    },
+    {
+      "t": "2026-08-05T00:12:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2-access-loc",
+      "action": "Probe loc.gov/nyshistoricnewspapers/cdnc/tile.loc.gov via curl/WebFetch/allorigins/corsproxy/r.jina.ai/translate.goog/curl_cffi/Wayback",
+      "result": "403 Cloudflare 'Just a moment' everywhere; no Wayback/IA copy",
+      "evidence_path": "OUTPUT/kalictf26_unbroken_shelf/raw/",
+      "notes": "Killed: scripted HTTP + proxies. Need a real browser."
+    },
+    {
+      "t": "2026-08-05T00:22:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2-access-loc",
+      "action": "Launch HEADED Chrome + CDP; navigate loc.gov; wait out Cloudflare",
+      "result": "Cloudflare cleared (headless did NOT clear); in-page fetch works with CF cookie",
+      "evidence_path": "CTFTimeWriteup/KaliCTF2026/osint/The Unbroken Shelf/solve/solve.py",
+      "notes": "Headed browser is the reliable CF bypass."
+    },
+    {
+      "t": "2026-08-05T00:28:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1-identify-issue",
+      "action": "Chronicling America exact-phrase search 'Blows Firemen Out of Drug Store'",
+      "result": "UNIQUE result: New-York Tribune 1920-08-21 p.1 (LCCN sn83030214)",
+      "evidence_path": "OUTPUT/kalictf26_unbroken_shelf/raw/article_ocr.txt",
+      "notes": "Rejected Evening World 1904-10-10 p.11 = obituaries (fuzzy body false-positive)."
+    },
+    {
+      "t": "2026-08-05T00:34:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1-identify-issue",
+      "action": "fo=json -> fulltext_service -> ALTO XML; parse CONTENT tokens; read lead",
+      "result": "'Slater & Halpern's drug store, 157 Eighth Avenue ... about 8:40 p. m.'; body matches clipping detail-for-detail",
+      "evidence_path": "OUTPUT/kalictf26_unbroken_shelf/raw/article_ocr.txt",
+      "notes": "Flag = KaliTeam{NEW_YORK_TRIBUNE_1920_08_21_157_EIGHTH_AVENUE_2040}. Source-verified; newspaper-name hyphen is the only format uncertainty."
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+id: ptitctf2026_signaling
+event: PTITCTF2026
+category: crypto/semaphore
+challenge_name: Signaling
+status: paused
+flag: ""
+confidence: 0.65
+artifact_hashes:
+  - "Signaling.zip sha256: EB4714FAEBCE1DB06AA6ADF1105FE378033A1CE221EA87D0A23778A5634B19FE"
+  - "Signaling.mp4 sha256: 795BF643D34AF589B23CF62B439F2D7CC3E25B0C6FF05CF0115387360E7812B8"
+signals:
+  - 553-frame clock animation with two distinct hand lengths and eight outer sectors
+  - long hand ends near radius 164 px, short hand near 114 px, static ticks begin near 171 px
+  - 47 ordered hand symbols map under one global dihedral transform to valid semaphore ciphertext
+  - first 42 holds also contain two highlighted outer sectors
+key_idea: Preserve hand order and separate hand endpoints from static clock ticks; the hands yield a clean second-layer ciphertext, while the outer-channel transform remains unresolved.
+prerequisites:
+  - OpenCV frame sampling
+  - standard flag semaphore alphabet
+exploitation_pattern: Sample mid-hold frames, classify long and short rays independently, apply one global mirror/rotation, then decode semaphore.
+verification:
+  method: Deterministic replay of ordered-hand extraction; no flag verification yet.
+  evidence: OUTPUT/ptitctf2026_signaling/raw/ordered_hands_stdout.txt
+pitfalls:
+  - Static cardinal ticks contaminate angular histograms if ray continuity and length are ignored.
+  - Treating the two hands as unordered discards information.
+  - Forced outer-sector extraction after symbol 42 selects background.
+failed_paths:
+  - Morse and base-4 interpretations
+  - direct semaphore plaintext
+  - simple 6-bit and angular combinations of both channels
+  - keyword Vigenere and fixed-lag matching
+  - appended MP4 payload and shallow LSB extraction
+tools:
+  - Python 3
+  - OpenCV
+hexstrike:
+  used: false
+  useful: false
+  notes: No network scanner was relevant.
+sources:
+  - "https://www.cpbr.gov.au/flags/semaphore.html - standard semaphore alphabet"
+  - "https://www.youtube.com/watch?v=PqpCRSOUuIE - ABM Signaling provenance lead"
+playbook: ""
+writeup: D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/Signaling/writeup/writeup.md
+solver: D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/Signaling/solve/extract_ordered_hands.py
+time_heuristic: Long; visual extraction solved, channel transform unresolved.
+last_verified: "2026-08-22"

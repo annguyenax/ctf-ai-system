@@ -1,0 +1,42 @@
+{
+  "challenge_id": "ptitctf2026_baby_heap_v2",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-22T16:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "checksec + disasm menu/UAF/maps/alarm",
+      "result": "UAF, Edit heap-only, Create write unchecked, menu is write(2), alarm puts+exit",
+      "evidence_path": "OUTPUT/ptitctf2026_baby_heap_v2/raw/disasm_notes.txt",
+      "notes": "glibc 2.35 no hooks"
+    },
+    {
+      "t": "2026-08-22T16:20:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "UAF leak tcache fd and unsorted",
+      "result": "heap page + libc 0x21ace0",
+      "evidence_path": "OUTPUT/ptitctf2026_baby_heap_v2/raw/dbg_poison.txt",
+      "notes": "first user chunk is heap+0x890 not +0x2a0; encoding uses page only"
+    },
+    {
+      "t": "2026-08-22T16:40:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H3",
+      "action": "House of Apple 2 on stdout",
+      "result": "menu still prints; after alarm connection dies without shell",
+      "evidence_path": "OUTPUT/ptitctf2026_baby_heap_v2/raw/stdout_fail.txt",
+      "notes": "puts on smashed stdout crashes before exit flush"
+    },
+    {
+      "t": "2026-08-22T16:50:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H4",
+      "action": "apple2 on stderr, wait SIGALRM, cat /flag.txt",
+      "result": "verified flag",
+      "evidence_path": "OUTPUT/ptitctf2026_baby_heap_v2/raw/remote_flag.txt",
+      "notes": "flag at /flag.txt"
+    }
+  ]
+}

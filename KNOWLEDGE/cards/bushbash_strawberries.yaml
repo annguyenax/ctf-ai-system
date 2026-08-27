@@ -1,0 +1,25 @@
+id: bushbash_strawberries
+event: BushBash2026
+category: crypto/cbc-bitflip
+challenge_name: strawberries
+status: solved
+service: "34.40.133.67:6001"
+key_idea: >
+  AES-CBC bit-flip C0 sets user block to PREMIUM_USER; garbles n into huge uint64;
+  when n>5 requires premium; when count>2^32 prints flag. CHECK block untouched.
+prerequisites:
+  - AES-CBC
+  - bit-flip malleability
+  - plaintext layout from source
+exploitation_pattern: honest-decrypt -> C0' = C0 XOR u XOR PREMIUM -> send
+pitfalls:
+  - flipping CHECK-covered blocks
+  - Windows emoji UnicodeEncodeError
+  - 3s sleep per request
+tools:
+  - python-socket
+  - pycryptodome (local only)
+playbook: PLAYBOOKS/crypto_cbc_bitflip.md
+writeup: ../BushBash2026/crypto/strawberries/writeup/writeup.md
+solver: ../BushBash2026/crypto/strawberries/solve/attack_premium.py
+time_heuristic: if source has PREMIUM constant + sample CT, one flip is enough

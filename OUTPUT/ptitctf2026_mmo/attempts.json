@@ -1,0 +1,34 @@
+{
+  "challenge_id": "ptitctf2026_mmo",
+  "flag_status": "verified",
+  "status": "solved",
+  "attempts": [
+    {
+      "t": "2026-08-22T12:00:00",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "file/PE sections; identify Nuitka onefile not PyInstaller",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Reverse\\MMO\\notes\\SESSION.md",
+      "notes": "RT_RCDATA/27 KAY+zstd"
+    },
+    {
+      "t": "2026-08-22T12:30:00",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2",
+      "action": "zstd extract inner main.exe and string-search proxy API URLs",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Reverse\\MMO\\solve\\unpacked\\main.exe",
+      "notes": "HungHT1890 free_proxy_list_api api.json at 0x1073380"
+    },
+    {
+      "t": "2026-08-22T12:40:00",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "Independent ASCII scan of inner PE for http/https",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Reverse\\MMO\\writeup\\final_flag.txt",
+      "notes": "only that URL is the proxy-list aggregator; api.myip.com is check-only"
+    }
+  ]
+}

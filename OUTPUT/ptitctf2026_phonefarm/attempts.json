@@ -1,0 +1,34 @@
+{
+  "challenge_id": "ptitctf2026_phonefarm",
+  "flag_status": "verified",
+  "status": "solved",
+  "attempts": [
+    {
+      "t": "2026-08-22T12:00:00",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "strings libOctopus.so for API key",
+      "result": "fail",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Reverse\\PhoneFarm\\notes\\SESSION.md",
+      "notes": "8F3K5nX29tZaQ1BpYrW7JL6Cd4EmHo is cryptor m_key, not license"
+    },
+    {
+      "t": "2026-08-22T13:00:00",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Capstone AArch64 Main::changeDevice at 0x147a0",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Reverse\\PhoneFarm\\solve\\disasm_change.py",
+      "notes": "length 5, 0x6c6c6568 + 0x6f = hello"
+    },
+    {
+      "t": "2026-08-22T13:10:00",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "MD5(hello) and confirm fail string is Invalid API Key",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Reverse\\PhoneFarm\\writeup\\final_flag.txt",
+      "notes": "5d41402abc4b2a76b9719d911017c592"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "challenge_id": "l3akctf_me_fr",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-01T00:10:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-keyboard-shift",
+      "action": "Read me_fr.txt; compare typos to QWERTY neighbors",
+      "result": "tjomlomg->thinking (j=h,o=i,m=n,l=k): right hand shifted one key right",
+      "evidence_path": "OUTPUT/l3akctf_me_fr/raw/me_fr.txt",
+      "notes": "prompt monkeytype confirms typing theme"
+    },
+    {
+      "t": "2026-08-01T00:11:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1-keyboard-shift",
+      "action": "Build QWERTY map (both shift layers incl. number row + \\|); remap right-hand keys one column left",
+      "result": "message decodes to coherent English ending in L3AK{WHY_D0_1_dO_TH1S_s0_0f73N...}",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/me fr/solve/solve.py",
+      "notes": "|->} , +->_ , -->0 handled via shift layer"
+    },
+    {
+      "t": "2026-08-01T00:12:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1-keyboard-shift",
+      "action": "Confirm single substitution decodes prose AND flag consistently",
+      "result": "verified; grammatical English + valid L3AK{} flag",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Beginner/me fr/solve/evidence/manifest.md",
+      "notes": "coincidence probability ~0"
+    }
+  ]
+}

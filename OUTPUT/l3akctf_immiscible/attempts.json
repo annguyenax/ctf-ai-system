@@ -1,0 +1,33 @@
+{
+  "challenge_id": "l3akctf_immiscible",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-02T00:30:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-ov",
+      "action": "read chal.py; inspect quad term structure",
+      "result": "vinegar*vinegar and vinegar*oil only, no oil*oil -> Oil-and-Vinegar",
+      "evidence_path": "OUTPUT/l3akctf_immiscible/raw/public.json",
+      "notes": "F_79, M=9 > N=8 -> unique preimage"
+    },
+    {
+      "t": "2026-08-02T00:35:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H1-ov",
+      "action": "try z3 modular solve, sympy groebner GF(79)",
+      "result": "both timeout > 2 minutes",
+      "evidence_path": "OUTPUT/l3akctf_immiscible/report.md",
+      "notes": "need structure-aware method"
+    },
+    {
+      "t": "2026-08-02T00:45:00Z",
+      "phase": "EXPLOIT+VERIFY",
+      "hypothesis_id": "H1-ov",
+      "action": "fix vinegar -> linear oil; brute vinegar 79^4 vectorized; solve+verify; recover sig; AES decrypt",
+      "result": "sig=[23,7,73,60,34,54,53,7]; eval==target True; flag L3AK{Oil_4ND_v1N3g4r_WitH0ut_Mix1nG_Sp1LL5_eV3rYth1ng}",
+      "evidence_path": "../CTFTimeWriteup/L3akCTF2026/Crypto/Immiscible/solve/solve.py",
+      "notes": "verified against all 9 public polynomials"
+    }
+  ]
+}

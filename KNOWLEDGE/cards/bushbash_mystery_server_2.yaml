@@ -1,0 +1,42 @@
+id: bushbash_mystery_server_2
+event: BushBash2026
+category: rev/protobuf-network-crash
+challenge_name: mystery server II
+status: solved
+flag: "bushbash{u32_0v3rfl1w!}"
+service: "34.40.133.67:6767"
+key_idea: >
+  Chained from mystery server I. The CLI-unexposed oneof field 5
+  (ReadMultipleMessages{start:u32, count:u32}) reads messages at indices
+  [start, start+count] inclusive. Passing start=u32::MAX with count=1 makes
+  start+count overflow u32 in a debug build (overflow-checks enabled), causing
+  a panic. The server catches the panic at a top level and responds with the
+  panic/debug text directly on the same connection before restarting - this
+  response text IS the flag.
+prerequisites:
+  - reuse of mystery_server_1's DWARF/disasm recovery of the wire schema
+  - understanding prost skip-if-zero field encoding for the inner start/count fields
+  - basic u32 overflow reasoning (arithmetic overflow panics in Rust debug builds)
+exploitation_pattern: >
+  identify CLI-unexposed oneof variant from part I's recon -> learn its field
+  semantics via live probing with safe/small values -> pick boundary values
+  (u32::MAX + nonzero) to trigger arithmetic overflow -> panic caught server-side
+  and echoed back as the flag/debug code
+pitfalls:
+  - do not send huge `count` values (could hang/DoS the shared challenge server
+    trying to iterate billions of indices) - target overflow via u32::MAX on
+    `start` instead, which crashes near-instantly
+  - remember prost skip-if-zero encoding still applies to start/count fields
+    individually, unrelated to the u32 arithmetic overflow inside the SERVER's
+    own handling logic (client encoding correctness != server-side safety)
+tools:
+  - readelf (reused DWARF dump from part I)
+  - objdump
+  - python socket
+playbook: PLAYBOOKS/rev_protobuf_wire_dwarf.md
+writeup: ../../CTFTimeWriteup/BushBash2026/rev/mystery server I/writeup.md
+related_series: "part II of bushbash_mystery_server_1"
+time_heuristic: >
+  CLI-unexposed oneof/protobuf field discovered during part I recon -> probe
+  its semantics with small values first, then directly try integer-overflow
+  boundary values (0, u32::MAX, u32::MAX-1) before anything more exotic

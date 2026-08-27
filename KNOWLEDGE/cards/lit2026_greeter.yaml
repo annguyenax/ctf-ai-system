@@ -1,0 +1,8 @@
+id: lit2026_greeter
+event: LIT2026
+category: pwn
+name: greeter
+status: solved
+flag: LITCTF{y3t-4N0tH3r-gEn3r1C-f0rM4T-sTR1nG}
+date: 2026-08-03
+tags: [buffer-overflow, ret2win, unintended]

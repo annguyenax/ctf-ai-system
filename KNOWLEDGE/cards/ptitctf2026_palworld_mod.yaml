@@ -1,0 +1,38 @@
+id: ptitctf2026_palworld_mod
+event: "PTIT CTF 2026"
+category: "Web"
+challenge_name: "Palworld Mod"
+status: solved
+flag: "PTITCTF{w3lc0mE_t0_th3_InfosecPTIT_h0uSe_h3r3_1S_y0uR_61af5da2e260_mil_vnd}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Zip-slip write primitive via Path join"
+  - "CharField max_length=20 constraint"
+  - "Dynamic Python CPython codec import"
+key_idea: "Use pathlib.Path leading-slash root reset to bypass length limits, write a malicious codec into encodings/ directory, and trigger execution via multipart charset parameter."
+prerequisites:
+  - "User registration & mod build upload capability"
+exploitation_pattern: "pathlib_leading_slash_reset + stdlib_codec_overwrite + multipart_charset_trigger"
+verification:
+  method: "Remote exploit execution against live challenge instance"
+  evidence: "Flag extracted from /usr/share/nginx/html/flag_rce_*.txt"
+pitfalls:
+  - "Overwriting cached stdlib modules does not trigger code execution."
+  - "Uploading zip with ASCII filenames can prematurely import cp437 before it is overwritten."
+failed_paths:
+  - "Overwriting top-level bz2.py, lzma.py, decimal.py (cached at startup)"
+  - "Overwriting /entrypoint.sh without reliable container restart mechanism"
+tools:
+  - "Python requests"
+  - "zipfile"
+hexstrike:
+  used: false
+  useful: false
+  notes: "Not needed for source code review and custom Python scripting."
+sources: []
+playbook: ""
+writeup: "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Web\\Palworld Mod\\writeup\\writeup.md"
+solver: "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Web\\Palworld Mod\\solve\\solve.py"
+time_heuristic: "30-45 minutes"
+last_verified: "2026-08-23"

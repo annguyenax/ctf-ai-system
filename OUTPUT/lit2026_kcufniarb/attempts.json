@@ -1,0 +1,15 @@
+﻿{
+    "flag_status":  "verified",
+    "attempts":  [
+                     {
+                         "action":  "Reversed brainfuck syntax and executed interpreter",
+                         "hypothesis_id":  "kcufniarb_1",
+                         "t":  "2026-08-03T19:01:00",
+                         "result":  "Success",
+                         "phase":  "EXPLOIT",
+                         "evidence_path":  "D:\\download\\CTFTimeWriteup\\LIT2026\\misc\\kcufniarb\\solve\\evidence",
+                         "notes":  "Flag outputted"
+                     }
+                 ],
+    "challenge_id":  "lit2026_kcufniarb"
+}

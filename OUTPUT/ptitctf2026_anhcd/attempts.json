@@ -1,0 +1,12 @@
+{
+  "challenge_id": "ptitctf2026_anhcd",
+  "flag_status": "candidate",
+  "attempts": [
+    {"t":"2026-08-23T00:00:00+07:00","phase":"TRIAGE","hypothesis_id":"H1","action":"Inspect containers and image structure","command_or_step":"7z listing, hashes, PNG chunks, JPEG markers, metadata and trailing-byte checks","result":"success","evidence_path":"raw/analysis_summary.txt","notes":"Only two 200x200 images; no ancillary object or appended data."},
+    {"t":"2026-08-23T00:05:00+07:00","phase":"TEST","hypothesis_id":"H2","action":"Decode PNG pixel bit streams","command_or_step":"RGB-LSB length prefix plus zsteg-style bit-plane and traversal matrix","result":"partial","evidence_path":"raw/analysis_summary.txt","notes":"Recovered one self-identifying 52-byte decoy; no second pixel payload."},
+    {"t":"2026-08-23T00:10:00+07:00","phase":"TEST","hypothesis_id":"H3","action":"Inspect transform domains","command_or_step":"FFT, DCT, DST, wavelet, Radon, cepstrum, autocorrelation and Walsh-Hadamard views","result":"partial","evidence_path":"raw/analysis_summary.txt","notes":"Only PNG FFT magnitude reveals a second flag-shaped candidate; not independently verified."},
+    {"t":"2026-08-23T00:15:00+07:00","phase":"TEST","hypothesis_id":"H4","action":"Test common JPEG steganography","command_or_step":"steghide/stegseek RockYou and 2^32 seed scan, OutGuess, stegdetect and F5 extraction","result":"fail","evidence_path":"raw/analysis_summary.txt","notes":"No complete payload. F5 detector signal reproduced on clean recompressions and rejected as false positive."},
+    {"t":"2026-08-23T00:20:00+07:00","phase":"VERIFY","hypothesis_id":"H3","action":"Assess FFT candidate verification","command_or_step":"Compare mirrored FFT text and require independent scoreboard/source gate","result":"partial","evidence_path":"raw/analysis_summary.txt","notes":"Deterministic extraction proves intentional embedding, not correctness as the accepted flag."}
+  ]
+}
+

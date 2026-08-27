@@ -1,0 +1,15 @@
+﻿{
+    "flag_status":  "verified",
+    "attempts":  [
+                     {
+                         "action":  "Chained steganography solving",
+                         "hypothesis_id":  "mordor_1",
+                         "t":  "2026-08-03T19:09:00",
+                         "result":  "Success",
+                         "phase":  "EXPLOIT",
+                         "evidence_path":  "D:\\download\\CTFTimeWriteup\\LIT2026\\misc\\one_does_not_simply_hide_a_flag\\solve\\evidence",
+                         "notes":  "Trailer zip, LSB bit inversion, Vigenere"
+                     }
+                 ],
+    "challenge_id":  "lit2026_mordor"
+}

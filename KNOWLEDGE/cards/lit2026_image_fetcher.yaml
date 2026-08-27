@@ -1,0 +1,15 @@
+﻿id: lit2026_image_fetcher
+challenge_name: image_fetcher
+event: LIT CTF 2026
+category: web
+status: verified
+key_idea: Web challenge exploitation
+verification_method: Submit flag
+verification: Found flag LITCTF{55rf_p0r7s_8e52df31}
+tools:
+  - Python
+  - curl
+writeup: D:\download\CTFTimeWriteup\LIT2026\web\image_fetcher\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\web\image_fetcher\solve\solve.py
+time_heuristic: 5 minutes
+last_verified: 2026-08-03

@@ -1,0 +1,76 @@
+{
+  "challenge_id": "ptitctf2026_pablo_escobar",
+  "flag_status": "none",
+  "attempts": [
+    {
+      "t": "2026-08-22T01:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H0-config",
+      "action": "Parse Tool.exe as Go WebView2 and config.enc as PBKDF2-AES-GCM envelope",
+      "command_or_step": "python solve/decrypt_config.py --exe Tool.exe --enc config.enc",
+      "result": "success",
+      "evidence_path": "OUTPUT/ptitctf2026_pablo_escobar/raw/config_decrypted.json",
+      "notes": "password from XOR tables; URL http://144.79.188.36:6500/"
+    },
+    {
+      "t": "2026-08-22T01:20:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H0-config",
+      "action": "Login luongvd/luongvd and dump /api/images",
+      "command_or_step": "python solve/fetch_inbox.py",
+      "result": "partial",
+      "evidence_path": "OUTPUT/ptitctf2026_pablo_escobar/raw/inbox.json",
+      "notes": "ids 1,2,4 visible; id 3 403 admin save-only; id 4 last createdAt"
+    },
+    {
+      "t": "2026-08-22T02:00:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H3-lagos",
+      "action": "Identify image 1 filename against Pexels",
+      "command_or_step": "compare to pexels.com/photo/38512126/",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Reverse\\Pablo Escobar\\notes\\inbox\\1.jpg",
+      "notes": "Ikoyi Lagos stock photo; not last location so not submitted as flag"
+    },
+    {
+      "t": "2026-08-22T03:00:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H1-img4-osint",
+      "action": "Reverse-image and news-photo compare for factory inspection JPEG",
+      "command_or_step": "Yandex/Bing + Danviet Man Xa + Franking + Nha Trang + Hung Yen photos",
+      "result": "fail",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Reverse\\Pablo Escobar\\notes\\inbox\\4.jpg",
+      "notes": "no pixel match; do not guess Man Xa / Trung Dong / Ikoyi as flag"
+    },
+    {
+      "t": "2026-08-22T04:00:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2-img3-admin",
+      "action": "Bounded admin login, IDOR, Next middleware, mass-assignment, typed/NoSQL login",
+      "command_or_step": "python probe_api.py / nosql.py; 377 login pairs",
+      "result": "fail",
+      "evidence_path": "OUTPUT/ptitctf2026_pablo_escobar/raw/inbox.json",
+      "notes": "id3 remains 403; object username yields 500 empty; no user enum"
+    },
+    {
+      "t": "2026-08-22T04:30:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H4-stego",
+      "action": "EXIF/LSB/binwalk/trailing EOI on inbox JPEGs",
+      "command_or_step": "python exif_steg.py",
+      "result": "fail",
+      "evidence_path": "OUTPUT/ptitctf2026_pablo_escobar/raw/hashes.txt",
+      "notes": "id4 JFIF only; no PTITCTF bytes"
+    },
+    {
+      "t": "2026-08-22T05:00:00Z",
+      "phase": "CAPTURE",
+      "hypothesis_id": "H1-img4-osint",
+      "action": "Write session notes, writeup, OUTPUT, knowledge card; no final_flag.txt",
+      "command_or_step": "notes/SESSION.md + Test-CtfAiSystem.ps1 -ChallengeId ptitctf2026_pablo_escobar",
+      "result": "partial",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Reverse\\Pablo Escobar\\notes\\SESSION.md",
+      "notes": "paused for resume; next is Lens/Yandex on id4 or admin for id3"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+id: htb_tryout_jailbreak
+name: "Jailbreak"
+category: "Web"
+event: "HTB Try Out"
+state: "solved"
+flag: "HTB{b1om3tric_l0cks_4nd_fl1cker1ng_l1ghts_6d45d44e5c2034af11b95b9d6def5c48}"
+lessons:
+  - "Flask endpoint parsing user XML (Content-Type application/xml) => try XXE file:///flag.txt."
+  - "lxml on a unicode string with an encoding declaration errors ('Unicode strings with encoding declaration...'); DROP the <?xml ...?> declaration and the entity resolves."
+  - "External entity is reflected back inside a response field (here the firmware Version)."

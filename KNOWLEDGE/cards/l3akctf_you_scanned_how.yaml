@@ -1,0 +1,54 @@
+id: l3akctf_you_scanned_how
+event: L3akCTF2026
+category: forensics/multislice-tomography
+challenge_name: You Scanned HOW?!?!
+status: solved
+flag: ""
+confidence: 1.0
+artifact_hashes:
+  - "sha256:7f1ee82b27d7d7a5886703e26082fde58705f4272b38c09ad0943d5f3e1e598c"
+  - "sqlite-sha256:626ea7fd01761cc448abb95823d4e3f91f6e1fcaad792db4a98362bba448c3c8"
+signals:
+  - "617 tables named slice_0cm through slice_1848cm with uniform step 3"
+  - "every slice has 180 variable-width projection vectors"
+  - "detector profile matches an expanded 800x400 rotated slice"
+  - "stacked angle-0 projections expose an oblique text plane"
+key_idea: >
+  Avoid full per-slice inverse Radon: restore one angle's line integrals, stack
+  them across physical z, correct slice spacing, and PCA-deskew the resulting
+  longitudinal radiograph.
+prerequisites:
+  - radon-projections
+  - multislice-volume
+  - voxel-spacing
+  - principal-component-deskew
+exploitation_pattern: many projection slices -> sparse angular overview -> one-angle stack -> spacing calibration -> PCA deskew
+verification:
+  method: deterministic archive-to-calibrated-PNG replay plus coherent decoded sentence
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/solve/evidence/manifest.md
+pitfalls:
+  - dumping hundreds of table schemas into logs
+  - reconstructing every slice before testing a projection stack
+  - displaying one slice as one pixel while ignoring physical z spacing
+  - choosing an edge-on angle
+  - guessing deskew angle manually instead of deriving a principal axis
+failed_paths:
+  - "manual aspect/rotation guesses remained distorted until z spacing was restored"
+tools:
+  - tar
+  - python-sqlite3
+  - numpy
+  - Pillow
+hexstrike:
+  used: false
+  useful: false
+  notes: local database operations and array geometry were sufficient; remote transfer would be costly
+sources:
+  - https://scikit-image.org/docs/stable/auto_examples/transform/plot_radon_transform.html
+  - https://scikit-image.org/docs/stable/api/skimage.transform.html
+  - https://numpy.org/doc/stable/reference/generated/numpy.linalg.eigh.html
+playbook: PLAYBOOKS/forensics_multislice_projection_stack.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/solve/solve.py
+time_heuristic: "hundreds of equal-angle slices -> stack a sparse set of angles before full 3D reconstruction, ~10 min"
+last_verified: "2026-08-01"

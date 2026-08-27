@@ -1,0 +1,20 @@
+{
+  "challenge_id": "l3akctf_blunder",
+  "attempts": [
+    {
+      "phase": "HYPOTHESIS",
+      "hypothesis_id": "H1",
+      "action": "Rank blunders with a chess engine",
+      "result": "rejected",
+      "notes": "Mate-score oscillations did not produce one stable anomaly per game."
+    },
+    {
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2",
+      "action": "Render repeated piece destinations as polylines",
+      "result": "success",
+      "notes": "The ordered games produced legible glyphs; verified from the original attachment."
+    }
+  ]
+}
+

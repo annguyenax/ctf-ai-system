@@ -1,0 +1,46 @@
+id: ptitctf2026_baby_heap_v2
+event: PTITCTF2026
+category: Pwn
+challenge_name: baby-heap-V2
+status: solved
+flag: "PTITCTF{y0u_h4v3_f0und_th3_g00d_p4rt_0f_51gn41_decb0010da61}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - heap menu Create/Read/Edit/Delete with op counters
+  - Delete does not NULL slot (UAF)
+  - Edit/Create fopen /proc/self/maps; Edit rejects non-heap writes
+  - glibc 2.35 Full RELRO no malloc hooks
+  - SIGALRM puts Session closed then exit
+key_idea: >
+  UAF tcache poison (safe-linking, keep tcache key) onto _IO_2_1_stderr_
+  with House of Apple 2. Menu uses write(2) so smash stdout and puts()
+  crashes before exit() flush; smash stderr, wait 60s alarm, cat /flag.txt.
+prerequisites:
+  - pwntools FileStructure / pwncli house_of_apple2
+  - Ubuntu 22.04 libc 2.35 (unsorted 0x21ace0)
+exploitation_pattern: UAF leak heap+libc → tcache poison stderr → apple2 → wait SIGALRM
+verification:
+  method: remote shell cat /flag.txt after SIGALRM; output contains PTITCTF{...} then cat: /home/ctf/flag.txt missing
+  evidence: OUTPUT/ptitctf2026_baby_heap_v2/raw/remote_flag.txt
+pitfalls:
+  - menu is write(2) not FILE* — stdout FSOP does not fire on Created/menu
+  - puts(stdout) on smashed stdout crashes before exit() flush
+  - must preserve tcache key at chunk+8
+  - flag path is /flag.txt not /home/ctf/flag.txt
+failed_paths:
+  - House of Apple 2 on stdout (puts crash, no shell)
+  - waiting 5s instead of ~60s for alarm
+tools:
+  - Python pwntools
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - pwncli house_of_apple2_execmd_when_exit
+playbook: ""
+writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Pwn\baby-heap-V2\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\PTITCTF2026\Pwn\baby-heap-V2\solve\exploit.py
+time_heuristic: leak tcache+unsorted, poison stderr not stdout, wait the 60s alarm
+last_verified: "2026-08-22"

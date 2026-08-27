@@ -1,0 +1,1 @@
+LITCTF{riddles_wrapped_in_pixels_and_verse}

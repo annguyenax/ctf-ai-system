@@ -1,0 +1,29 @@
+id: kalictf26_leaky
+event: Kali Team CTF 26
+challenge: Leaky
+category: pwn
+technique: fmt-leak-ret2libc-stack-align
+status: solved-local
+signals:
+  - read(size) > stack buf then printf(buf)
+  - Full RELRO, no canary, NX, no PIE
+  - provided libc + ld with RUNPATH ./
+  - almost no pop rdi in binary
+decision:
+  primary: format-string leak GOT + second pass ret2libc
+  critical_detail: ret2challenge is RET not CALL — insert ret for 16-byte rsp align
+  reject_early:
+    - GOT overwrite under Full RELRO
+    - pure binary ROP without libc when gadgets missing
+recipe:
+  - find fmt stack index of buffer (often $6 first qword)
+  - %N$s with GOT pointer in buffer
+  - payload1: leak + fake_rbp + ret + challenge
+  - payload2: system("/bin/sh") with libc pop rdi
+verify:
+  - local shell; cat flag.txt
+  - package flag may be fake_flag
+reusable: true
+related:
+  - SKILLS/PWN.md
+  - cards/kalictf26_warmy.yaml

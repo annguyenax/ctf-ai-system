@@ -1,0 +1,40 @@
+id: ptitctf2026_ghostvm
+event: PTITCTF2026
+category: Reverse
+challenge_name: GhostVM
+status: solved
+flag: "PTITCTF{vm_1s_ju5t_4_sh4d0w_r3!}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - PE32+ MSVC iostream crackme length 32
+  - two custom VMs splitmix keystream
+  - 16-round 256-bit Feistel plus S-box
+key_idea: >
+  VM1 decrypts inner bytecode; VM2 packs the 32-byte flag into 4 qwords
+  and runs 16 Feistel rounds. Invert Feistel from the four compare
+  constants and unpack.
+prerequisites:
+  - Capstone x64
+  - Python int64 arithmetic
+exploitation_pattern: emulate VM1 → disassemble VM2 → Feistel inverse → unpack
+verification:
+  method: inverse-then-forward matches ciphertext; live GhostVM.exe prints Correct flag!
+  evidence: OUTPUT/ptitctf2026_ghostvm/raw/live_check.txt
+pitfalls:
+  - VM1 and VM2 use different opcode tables
+  - SHL/ROL second operand is often an immediate
+failed_paths:
+  - decoding VM1 with VM2 tables
+tools:
+  - Python + Capstone
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: PLAYBOOKS/rev_template_feistel.md
+writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\GhostVM\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\GhostVM\solve\invert_feistel.py
+time_heuristic: stacked VM then Feistel inverse, not full symbolic
+last_verified: "2026-08-22"

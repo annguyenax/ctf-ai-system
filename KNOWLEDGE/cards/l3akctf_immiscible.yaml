@@ -1,0 +1,46 @@
+id: l3akctf_immiscible
+event: L3akCTF2026
+category: crypto/oil-and-vinegar
+challenge_name: Immiscible
+status: solved
+flag: "L3AK{Oil_4ND_v1N3g4r_WitH0ut_Mix1nG_Sp1LL5_eV3rYth1ng}"
+confidence: 1.0
+artifact_hashes:
+  - "sha256:2987ea3c73f7efea24405de6c8b54925c7d446dd9c38e62b72d4494a2d277e9f"  # crypto_immiscible.tar.gz
+signals:
+  - multivariate quadratic system over small field F_79 (M=9 eqns, N=8 vars)
+  - quad terms only vinegar*vinegar and vinegar*oil, NO oil*oil ("immiscible")
+  - AES key = sha256(bytes(secret_signature)); need exact preimage
+key_idea: >
+  Raw Oil-and-Vinegar central map. Fixing the 4 vinegar vars makes every equation
+  linear in the 4 oil vars. Brute vinegar (79^4, numpy-vectorized batched modular
+  Gauss), solve 4 eqns for oil, verify the other 5. M>N => unique consistent point
+  = secret signature -> AES key -> flag.
+prerequisites:
+  - oil-and-vinegar
+  - linear-algebra-over-Fp
+  - modular-gaussian-elimination
+exploitation_pattern: parse polys -> fix vinegar -> linear-in-oil -> vinegar brute + consistency filter -> recover signature -> sha256 -> AES decrypt
+verification:
+  method: eval_public(sig)==target for all 9 polys + clean AES unpad to L3AK{} flag
+  evidence: ../CTFTimeWriteup/L3akCTF2026/Crypto/Immiscible/solve/evidence/manifest.md
+pitfalls:
+  - z3 and sympy groebner both TIME OUT (>2min) on the modular quadratic system
+  - must recover the EXACT signature (hash-derived key), so uniqueness (M>N) matters
+  - leading 4x4 minor can be singular for some vinegar; use consistency over all 9 rows
+failed_paths:
+  - z3 nonlinear modular solve (timeout)
+  - sympy groebner over GF(79) (timeout)
+tools:
+  - python
+  - numpy
+hexstrike:
+  used: false
+  useful: false
+  notes: pure math, vectorized locally
+sources: []
+playbook: PLAYBOOKS/crypto_oil_and_vinegar_invert.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/Crypto/Immiscible/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/Crypto/Immiscible/solve/solve.py
+time_heuristic: "MQ system missing oil*oil -> OV -> fix vinegar, linear oil; brute vinegar vectorized ~1min"
+last_verified: "2026-08-02"

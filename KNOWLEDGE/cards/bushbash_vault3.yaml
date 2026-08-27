@@ -1,0 +1,44 @@
+id: bushbash_vault3
+event: BushBash2026
+category: rev/heap-allocator-size-confusion
+challenge_name: Hack The Vault III
+status: solved
+flag: "bushbash{th1rd-times-th3-chArM!}"
+service: "34.40.133.67:6002"
+key_idea: >
+  Custom sbrk pool allocator shared by startup decoy chunks, the password
+  buffer, and user `write` messages. Freelist reuse only checks a
+  free/in-use flag, never the original chunk size, so the first `write`
+  reuses a freed 32-byte decoy chunk (A). A message >=144 bytes overflows
+  through A -> B(header+data) -> C(header), landing in chunk C which is the
+  live (never-freed) password buffer, letting the attacker overwrite the
+  stored password. Embedding a NUL right after the chosen new password in
+  the raw payload bounds strlen/strncpy exactly at that offset.
+prerequisites:
+  - objdump -d -M intel manual reading of a small stripped ELF
+  - understanding of bump/sbrk allocator memory-order-equals-alloc-order
+  - strlen/strncpy NUL-termination semantics
+exploitation_pattern: >
+  write() with b"A"*144 + chosen_password + b"\x00\n"  ->  auth() with
+  chosen_password  ->  flag.txt printed
+pitfalls:
+  - assuming password is a plaintext .rodata string like Vault I (strings
+    shows no candidate here, "Securely storing password in memory..." is
+    the tell that it's on the heap instead)
+  - forgetting embedded NUL bytes truncate strlen()/strncpy() length, so
+    the NUL must be placed *after* the filler+target offset, not before
+  - write() does not strip the input's trailing newline (auth's read path
+    does), doesn't matter for the exploit but worth noting when computing
+    exact offsets
+tools:
+  - objdump (msys2, Windows-native, works fine on Linux ELF without WSL)
+  - python raw sockets
+playbook: PLAYBOOKS/rev_strings_password.md (partial fit only - flag as
+  needing a heap-size-confusion playbook update)
+writeup: ../BushBash2026/rev/Hack The Vault III/writeup/writeup.md
+solver: ../BushBash2026/rev/Hack The Vault III/solve/solve.py
+related_series: "Moss Man / Vault I (rev/strings) -> Vault III (rev/heap)"
+time_heuristic: >
+  "Securely storing X in memory" flavor text + write/delete commands ->
+  suspect custom allocator size-confusion before brute-forcing; read full
+  objdump by hand if binary is under ~20KB and HexStrike/Ghidra unavailable.

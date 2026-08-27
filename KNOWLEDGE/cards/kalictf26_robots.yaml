@@ -1,0 +1,32 @@
+﻿id: kalictf26_robots
+event: Kali Team CTF 26
+category: web/user-agent-spoofing
+challenge: Robots
+date: 2026-08-05
+status: solved
+
+signals:
+  - "robots.txt text mentions a specific bot (e.g., GOOGLEBOTS) and treats standard users differently"
+  - "robots.txt is dynamically generated (X-Powered-By: PHP)"
+
+key_idea: |
+  Spoof the User-Agent HTTP header to match a search engine bot (like Googlebot) to reveal hidden content in a dynamically generated obots.txt.
+
+verification: |
+  Sending curl -A "Googlebot" /robots.txt returns the flag.
+
+pitfalls:
+  - Assuming robots.txt is always a static file. Checking response headers (like X-Powered-By) can reveal if it's dynamic.
+
+tools:
+  - curl
+  - requests
+
+hexstrike_usefulness: none (simple curl is sufficient)
+
+sources:
+  - knowledge of HTTP headers and bots
+
+playbook: "PLAYBOOKS/web_user_agent_spoofing.md"
+writeup: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\web\\Robots\\writeup\\writeup.md"
+solver: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\web\\Robots\\solve\\solve.py"

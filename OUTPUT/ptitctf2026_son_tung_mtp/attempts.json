@@ -1,0 +1,12 @@
+{
+  "challenge_id": "ptitctf2026_son_tung_mtp",
+  "flag_status": "verified",
+  "status": "solved",
+  "attempts": [
+    {"t":"2026-08-22T00:00:00+07:00","phase":"TRIAGE","hypothesis_id":"H1","action":"List and integrity-check the supplied 7z","result":"success","evidence_path":"raw/artifact_manifest.md","notes":"Archive is valid and contains one unencrypted member, chall.wav."},
+    {"t":"2026-08-22T00:05:00+07:00","phase":"TEST","hypothesis_id":"H1","action":"Parse RIFF chunks and compare declared versus actual size","result":"fail","evidence_path":"raw/container_and_signal_notes.txt","notes":"No container-level hiding: only fmt/data and zero trailing bytes."},
+    {"t":"2026-08-22T00:10:00+07:00","phase":"TEST","hypothesis_id":"H2","action":"Scan raw bytes and low four sample bit-planes","result":"fail","evidence_path":"raw/container_and_signal_notes.txt","notes":"No flag/magic; left/right LSB-one ratios were 50.03335% and 50.00477%."},
+    {"t":"2026-08-22T00:15:00+07:00","phase":"EXPLOIT","hypothesis_id":"H3","action":"Render and crop the ultrasonic spectrogram","result":"success","evidence_path":"../../../CTFTimeWriteup/PTITCTF2026/Forensics/Sơn Tùng M-TP/solve/evidence/spectrogram_flag.png","notes":"Glyphs in 15.2-18.85 kHz spell a complete PTITCTF flag."},
+    {"t":"2026-08-22T00:20:00+07:00","phase":"VERIFY","hypothesis_id":"H3","action":"Compare SciPy STFT and manual NumPy rFFT renderings","result":"success","evidence_path":"raw/verification.txt","notes":"Different FFT sizes/hops agree on PTITCTF{N0T_JUST_MUSIC_BUT_A_MASTERPIECE}."}
+  ]
+}

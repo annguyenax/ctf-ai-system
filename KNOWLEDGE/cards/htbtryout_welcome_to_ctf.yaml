@@ -1,0 +1,12 @@
+id: htbtryout_welcome_to_ctf
+event: HTB TryOut
+category: general
+challenge_name: Welcome to CTF
+status: solved
+flag: "HTB{onboard1ng_fl4g}"
+confidence: 1.0
+key_idea: "Sanity check — flag printed directly in the onboarding page body (Flask/Werkzeug)."
+verification: {method: "live GET", evidence: "curl http://154.57.164.82:30352/ -> HTB{onboard1ng_fl4g}"}
+tools: [curl]
+writeup: "HTB-TryOut/general/Welcome to CTF/writeup/writeup.md"
+last_verified: "2026-08-20"

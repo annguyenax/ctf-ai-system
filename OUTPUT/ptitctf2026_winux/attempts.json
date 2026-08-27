@@ -1,0 +1,33 @@
+{
+  "challenge_id": "ptitctf2026_winux",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-22T12:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "strings + PE exports",
+      "result": "WUX2 rootfs, WnxService, package key",
+      "evidence_path": "OUTPUT/ptitctf2026_winux/raw/strings_winuxsvc.txt",
+      "notes": "Admin shell still blocked by package key"
+    },
+    {
+      "t": "2026-08-22T12:20:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "AES/XOR WUX2 records with SHA256(key)",
+      "result": "garbage",
+      "evidence_path": "OUTPUT/ptitctf2026_winux/raw/wux_xor_neg.txt",
+      "notes": "records are a second layer"
+    },
+    {
+      "t": "2026-08-22T12:30:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H3",
+      "action": "64-way SHA256 char brute",
+      "result": "full PTITCTF{...} including trailing ???",
+      "evidence_path": "OUTPUT/ptitctf2026_winux/raw/sha256_proofs.txt",
+      "notes": "all 64 iovecs match"
+    }
+  ]
+}

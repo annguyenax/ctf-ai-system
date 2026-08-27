@@ -1,0 +1,48 @@
+id: ptitctf2026_anhcd
+event: PTITCTF2026
+category: forensics/image-steganography
+challenge_name: anhcd
+status: needs_verification
+flag: ""
+confidence: 0.9
+artifact_hashes:
+  - "anhcd.png sha256=044bf345ef2a70772244f0cb3bed3931fba662cd7f6c6414e12c96e7f98e50f5"
+  - "anhcd_better.jpg sha256=9832b7b2d5a14050d3baa5d58fbb797ad03c0ad9fd79ca07bc6a4678bf2857af"
+signals:
+  - "PNG RGB-LSB contains a 32-bit big-endian length and a 52-byte self-identifying decoy"
+  - "PNG FFT log-magnitude contains a second flag-shaped string in symmetric copies"
+  - "clean JPEG comparison image has no confirmed embedded payload"
+key_idea: "Intentional extraction and accepted-flag verification are distinct; preserve both candidates without promoting either to verified."
+prerequisites:
+  - PNG RGB bit-plane extraction
+  - 2D FFT magnitude visualization
+exploitation_pattern: "Decode the length-prefixed RGB-LSB payload, then inspect high-passed log(abs(fftshift(fft2(gray))))."
+verification:
+  method: "Deterministic extraction only; exact scoreboard acceptance still required."
+  evidence: "OUTPUT/ptitctf2026_anhcd/raw/analysis_summary.txt"
+pitfalls:
+  - "A coherent flag-shaped FFT message may itself be a decoy."
+  - "Markdown backslashes before underscores are not literal flag characters."
+  - "Statistical F5 detector output must be calibrated on clean controls."
+failed_paths:
+  - "metadata, ancillary chunks and appended data"
+  - "pixel traversals, image arithmetic and common transform domains"
+  - "steghide, OutGuess, jsteg and F5 extraction"
+tools:
+  - Python 3
+  - Pillow
+  - NumPy
+  - zsteg
+  - stegseek
+  - stegdetect
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local image tooling answered the scoped questions."
+sources:
+  - "https://github.com/matthewgao/F5-steganography - reference F5 extractor used for a bounded negative test"
+playbook: ""
+writeup: D:/download/CTFTimeWriteup/PTITCTF2026/Forensics/anhcd/writeup/writeup.md
+solver: D:/download/CTFTimeWriteup/PTITCTF2026/Forensics/anhcd/solve/solve.py
+time_heuristic: "Fast extraction; stop broad search once common carrier families are killed and request an independent verification gate."
+last_verified: "2026-08-23"

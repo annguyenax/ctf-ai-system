@@ -1,0 +1,15 @@
+﻿id: lit2026_read_rules
+challenge_name: read the rules
+event: LIT CTF 2026
+category: misc
+status: verified
+key_idea: Extract rule table from CA simulation, brute force neighbor permutation order, then decode the 256-bit rule string using provided permutation.
+verification_method: Run Python decoder.
+verification: Extracted and found flag LITCTF{th3_fl4g_1s_in_th3_ru1e5}
+tools:
+  - Python
+  - Pillow
+writeup: D:\download\CTFTimeWriteup\LIT2026\misc\read_the_rules\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\LIT2026\misc\read_the_rules\solve\solve.py
+time_heuristic: 15 minutes
+last_verified: 2026-08-03

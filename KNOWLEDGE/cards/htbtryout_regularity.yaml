@@ -1,0 +1,16 @@
+id: htbtryout_regularity
+event: HTB TryOut
+category: pwn
+challenge_name: Regularity
+status: needs_verification
+flag: ""
+confidence: 0.9
+signals: ["hand-written static ELF", "GNU_STACK RWE (NX off)", "read 0x110 into 0x100 buffer", "jmp rsi @0x401041"]
+key_idea: "8-byte ret overwrite -> jmp rsi (rsi still = buffer) -> shellcode on RWE stack; no leak."
+exploitation_pattern: "ret2shellcode via preserved-register jmp gadget, NX-off stack"
+verification: {method: "static disasm", evidence: "264B payload: sc+pad+p64(0x401041)"}
+pitfalls: ["rsi preserved across read syscall", "return slot at buffer+0x100"]
+tools: [objdump, python]
+writeup: "HTB-TryOut/pwn/Regularity/writeup/writeup.md"
+solver: "HTB-TryOut/pwn/Regularity/solve/solve.py"
+last_verified: "2026-08-19"

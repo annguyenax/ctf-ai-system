@@ -1,0 +1,28 @@
+id: event_short_name
+event: ""
+category: ""
+challenge_name: ""
+status: solved # solved | paused | needs_verification
+flag: "" # empty unless verified
+confidence: 1.0
+artifact_hashes: []
+signals: []
+key_idea: ""
+prerequisites: []
+exploitation_pattern: ""
+verification:
+  method: ""
+  evidence: ""
+pitfalls: []
+failed_paths: []
+tools: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: ""
+writeup: ""
+solver: ""
+time_heuristic: ""
+last_verified: "YYYY-MM-DD"

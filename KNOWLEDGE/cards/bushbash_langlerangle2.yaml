@@ -1,0 +1,26 @@
+id: bushbash_langlerangle2
+event: BushBash2026
+category: rev/template-feistel
+challenge_name: langleranglelangleranglelangleranglelangleranglelangleranglelanglerangle
+status: solved
+flag: "bushbash{ma5B3_sf1NAe_neXt?}"
+plain_body: "ma5B3_sf1NAe_neXt?"
+key_idea: >
+  Second template crackme: obfuscated C++ types implement 16-round Feistel on
+  9 pairs (18-byte body). Key list GEUE embedded; reverse Feistel then re-encrypt verify.
+prerequisites:
+  - Feistel cipher reverse
+  - C++ template deobfuscation (op tags, not names)
+exploitation_pattern: map-ops -> recover F and keys -> invert 16 rounds on pairs -> re-encrypt check
+pitfalls:
+  - treating as pure Z3 constraint problem like series #1
+  - wrong pair endian / output reverse order (BCAD 17..0)
+tools:
+  - python
+  - careful reading of type-level AST
+playbook: PLAYBOOKS/rev_template_feistel.md
+writeup: ../BushBash2026/rev/langlerangle2/writeup/writeup.md
+solver: ../BushBash2026/rev/langlerangle2/solve/solve_feistel.py
+related:
+  - bushbash_langlerangle
+time_heuristic: HPFP/loop 16 + pair walk => Feistel, not SAT

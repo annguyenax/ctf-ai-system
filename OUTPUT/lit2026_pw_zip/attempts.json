@@ -1,0 +1,15 @@
+﻿{
+    "flag_status":  "verified",
+    "attempts":  [
+                     {
+                         "action":  "Crack zip password with john and rockyou",
+                         "hypothesis_id":  "pw_zip_1",
+                         "t":  "2026-08-03T18:53:00",
+                         "result":  "Success (1234qwer)",
+                         "phase":  "EXPLOIT",
+                         "evidence_path":  "D:\\download\\CTFTimeWriteup\\LIT2026\\misc\\pw_zip\\solve\\evidence",
+                         "notes":  "Password cracked instantly"
+                     }
+                 ],
+    "challenge_id":  "lit2026_pw_zip"
+}

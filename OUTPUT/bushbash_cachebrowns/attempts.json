@@ -1,0 +1,11 @@
+{
+  "challenge_id": "bushbash_cachebrowns",
+  "status": "solved",
+  "flag": "bushbash{doNt-Dr1nk-jav4-foR-br3kkie}",
+  "password": "%xhaaaaaaaaaa:q~",
+  "attempts": [
+    {"phase": "TRIAGE", "action": "read Main.java Integer==", "result": "success"},
+    {"phase": "EXPLOIT", "action": "MITM hashCode -110 len 16", "result": "success", "notes": "%xhaaaaaaaaaa:q~"},
+    {"phase": "VERIFY", "action": "nc :7777 send password", "result": "success"}
+  ]
+}

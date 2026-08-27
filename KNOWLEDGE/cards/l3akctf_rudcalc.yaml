@@ -1,0 +1,57 @@
+id: l3akctf_rudcalc
+event: L3akCTF2026
+category: pwn/bignum-overflow-canary-leak
+challenge_name: Rudimentary Calculator
+status: solved
+flag: "L3AK{s3Arch_f0r_Sm0otH}"
+confidence: 1.0
+artifact_hashes:
+  - "sha256:00c9719873a0631136d6c22b357688d0947c600eb974290fad830c47efaa4ba8"  # pwn_rudimentary-calculator.tar.gz
+signals:
+  - "unbounded bignum array on stack (multiply_digit writes product_bignum[len], len++ on carry)"
+  - "to_base_10 prints product_bignum_len limbs -> over-read if len corrupted"
+  - "scanf(\"%s\") stops at whitespace, NOT null -> embed \\x00 for arbitrary stack write"
+  - "PIE + stack canary + NX + Full RELRO; win() reads flag.txt"
+key_idea: >
+  Two primitives in run(): (1) scanf("%s") reads past an embedded NUL (parser stops at NUL
+  but scanf keeps writing) -> arbitrary contiguous stack write with our exact bytes.
+  (2) Overwrite the int `len` (buf+0x1000) so to_base_10 over-reads the stack and prints
+  it as a huge decimal -> leak canary (limb 97,98) and return addr (limb 101,102) -> PIE.
+  Same connection: write canary(exact)+win over the saved return, keep multiply as *1
+  (identity via input '1'), then 'quit' -> canary passes -> ret to win().
+prerequisites:
+  - stack-canary
+  - pie-leak
+  - scanf-null-overflow
+  - length-field-corruption-leak
+exploitation_pattern: leak via len-corruption -> parse limbs for canary+ret -> scanf-null write canary+win -> quit -> win
+verification:
+  method: end-to-end exploit vs official instance; win() prints flag; leak self-consistent (canary LSB 0, ret&0xfff==0xa9b)
+  evidence: ../CTFTimeWriteup/L3akCTF2026/pwn/Rudimentary Calculator/solve/evidence/manifest.md
+offsets:
+  buf: "rbp-0x1190"
+  len: "buf+0x1000 (rbp-0x190)"
+  bignum0: "buf+0x1004 (rbp-0x18c)"
+  canary_limbs: "97,98 (buf+0x1188)"
+  ret_limbs: "101,102 (buf+0x1198)"
+  win_off: "0x1289"
+  ret_into_main_off: "0x1a9b"
+pitfalls:
+  - "canary/win bytes must avoid whitespace (0x09-0x0d,0x20) or scanf truncates -> reconnect (~75% ok)"
+  - "must set len=103 in the WRITE stage too, else multiply_digit loops on a huge len -> segfault"
+  - "recv bug: server prints '> ' together with 'Result:'; recv_until '> ' each iteration"
+  - "do NOT try to control the bignum VALUE to place win (infeasible); the write primitive is scanf"
+failed_paths:
+  - "controlling bignum top limbs to equal win (product of hex digits can't hit exact 32-bit targets)"
+tools:
+  - python
+hexstrike:
+  used: false
+  useful: false
+  notes: developed and run directly against the live instance (no local Kali needed)
+sources: []
+playbook: PLAYBOOKS/pwn_scanf_null_and_len_leak.md
+writeup: ../CTFTimeWriteup/L3akCTF2026/pwn/Rudimentary Calculator/writeup/writeup.md
+solver: ../CTFTimeWriteup/L3akCTF2026/pwn/Rudimentary Calculator/solve/exploit.py
+time_heuristic: "bignum-print-by-len + canary + scanf(%s) + win() -> leak via len, write via scanf-null"
+last_verified: "2026-08-02"

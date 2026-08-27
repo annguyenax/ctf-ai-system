@@ -1,0 +1,23 @@
+{
+  "challenge_id": "bushbash_strawberries",
+  "status": "solved",
+  "attempts": [
+    {
+      "phase": "TRIAGE",
+      "action": "read source + message.ct size 80",
+      "result": "success"
+    },
+    {
+      "phase": "EXPLOIT",
+      "action": "send message.ct honest decrypt",
+      "result": "success",
+      "notes": "n=1 non-premium u known"
+    },
+    {
+      "phase": "EXPLOIT",
+      "action": "CBC bitflip C0 to PREMIUM_USER",
+      "result": "success",
+      "notes": "huge n, How DARE you, displayFlag"
+    }
+  ]
+}

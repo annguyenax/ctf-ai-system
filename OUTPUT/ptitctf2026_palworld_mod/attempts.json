@@ -1,0 +1,43 @@
+{
+  "challenge_id": "ptitctf2026_palworld_mod",
+  "flag_status": "verified",
+  "status": "solved",
+  "attempts": [
+    {
+      "t": "2026-08-23T08:00:00",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Analyze zip-slip path traversal and stdlib cache behavior",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Web\\Palworld Mod\\solve\\notes.md",
+      "notes": "Upload path is controllable via mod_version / platform_code"
+    },
+    {
+      "t": "2026-08-23T08:10:00",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Test stdlib module overwriting vs startup cache",
+      "result": "fail",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Web\\Palworld Mod\\solve\\solve_shotgun.py",
+      "notes": "Top-level modules like bz2/lzma/decimal are cached during Django initialization"
+    },
+    {
+      "t": "2026-08-23T08:18:00",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H3",
+      "action": "Use pathlib absolute root reset to plant malicious codec into encodings/ directory",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Web\\Palworld Mod\\solve\\solve_universal_charset.py",
+      "notes": "Leading slash in mod_version resets base path to /usr/local/lib, reaching encodings"
+    },
+    {
+      "t": "2026-08-23T08:21:00",
+      "phase": "VERIFY",
+      "hypothesis_id": "H3",
+      "action": "Trigger dynamic codec import via multipart charset parameter and read flag",
+      "result": "success",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Web\\Palworld Mod\\final_flag.txt",
+      "notes": "Flag extracted: PTITCTF{w3lc0mE_t0_th3_InfosecPTIT_h0uSe_h3r3_1S_y0uR_61af5da2e260_mil_vnd}"
+    }
+  ]
+}
