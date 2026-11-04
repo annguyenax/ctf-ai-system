@@ -1,0 +1,42 @@
+id: ptitctf2026_phonefarm_detail
+event: "PTITCTF2026"
+category: "reverse/android-native-license-check"
+challenge_name: "PhoneFarm"
+status: solved
+flag: "PTITCTF{5d41402abc4b2a76b9719d911017c592}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Java-level license-key validation only checks that the field is non-empty; the real check is entirely in native code (libOctopus.so), so Java-layer static/dynamic analysis alone misses the actual gate."
+  - "The native check compares the key's length to exactly 5 and its first 4 bytes to a fixed 32-bit immediate ('hell'), then the 5th byte to 'o' via a conditional compare (ccmp) -- the master key is simply the literal string 'hello'."
+  - "A visually plausible 30-character alphanumeric string sitting in .rodata next to JSON-library noise is a decoy: it is the response-decryption XOR key (cryptor_static_base::m_key), not the license key."
+key_idea: "Native Android license checks hide the real comparison in ARM64 native code (JNI) while the Java layer only enforces a trivial non-empty constraint; the actual validation constant must be read directly from the disassembled native function (here: a 5-character literal compared via length check + 4-byte immediate + single-byte ccmp). A long, random-looking string elsewhere in .rodata that appears to be a license/key is frequently a decoy serving an unrelated purpose (here, decrypting the app's own network response payloads)."
+prerequisites:
+  - "APK extraction and native .so disassembly (ARM64)"
+  - "JNI method registration tracing (JNI_OnLoad) to map the exported native symbol to its real implementation address"
+  - "Basic hash computation (MD5) per the flag-format instruction"
+exploitation_pattern: "Java layer only checks non-empty -> trace JNI_OnLoad to find the real native validation function -> read the fixed-length + byte-immediate comparison directly from ARM64 disassembly -> recover the literal master key -> hash as instructed by the flag format."
+verification:
+  method: "Independent ARM64 disassembly confirms the exact length check (#5), 4-byte movk-built immediate (0x6c6c6568 = 'hell'), and ccmp (#0x6f = 'o') at the native function entry; Python hashlib.md5(b'hello') matches the submitted flag."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Reverse/PhoneFarm/notes/SESSION.md documents the exact ARM64 instruction sequence at 0x147a0 in libOctopus.so and the MD5 computation."
+pitfalls:
+  - "Do not assume the license/key is whatever long random-looking string sits in .rodata near relevant-looking library symbols (nlohmann/json in this case) -- verify what the string is actually used for (here, it only decrypts HTTP JSON responses, unrelated to the license gate)."
+  - "Flavor-text names mentioned in the challenge prompt (e.g. a cracker's handle) need not appear anywhere in the binary/DEX -- searching for them as strings is a dead end if the actual mechanism is a hardcoded backdoor value."
+failed_paths:
+  - "MD5 of the 30-character cryptor XOR key (5651971678d1307bb41e69311febfbee) -- wrong, that string is unrelated to the license check."
+  - "Searching GitHub/OSINT for the named cracker's handle -- not present anywhere in the APK; the actual answer is the hardcoded compare value."
+tools:
+  - "Static ARM64 disassembly (implied Ghidra/IDA-class tool)"
+  - "APK/DEX extraction tooling"
+  - "Python hashlib"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Reverse/PhoneFarm/files/"
+playbook: "rev_strings_password.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Reverse/PhoneFarm/writeup/writeup.md"
+solver: ""
+time_heuristic: "When an Android app's Java-level input validation is trivial (e.g. non-empty only), immediately trace JNI_OnLoad to locate the real native validation function before trusting any decoy-looking constant string found by a flat strings scan."
+last_verified: "2026-11-04"

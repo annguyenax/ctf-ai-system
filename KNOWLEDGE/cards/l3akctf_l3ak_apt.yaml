@@ -22,7 +22,7 @@ prerequisites:
 exploitation_pattern: missing image -> Recent/Activity correlation -> CMMM entry parsing -> duplicate payload verification
 verification:
   method: two cache keys with identical payload plus deterministic archive-to-JPEG replay
-  evidence: ../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/solve/evidence/manifest.md
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Forensics/L3ak APT/solve/evidence/manifest.md
 pitfalls:
   - carving MFT or USN before checking high-resolution thumbnail caches
   - opening ActivitiesCache without its WAL
@@ -44,7 +44,7 @@ sources:
   - https://github.com/EricZimmerman/WxTCmd
   - https://learn.microsoft.com/en-us/windows/apps/develop/windows-integration/user-activities
 playbook: PLAYBOOKS/forensics_windows_thumbcache_recovery.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Forensics/L3ak APT/solve/solve.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Forensics/L3ak APT/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Forensics/L3ak APT/solve/solve.py
 time_heuristic: "deleted image + Recent/Activity path + thumbcache present -> parse largest cache before MFT carving, ~10 min"
 last_verified: "2026-08-01"

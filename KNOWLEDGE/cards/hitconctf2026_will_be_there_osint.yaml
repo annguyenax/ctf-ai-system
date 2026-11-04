@@ -1,0 +1,39 @@
+id: hitconctf2026_will_be_there_osint
+event: "HITCON CTF 2026"
+category: "osint/plus-code-ambiguity"
+challenge_name: "Will be there OSINT?"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A night photo of a lit building with a mast/antenna on rocky high-country terrain with starfield, no EXIF GPS, must be Plus-Code-geolocated to the exact 10-character code requested as the flag."
+  - "A stale `hitcon{4V7GXFWJ+MX}` candidate (Church of the Good Shepherd) was later found to conflict with the pictured building/terrain and is likely wrong; the corrected scene matches Mt John Observatory's Astro Cafe near Lake Tekapo, NZ."
+  - "Different map sources for the same real-world venue (OSM node, Tripadvisor JSON-LD, Google place pin, a secondary listing) land in 2-4 adjacent 10-character Plus Code cells because the venue straddles an OLC cell boundary (~30-40m source-to-source spread)."
+key_idea: "A full Plus Code has ~14m cell resolution, so when multiple legitimate sources for the same building differ by only tens of meters, they can still land in different 10-character cells -- rank candidate sources by authority (the platform used for the challenge image, typically Google's own place pin) rather than picking whichever source you found first."
+prerequisites:
+  - "OLC/Plus Code encoding"
+  - "cross-source coordinate reconciliation"
+exploitation_pattern: "landmark identification from scene details -> multiple independent coordinate sources for the same POI -> encode each as a Plus Code -> if sources disagree at the 10-char cell level, prefer the platform-native (Google) pin as the author's likely source."
+verification:
+  method: "No platform acceptance obtained; official submission helper returned Cloudflare HTTP 403 before a verdict, so none of the ranked candidates is confirmed."
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Osint/Will be there OSINT_/notes/ANALYSIS.md"
+pitfalls:
+  - "Do not trust a prior/cached candidate flag string at face value -- it was attributed to a visually-conflicting building in this case; re-verify the scene match before reusing an old answer."
+  - "Plus Code precision (~14m at 10 chars) is finer than typical source-to-source GPS disagreement for the same POI (~30-40m), so always compute the code from several independent sources and check whether they actually agree at the required code length."
+failed_paths:
+  - "The originally-stored final_flag.txt (Church of the Good Shepherd candidate) was shown to conflict with the actual pictured scene and was demoted to a preserved-for-provenance note, not resubmitted."
+tools:
+  - "openlocationcode (Python)"
+  - "web image/landmark cross-referencing"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Osint/Will be there OSINT_/files/will-be-there-osint-a26ebb618421778e.tar.gz"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Osint/Will be there OSINT_/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Osint/Will be there OSINT_/solve/solve.py"
+time_heuristic: "For Plus-Code geolocation challenges, pull coordinates from 3+ independent sources for the identified POI and check whether they agree at the requested code length before treating any single source as final."
+last_verified: "2026-11-04"

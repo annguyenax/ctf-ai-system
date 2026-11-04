@@ -1,0 +1,15 @@
+{
+  "challenge_id": "rstconctf2026_coil_toss",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-25",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Modbus FC06 single-register writes; deterministic replay",
+      "result": "Verified locally by deterministic replay; server returned `already_solved` with message `Correct but you already solved this`. This response confirms prior team solve status; local evidence is retained independently.",
+      "evidence_path": "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Coil Toss/solve/evidence/manifest.md",
+      "notes": "Counting FC06 response echoes would double the message; normal gauge reads are unrelated."
+    }
+  ]
+}

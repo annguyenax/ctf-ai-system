@@ -1,0 +1,37 @@
+id: deadfacectf2026_keypad_oracle
+event: DeadfaceCTF2026
+category: rev/ios-swift-cipher-bruteforce
+challenge_name: "Mobile / Keypad Oracle"
+status: solved
+flag: "deadface{your-pin-is-valid}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - iOS Simulator app bundle ships a debug dylib with full Swift symbols and DWARF metadata (not stripped) — disassembly is directly readable, no symbolication needed.
+  - PIN is constrained to 4 unique, non-repeating digits, so the full keyspace is only 10*9*8*7 = 5,040 permutations — small enough to brute force without any crypto break.
+  - Custom "PinCipherEngine" is a bespoke per-digit mix of XOR with a salt, position/digit-derived rotation, and modular addition, folded with a static binary salt — fully deterministic given the PIN.
+key_idea: When a binary's custom cipher is deterministic and the valid-input keyspace is small (here due to a no-repeat-digit PIN constraint), don't bother inverting the cipher algebraically — faithfully reimplement the forward algorithm from the disassembly in a scripting language and brute force every candidate input until the output matches the expected/encoded value or decodes to readable ASCII.
+prerequisites:
+  - Full symbol/DWARF availability in the binary (debug build) for accurate disassembly
+  - A small, enumerable keyspace to brute force
+exploitation_pattern: disassemble PinCipherEngine.encode per-position/per-digit formula -> port formula 1:1 to Python -> itertools.permutations over valid PIN space -> run forward algorithm for each candidate -> stop at the candidate whose output decodes to printable ASCII (the flag).
+verification:
+  method: Brute force over all 5,040 permutations completed in under 1 second and found the one PIN whose cipher output decoded directly to the flag string.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Mobile/Keypad Oracle/writeup/writeup.md"
+pitfalls:
+  - Reversing the cipher algebraically would be much harder than just reimplementing-and-brute-forcing once the keyspace is this small — check keyspace size before attempting algebraic inversion.
+failed_paths: []
+tools:
+  - capstone (Mach-O arm64 disassembly)
+  - Python itertools
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Mobile/Keypad Oracle/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: rev_template_feistel.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Mobile/Keypad Oracle/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Mobile/Keypad Oracle/solve/disasm_script.py"
+time_heuristic: For a custom binary cipher gating a constrained input (e.g. unique-digit PIN), first compute the actual keyspace size — if it's a few thousand, port the forward algorithm from disassembly and brute force it instead of attempting cryptanalysis.
+last_verified: "2026-11-04"

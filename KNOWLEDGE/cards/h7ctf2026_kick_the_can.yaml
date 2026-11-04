@@ -1,0 +1,33 @@
+id: "h7ctf2026_kick_the_can"
+event: "H7CTF 2026 Quals"
+category: "hardware/can-uds-isotp-multiframe-extraction"
+challenge_name: "Kick the CAN"
+status: "solved"
+flag: "H7CTF{1d3a0d78-b1fa-4e6e-bd0b-e76a074e7c94}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A candump log shows a standard UDS request/response pair (0x7E0/0x7E8) running DiagnosticSessionControl -> SecurityAccess seed/key -> ReadDataByIdentifier, with the response segmented across multiple ISO-TP frames."
+key_idea: "Recognize the UDS/ISO 15765-2 (ISO-TP) framing on the diagnostic request/response CAN IDs (commonly 0x7E0/0x7E8): a First Frame (PCI nibble 0x1) carries total length + the first few payload bytes, followed by Consecutive Frames (PCI nibble 0x2, incrementing sequence number) each carrying 7 more payload bytes; reassemble by concatenating First Frame data bytes with each Consecutive Frame's data bytes in sequence order to recover the full multi-frame UDS response payload (service 0x62 = positive ReadDataByIdentifier response)."
+prerequisites:
+  - "Recognizing standard UDS diagnostic CAN ID pairs and service IDs (0x10, 0x27, 0x22/0x62)"
+  - "ISO-TP PCI byte parsing (first nibble = frame type)"
+exploitation_pattern: "filter candump lines for CAN ID 0x7E8 -> for each, read ISO-TP PCI nibble -> First Frame: payload = bytes[5:]; mark total length; Consecutive Frame: payload = bytes[1:] -> concatenate in arrival order -> strip UDS service+DID header bytes -> remaining ASCII is the flag."
+verification:
+  method: "Deterministic reassembly of ISO-TP frames reconstructed a well-formed ASCII flag string."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Kick the CAN/writeup/writeup.md"
+pitfalls:
+  - "Don't try to interpret each CAN frame's data bytes independently -- the flag is only legible after ISO-TP multi-frame reassembly strips the PCI/sequence bytes."
+failed_paths: []
+tools:
+  - "Python candump log parsing"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Kick the CAN/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Kick the CAN/solve/solve.py"
+time_heuristic: "When a CAN bus capture shows request/response traffic on the classic UDS IDs (0x7E0/0x7E8) with long responses, assume ISO-TP multi-frame segmentation and reassemble via PCI nibble + sequence number before looking for the flag in any single frame."
+last_verified: "2026-11-04"

@@ -1,0 +1,38 @@
+id: htbtryout_void
+event: HTB Try Out
+category: pwn/ret2dlresolve-two-stage-no-leak
+challenge_name: "Void"
+status: solved
+flag: "HTB{pwnt00l5_h0mep4g3_15_u54ful}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Binary imports only read(); no puts/printf/system to leak an address, and no syscall gadget for SROP."
+  - "NX is enabled, but __libc_csu_init gadgets (ret2csu) and a pop rdi;ret gadget exist, and the provided glibc/ld pair allow ret2dlresolve."
+  - "The vulnerable read() call is capped at 200 bytes, shorter than a full single-stage ret2dlresolve ROP chain, forcing the exploit to be split into two overflows."
+key_idea: "With no leak primitive and NX enabled but a known glibc/ld pair available, forge fake ELF64_Rela/Sym/strtab structures in .bss via ret2csu (calling read() again to write them) so the lazy PLT resolver resolves 'system' without needing any libc base leak; split the chain into two overflows because the full ret2dlresolve payload exceeds the single read() size cap, with the first overflow writing the forged structures and looping back to main(), and the second overflow performing the final pop-rdi + PLT0 call to trigger resolution and invoke system(arg)."
+prerequisites:
+  - Known/bundled glibc+ld (to know lazy-binding internals and PLT0/resolver trampoline layout precisely)
+  - ret2csu gadget to call arbitrary functions with controlled registers when dedicated pop-reg gadgets are missing
+  - A writable, executable-adjacent region for the forged relocation structures (.bss)
+exploitation_pattern: "stage1 (fits read() cap): ret2csu writes forged dlresolve Rela/Sym/strtab + arg string into .bss, then ret->main for a second overflow; stage2: pop rdi (arg) -> PLT0 -> reloc_index triggers _dl_runtime_resolve to resolve system() and call it with the forged arg, all without any libc-address leak"
+verification:
+  method: "Remote exploit script sent both stages over a single socket and the service returned flag output from system('cat flag*')."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/pwn/Void/final_flag.txt"
+pitfalls:
+  - "pwntools' built-in Ret2dlresolvePayload / rop.ret2dlresolve() helper may fail to find required gadgets (e.g. pop rdi) automatically on x86-64 and can place the argument incorrectly; building the ret2dlresolve payload object manually and wiring gadgets by hand is more reliable."
+  - "When read()/overflow length is capped below a full ROP chain's size, split the exploit into two sequential overflows (stage writes data, then loops back to the vulnerable function for the final trigger) rather than trying to shrink the chain."
+failed_paths: []
+tools:
+  - pwntools (Ret2dlresolvePayload, ELF, ROP primitives used manually)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/pwn/Void/writeup/writeup.md"
+playbook: pwn_stack_overflow.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/pwn/Void/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/pwn/Void/solve/solve.py"
+time_heuristic: "When a binary has no leak primitive, NX enabled, and no syscall gadget, but provides glibc+ld and has ret2csu-style register-control gadgets, consider ret2dlresolve; if the read/overflow size cap is smaller than the full chain, split into two overflow stages connected by a ret back into the vulnerable function."
+last_verified: "2026-11-04"

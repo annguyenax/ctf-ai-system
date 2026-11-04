@@ -1,0 +1,49 @@
+id: ptitctf2026ck_shopbroken_cdn
+event: PTIT CTF 2026 (Chung ket / Jeopardy)
+category: crypto/cbc-bitflip
+challenge_name: ShopBroken CDN
+status: needs_verification   # exploit verified offline; real flag needs live instance
+flag: ""                      # server-side only; not captured offline; do not fabricate
+confidence: 1.0               # confidence in the exploit technique
+artifact_hashes: []
+signals:
+  - "SESSION_KEY = bytes.fromhex(os.environ['SESSION_KEY'])"
+  - "AES.new(SESSION_KEY, AES.MODE_CBC, iv).encrypt(pad(build_plaintext(...), 16))"
+  - "build_plaintext = 'brand=ShopBroken;role=' + role + ';uid=1001;exp=' + TOKEN_EXP + ';u=' + user"
+  - "open_session checks only role in ROLES and exp >= now (no MAC, no brand check)"
+  - "login mints token with role='guest' for demo:demo / guest:guest"
+key_idea: >
+  Session cookie = base64(iv || AES-CBC-ct) with NO MAC. CBC gives P[i] = D(C[i]) XOR C[i-1],
+  so flipping bits in C[0] flips the same positions in P[1]. The word "guest" sits in
+  plaintext block 1 bytes 6..10, so XOR ct[6:11] with "guest"^"admin" turns role into
+  admin. Block 0 ("brand=ShopBroken") becomes garbage but is never validated, and the
+  padding block is untouched, so unpad still succeeds. /admin then leaks the flag.
+prerequisites:
+  - AES-CBC
+  - bit-flip malleability / no-MAC session tokens
+  - plaintext layout from source
+exploitation_pattern: >
+  login demo:demo -> session cookie -> blob=b64decode; ct=blob[16:];
+  mask=zip(b"guest",b"admin") XOR; ct[6+i]^=mask[i]; resend -> GET /admin -> flag.
+verification:
+  method: end-to-end local replay of exact seal()/open_session() with fixed key
+  evidence: "solve/solve.py --selftest prints 'self-test PASSED: guest -> admin'"
+pitfalls:
+  - "'guest' is in plaintext BLOCK 1, so flip the PREVIOUS ciphertext block C[0] (ct[0:16]), not the IV."
+  - "Do not fabricate the flag; it lives server-side on /admin (offline learning = not captured)."
+  - "USERS/ROLES are {} in the public source (redacted); the live app fills demo/guest + admin."
+failed_paths: []
+tools:
+  - python
+  - pycryptodome (local only)
+  - requests (remote mode)
+hexstrike:
+  used: false
+  useful: false
+  notes: "Pure crypto logic; no scanner needed."
+sources: []
+playbook: PLAYBOOKS/crypto_cbc_bitflip.md
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK\Crypto\💸ShopBroken CDN💸\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK\Crypto\💸ShopBroken CDN💸\solve\solve.py
+time_heuristic: "<10 min: spot no-MAC AES-CBC session token; one 5-byte flip guest->admin."
+last_verified: "2026-09-10"

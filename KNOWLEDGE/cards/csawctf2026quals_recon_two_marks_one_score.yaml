@@ -1,0 +1,39 @@
+id: csawctf2026quals_recon_two_marks_one_score
+event: "CSAW CTF Qualifications 2026"
+category: "osint/landmark-and-entity-correlation"
+challenge_name: "Recon: Two Marks, One Score"
+status: solved
+flag: "csaw{N723KP}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Two cropped surveillance-style photos with no EXIF/geodata; standard reverse-image search is defeated because images are cropped Google Street View frames."
+  - "Landmark recognition (Google Lens / Yandex) identifies the two locations as Il Redentore, Venice and the LA Metro, Los Angeles."
+  - "Prompt explicitly asks for an 'identifier high in the sky' tied to a 'man on the inside' -- a pivot from place identification to a fictional/media entity correlation."
+key_idea: "When reverse image search is deliberately defeated by cropping, fall back to landmark/logo recognition via multiple vision search engines (Google Lens AND Yandex, since defeat strategies differ), then connect the two identified real-world locations to a narrative/media reference (here: the two heist locations of 'The Italian Job' 2003) rather than treating them as literal travel-manifest coordinates."
+prerequisites:
+  - "Landmark/logo visual recognition across multiple search engines"
+  - "Domain knowledge lookup via specialty databases (here: impdb.org, the Internet Movie Plane Database, for a fictional aircraft registration)"
+exploitation_pattern: "crop-defeated reverse image search -> landmark ID per image via Lens + Yandex -> correlate both locations to a shared narrative (film heist locations) -> identify the specific character/vehicle referenced by the prompt's wording -> look up its registration/identifier in a specialty database -> flag"
+verification:
+  method: "Cross-referenced via a named specialty database (impdb.org) matching the exact registration string required by the flag format."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/OSINT/Recon - Two Marks, One Score/writeup/writeup.md"
+pitfalls:
+  - "If one reverse-image-search engine returns nothing (deliberately defeated by cropping), try a second engine before concluding the image is unidentifiable -- Lens and Yandex often diverge."
+  - "A prompt referencing an 'operation', 'crew', or vague narrative language may be describing a well-known film/show plot, not a literal intelligence scenario; search for matching heist/plot tropes."
+failed_paths: []
+tools:
+  - "Google Lens"
+  - "Yandex image search"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/OSINT/Recon - Two Marks, One Score/files/First_Image.png"
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/OSINT/Recon - Two Marks, One Score/files/Second_Image.png"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/OSINT/Recon - Two Marks, One Score/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/OSINT/Recon - Two Marks, One Score/solve/solve.py"
+time_heuristic: "OSINT image-ID challenge where reverse search returns nothing: try a second vision search engine, and consider that the subject may reference a known film/media plot rather than a literal real-world event."
+last_verified: "2026-11-04"

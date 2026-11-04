@@ -1,0 +1,45 @@
+id: compfest18_compfest_coin
+event: COMPFEST18CTF2026
+category: blockchain
+challenge_name: "Compfest Coin"
+status: solved
+flag: "COMPFEST18{Allow_me_to_say_goodbye_to_the_Crypto_World_Today_might_be_the_heaviest_day_for_me_My_hands_are_trembling_as_I_write_this_my_chest_feels_tight_and_my_head_is_full_of_thoughts_The_crypto_world_really_knows_no_mercy_I_have_fought_this_far_hoping_there_would_be_light_at_the_end_of_that_red_chart_But_the_reality_is_Crypto_is_sadistic_and_cruel_Sometimes_it_drains_not_only_your_balance_but_also_your_heart_and_spirit_For_friends_who_have_not_entered_yet_listen_carefully_Do_not_be_reckless_This_world_is_not_a_place_to_just_try_things_Learn_first_understand_the_risks_and_never_put_in_more_than_you_can_afford_to_lose_I_apologize_if_any_of_my_words_have_offended_anyone_here_There_was_never_any_bad_intention_only_the_emotions_of_someone_who_has_endured_the_storm_for_too_long_And_now_I_give_up_I_want_to_rest_Those_of_you_who_are_still_strong_continue_your_struggle_But_for_those_who_also_feel_broken_maybe_it_is_time_for_us_to_CL_together_Alt_season_is_really_over_Thank_you_for_all_the_stories_laughter_and_pain_we_have_shared_here_See_you_in_the_next_life_not_as_a_trader_but_as_a_human_who_has_learned}"
+confidence: 1.0
+artifact_hashes:
+  - "pool.move from challenge package; reverse-pool path verified live"
+signals:
+  - "Sui Move RoutePool created from u64 reserves with no Coin deposit"
+  - "registry duplicate check on direct type-order key before canonicalization"
+  - "add_liquidity mints shares with no payment"
+  - "quoted_route_score = reserve_quote / reserve_base"
+  - "pwn.red POW launcher + @mysten/sui JSON-RPC (CLI gRPC blocked)"
+key_idea: "Create the reverse-typed <USDC,SUIX> pool with fake reserves (1, 2_000_000), mint 500 unbacked shares, register a vector<u8> drop strategy, claim the 1000 CFX vault, call setup::solve."
+prerequisites:
+  - "@mysten/sui JSON-RPC client"
+  - "redpwn POW for the blockchain launcher"
+exploitation_pattern: "POW -> launch -> reverse pool -> unbacked LP -> drop-witness strategy -> claim -> setup::solve -> GET /flag"
+verification:
+  method: "On-chain Setup.solved==true, OperatorAccount.earned==1000, IncentivesClaimed.amount==1000, then launcher GET /flag success."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Blockchain/Compfest Coin/solve/evidence/onchain_result.json and flag_response.json"
+pitfalls:
+  - "Sui CLI uses gRPC and fails; dryRun is method-not-allowed — set gasBudget."
+  - "Shared admin pay-sui races coin versions; retry launch until coins and Setup exist, then send immediately."
+  - "Recreating the original SUIX/USDC direct pool is rejected; only the reverse direct key is new."
+failed_paths:
+  - "Primary launcher 34.2.147.230:8501 failed pay-sui (transport reset / stale coin version)."
+  - "First 8502 instance published a package but funding/objects vanished after a node reset."
+tools:
+  - "redpwnpow v0.1.2"
+  - "@mysten/sui JSON-RPC"
+  - "Python urllib launcher client"
+hexstrike:
+  used: false
+  useful: false
+  notes: "Not needed."
+sources:
+  - "files/pool.move, registry.move, vault.move, setup.move, config.move"
+playbook: "KNOWLEDGE/PLAYBOOKS/blockchain_sui_fake_reserve_reverse_market.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Blockchain/Compfest Coin/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Blockchain/Compfest Coin/solve/exploit.mjs"
+time_heuristic: "source audit 20m; live launch retries 40m; six-tx exploit 2m"
+last_verified: "2026-08-29"

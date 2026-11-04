@@ -1,0 +1,38 @@
+id: deadfacectf2026_memory_dump_streaming_search
+event: DeadfaceCTF2026
+category: forensics/memory-streaming-search
+challenge_name: "DeMonneBreach series (Borrowed Script, Hidden in Plain Task, False Telemetry)"
+status: solved
+flag: ""
+confidence: 0.9
+artifact_hashes: []
+signals:
+  - "Memory image is distributed compressed (~1.3GB) but decompresses to ~8GB — too large to fully extract/scan comfortably."
+  - Target artifacts (PowerShell command history, scheduled-task registration commands, a dropped .ps1 script's contents) are plain ASCII strings embedded somewhere in the raw memory image.
+  - Each sub-challenge only needs one or two regex matches, not full memory parsing/Volatility plugin analysis.
+key_idea: Rather than extracting a multi-GB memory image to disk, pipe the archive's decompressor to stdout (`7z.exe e -so archive.7z`) and regex-scan the stream in fixed-size chunks, carrying a small overlap buffer between reads so matches spanning a chunk boundary aren't missed.
+prerequisites:
+  - 7-Zip (or equivalent) available locally to stream-decompress without writing the full image to disk
+  - Known string patterns to search for (file paths, command names, task names) from the challenge description or a prior sub-challenge
+exploitation_pattern: Popen(['7z','e','-so',archive], stdout=PIPE) -> read in 4-8MB chunks -> prepend leftover tail from previous chunk -> regex findall for target pattern (e.g. `[a-zA-Z]:\\...\.ps1`, scheduled-task registration cmdlets) -> dedupe matches into a set.
+verification:
+  method: Each sub-challenge's streaming script printed the exact matched command/path, and the derived flag matched final_flag.txt.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneBreach/Hidden in Plain Task/writeup/writeup.md"
+pitfalls:
+  - Without a carry-over buffer between chunks, a string matching the regex can be split exactly at a chunk boundary and silently missed.
+  - This is a targeted-string-search shortcut, not full memory forensics — it will miss anything that needs process/structure-aware parsing (use Volatility for that).
+failed_paths: []
+tools:
+  - 7-Zip (7z.exe e -so)
+  - Python re (streaming regex over chunks)
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneBreach/Hidden in Plain Task/solve/find_tasks.py"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneBreach/Hidden in Plain Task/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneBreach/Hidden in Plain Task/solve/find_tasks.py"
+time_heuristic: When a memory/disk image is too large to extract comfortably and you only need a handful of ASCII strings, stream-decompress to stdout and regex-scan chunks with overlap instead of extracting to disk.
+last_verified: "2026-11-04"

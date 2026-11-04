@@ -1,0 +1,35 @@
+id: "h7ctf2026_loose_lips"
+event: "H7CTF 2026 Quals"
+category: "crypto/ckks-small-ternary-key-bruteforce"
+challenge_name: "Loose Lips"
+status: "solved"
+flag: "H7CTF{9ccdfa85-8e9c-4266-bd33-4c2278c609a6}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Toy CKKS/RLWE scheme with a tiny ring dimension (N=8) and a ternary secret key (each coefficient in {-1,0,1}), giving only 3^N total key candidates."
+  - "Service will encrypt an attacker-chosen known plaintext vector on request."
+key_idea: "When an RLWE/LWE-style scheme uses a small-dimension ternary (or otherwise tiny-range) secret key, request an encryption of a value you choose, then brute-force every key candidate and check which one makes (ciphertext - known_plaintext) reduce to small values consistent with the scheme's error bound; the unique candidate under the noise threshold is the real key."
+prerequisites:
+  - "Knowing the encryption relation b = -a*s + m + e (mod Q) and the claimed error bound on e"
+  - "Small enough key space (here 3^8 = 6561) to brute force in milliseconds"
+exploitation_pattern: "request encrypt(known_plaintext) -> encode plaintext to get m -> for each candidate key s', compute centered (b + a*s' - m) mod Q -> accept s' whose max abs value is within the stated error bound -> submit recovered key to the service's /recover endpoint for the flag."
+verification:
+  method: "Live replay against two service versions; recovered keys were accepted by each version's /recover endpoint, returning distinct flags."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Loose Lips/writeup/writeup.md"
+pitfalls:
+  - "Must reduce mod Q and center the difference before comparing to the error bound, or large wrap-around values will mask the correct key."
+failed_paths: []
+tools:
+  - "Python"
+  - "numpy"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Loose Lips/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Loose Lips/solve/solve.py"
+time_heuristic: "Before attacking an RLWE/CKKS/LWE-flavoured service cryptographically, compute the brute-forceable size of its secret-key space (e.g. ternary coefficients over small N); if it's under a few million, a known-plaintext encryption plus exhaustive key search beats any lattice attack."
+last_verified: "2026-11-04"

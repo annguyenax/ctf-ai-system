@@ -1,0 +1,37 @@
+id: sunshinectf2026_print_print_revolution
+event: "SunshineCTF 2026"
+category: "pwn/custom-printf-arbitrary-write-ret2dlresolve"
+challenge_name: "Print Print Revolution"
+status: solved
+flag: "sun{cust0m_fmtstr_n0_t00ls_4ll0wed}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A custom-built printf-like function is called on user input with no real variadic arguments supplied -- an uninitialized-varargs format string, functionally equivalent to a classic fmtstr bug but on a hand-rolled parser."
+  - "The custom parser implements a non-standard conversion %w meaning 'arbitrary 8-byte write at *arg using the next arg as the value', but it only advances its internal argument counter by 1 per %w while consuming 2 argument slots -- consecutive %w conversions on the same line overlap/corrupt each other's arguments."
+  - "No libc is provided for this challenge even though the infra is known to run a specific glibc version shared with other challenges in the same event -- that known-common libc can be reused for offset calculations."
+key_idea: "A custom (non-glibc) printf reimplementation can still be exploited exactly like a real format-string bug (leak via %p/%x/%s-style conversions, arbitrary write via a custom write-conversion), but its own argument-counter bookkeeping may have its own bugs (e.g. under-counting consumed arguments for a multi-value conversion) -- reverse that counter's exact semantics and issue only ONE such write-conversion per line/call to avoid self-corruption, rather than assuming it behaves like glibc's."
+prerequisites:
+  - "ret2dlresolve technique (pwntools Ret2dlresolvePayload/ROP.ret2dlresolve) when no libc base can be leaked/trusted directly"
+  - "Reverse-engineering a custom printf-style parser's argument-consumption semantics"
+exploitation_pattern: "leak a stack value via many %p conversions to find saved RBP / main's return-into-libc value -> compute libc base from a known offset (same glibc version as the rest of the event) -> build a ret2dlresolve payload for system(cmd) using the binary's own .bss as scratch space -> write each piece of the ret2dlresolve payload one %w write per line to avoid the counter-overlap bug -> overwrite the return address slot with the ROP chain -> trigger return via EOF/connection shutdown -> read command output"
+verification:
+  method: "Live exploit script executed against the remote service and printed command output containing the flag."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Print Print Revolution/writeup/writeup.md"
+pitfalls:
+  - "A custom write-primitive conversion (%w here) may under-count how many argument slots it consumes relative to how many it reads -- issuing multiple such writes in the same call can silently corrupt later writes; issue one write per call/line as a safe default until the counter behavior is confirmed."
+  - "No bundled libc does not mean libc offsets are unknowable -- if other challenges in the same CTF/infra specify a glibc version, reuse those offsets."
+failed_paths: []
+tools:
+  - "pwntools (ROP, Ret2dlresolvePayload)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Print Print Revolution/files/revolution"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Print Print Revolution/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Print Print Revolution/solve/exploit.py"
+time_heuristic: "Custom (non-glibc) printf reimplementation with a write-conversion extension: reverse its exact argument-counter bookkeeping before issuing multiple write conversions per call -- an under-counted consumption can silently corrupt a later write in the same line."
+last_verified: "2026-11-04"

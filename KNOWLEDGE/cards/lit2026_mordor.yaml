@@ -10,7 +10,7 @@ tools:
   - Python
   - exiftool
 hexstrike_usefulness: Low (initial reconnaissance only)
-writeup: D:\download\CTFTimeWriteup\LIT2026\misc\one_does_not_simply_hide_a_flag\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\misc\one_does_not_simply_hide_a_flag\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\misc\one_does_not_simply_hide_a_flag\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\misc\one_does_not_simply_hide_a_flag\solve\solve.py
 time_heuristic: 20 minutes
 last_verified: 2026-08-03

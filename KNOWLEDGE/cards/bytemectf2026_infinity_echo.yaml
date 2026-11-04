@@ -1,0 +1,45 @@
+id: bytemectf2026_infinity_echo
+event: "ByteMeCTF2026"
+category: "crypto/ecdsa-nonce-reuse"
+challenge_name: "Infinity Echo"
+status: needs_verification
+flag: ""
+confidence: 0.95
+artifact_hashes:
+  - "curve_0wtuJMv.txt sha256:62df23e79f2f6d9fcbc68ff7648b07b333231cfad2fc09e55a63d172485cad39"
+  - "signatures_SSSjp6M.txt sha256:7a128797f6e8da541ed6b7476615d5dc16fd2af172cde4248f7b7c5f0a745117"
+  - "vault_VeKgHN0.bin sha256:588e841195f8e5fa3dca1be56939cc691a629512b2a73e8216ebc0f175688783"
+signals:
+  - "Current attachment metadata uses versioned filenames; old signature attachment had a mismatched r"
+  - "Equal current r values and reused nonce"
+  - "Both current z values match SHA-256(message)"
+key_idea: "Recover k=(z1-z2)/(s1-s2), d=(s1*k-z1)/r modulo n; verify r=x(kG) and both signatures independently."
+prerequisites:
+  - "Same nonce, invertible denominators, correct subgroup order"
+  - "Use the current metadata-named attachments"
+exploitation_pattern: "Nonce cancellation in two ECDSA signature equations"
+verification:
+  method: "Local curve arithmetic plus independent cryptography signature verification"
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Echo/solve/evidence/independent_check_current.json"
+pitfalls:
+  - "The old r mismatch was caused by a superseded attachment set; do not treat it as the current challenge state"
+  - "Algebraic consistency alone is not ECDSA verification"
+  - "Do not assert a vault plaintext without a valid authentication tag or exact re-encryption"
+failed_paths:
+  - "Prior bounded AES/ChaCha/hash-stream/KDF candidates yielded no verified plaintext; the current vault and recovered d are unchanged"
+  - "Six AES-GCM message-AAD candidates failed authentication"
+tools: ["Python 3.13.1", "PyCryptodome 3.22.0", "cryptography"]
+hexstrike:
+  used: false
+  useful: false
+  notes: "Offline arithmetic and focused local checks sufficed; health was not checked."
+sources:
+  - "https://ctf7.com/console/event/byteme-ctf/challenges/0d53d299-18ae-4dba-a389-66e2f7358fa0/"
+  - "https://files.ctf7.com/media/challenge_attachments/curve_0wtuJMv.txt"
+  - "https://files.ctf7.com/media/challenge_attachments/signatures_SSSjp6M.txt"
+  - "https://files.ctf7.com/media/challenge_attachments/vault_VeKgHN0.bin"
+playbook: ""
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Echo/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Echo/solve/solve.py"
+time_heuristic: "Validate metadata-named attachments before solving; after ECDSA verifies, stop unguided KDF guesses and request a concrete vault specification."
+last_verified: "2026-10-09"

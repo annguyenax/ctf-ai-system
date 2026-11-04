@@ -1,0 +1,34 @@
+id: rstconctf2026_bad_medicine
+event: RSTCON CTF 2026
+category: web/photo-creds-then-sqli
+challenge_name: "Bad Medicine"
+status: solved
+flag: "rstcon{p@ss_teh_hydrocod0n3_brah}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Attached office photo shows a login portal on a laptop screen with a visible sticky-note containing plaintext username/password.
+  - After authenticating, a search parameter `q` is concatenated directly into a SQLite query (confirmed via `'` producing a raw SQL error).
+key_idea: Web challenges that ship a photo attachment alongside a live login portal often hide the login credentials visually in the image (sticky notes, monitors, whiteboards) rather than anywhere in the HTTP traffic — inspect the photo for readable text before trying credential guessing or auth bypass. Once authenticated, standard UNION-based SQLi recovers the flag from an unrelated-looking table (patient records here) after determining column count/types with SELECT 1,2,3...
+prerequisites:
+  - Visual inspection of attached photos for readable credentials
+  - Standard UNION-based SQL injection methodology (error confirmation, column-count probing, schema dump via sqlite_master, targeted table dump)
+exploitation_pattern: read credentials from attached photo -> log in -> probe `q` param with `'` for SQL error -> determine column count via UNION SELECT N placeholders -> dump sqlite_master for table names -> UNION SELECT the flag-bearing columns from the target table.
+verification:
+  method: Live exploitation against the actual challenge service; HTTP response HTML contains the exact recorded flag.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Web/Bad Medicine/solve/solve.py"
+pitfalls:
+  - Do not skip visual inspection of provided images in web challenges — credentials embedded as readable text in a photo are easy to miss if focus stays on the live service only.
+failed_paths: []
+tools:
+  - Python 3 (urllib, http.cookiejar) for session + SQLi
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: web_sqli.md
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Web/Bad Medicine/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Web/Bad Medicine/solve/solve.py"
+time_heuristic: Web login challenge shipped with a photo attachment -> check the photo for visible written credentials before anything else; a vulnerable search/filter parameter after login is a strong UNION-SQLi candidate.
+last_verified: "2026-11-04"

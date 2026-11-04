@@ -1,0 +1,36 @@
+id: deadfacectf2026_the_vibes_are_freaking_me_out
+event: DeadfaceCTF2026
+category: osint/forum-to-repo-pivot-obfuscated-token
+challenge_name: "OSINT / The Vibes Are Freaking Me Out"
+status: solved
+flag: "deadface{A11_Th1s_Pr0mpt1ng_G3ts_M3_N0wh3r3!}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Forum post announces a self-built tool by name and says "check the GitHub repo" without giving the URL directly.
+  - "GitHub search for distinctive tool-name + group-name keywords locates the actual public repo."
+  - "An AI coding-agent config directory in the repo (`.maude/skills/.../SKILL.md`) stores an operational secret as a string literal with an explicit, slightly joking decode instruction (\"stored backwards, then the usual encoding — reverse it, decode it\")."
+key_idea: "When a forum/chat hint names a tool or project but not its repo, search the hosting platform (GitHub) for the distinctive name plus group/operator handle; once in the repo, check any AI-agent/config directories (`.cursor/`, `.maude/`, `.claude/`, skill/prompt files) for hardcoded credentials, since agent config is often where operators informally stash tokens — and take any \"how it's encoded\" hint in the surrounding text/comments literally and apply the stated transforms in the stated order (here: base64-decode, then reverse the byte string)."
+prerequisites:
+  - A distinctive tool/project name and operator alias from forum OSINT
+  - GitHub (or equivalent) full-text/repo search
+exploitation_pattern: search github for "<tool_name> <group_name>" -> open matching repo -> browse non-code directories (configs, AI-agent skill folders, README) for secrets -> apply the stated decode order literally (base64 decode, then reverse bytes) -> read resulting plaintext flag.
+verification:
+  method: base64.b64decode(token)[::-1].decode('utf-8') produced the exact flag string.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/The Vibes Are Freaking Me Out/writeup/writeup.md"
+pitfalls:
+  - Applying the transforms in the wrong order (reverse-then-decode instead of decode-then-reverse) produces garbage; read the hint text carefully for the actual order.
+failed_paths: []
+tools:
+  - Python base64
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/The Vibes Are Freaking Me Out/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: recon_external_search.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/The Vibes Are Freaking Me Out/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/The Vibes Are Freaking Me Out/solve/solve_vibes.py"
+time_heuristic: When OSINT names a self-built tool without a repo URL, search the hosting platform for the tool name plus operator handle, then specifically check AI-agent config/skill directories in the repo for hardcoded tokens, and follow any stated encode/decode order literally.
+last_verified: "2026-11-04"

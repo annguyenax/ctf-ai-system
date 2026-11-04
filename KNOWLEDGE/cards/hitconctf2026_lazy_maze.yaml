@@ -1,0 +1,40 @@
+id: hitconctf2026_lazy_maze
+event: "HITCON CTF 2026"
+category: "rev/python-lazy-import-materialize-once-semantics"
+challenge_name: "lazy-maze"
+status: paused
+flag: ""
+confidence: 0.4
+artifact_hashes: []
+signals:
+  - "Challenge requires real Python 3.15 (PEP 810 'Explicit lazy imports', `sys.set_lazy_imports`) which is not available in 3.14; a 1600-cell maze registers lazy room modules via `from . import x_HASH`, and `getattr(ROOMS, name)` only executes a lazy module's top-level code on its FIRST materialization -- later entries just call its already-cached `surrounding()`."
+  - "Per-cell door toggles ('lever' modules) apply a `symmetric_difference_update` (XOR) to door sets, which is commutative -- so the final maze configuration depends only on the SET of levers fired, not the order, making offline reachability analysis order-independent."
+  - "A fixed-point BFS over the live `maze_state.state` (walking to any cell adjacent to an already-open exit, repeating until no growth) converges deterministically to the same ~487-cell / 11-lever region regardless of traversal order -- a genuine dead end, not an ordering bug."
+key_idea: "When a 'walk a Python module graph' challenge relies on a not-yet-stable language feature (PEP 810 lazy imports), install the exact prerelease interpreter (e.g. via `uv python install cpython-3.15.0rc2-...`) and drive the *real* game/state objects directly rather than re-implementing the semantics by hand, because module caching (materialize-once) and commutative per-cell toggles mean a live fixed-point BFS reliably reproduces the true reachable set for offline reasoning about the remaining unreached levers."
+prerequisites:
+  - "PEP 810 lazy imports semantics"
+  - "fixed-point/BFS reachability analysis over a mutable live graph"
+exploitation_pattern: "install exact interpreter version -> drive real game objects via BFS to find the maximal reachable region/lever-set -> identify which of the remaining (unreached) levers' toggle targets could bridge into the reachable region -> compute offline, deterministically, rather than retrying live walks."
+verification:
+  method: "No flag yet; the reachable-region fixed point (487 cells, 11 of 20 levers) was reproduced deterministically across multiple random orderings, confirming it is a structural dead end requiring an undiscovered bridge, not a traversal-order bug."
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Rev/lazy-maze/notes/ANALYSIS.md"
+pitfalls:
+  - "Don't assume a lazy-import-based puzzle needs re-implementation from scratch -- installing the exact (even prerelease) interpreter version and importing the real modules directly is far more reliable than hand-modeling materialize-once caching semantics."
+  - "Before suspecting a 'traversal order' bug in a toggle-based maze, check whether the toggle operation is commutative (XOR/symmetric_difference) -- if so, a single deterministic fixed-point computation is conclusive and re-running with different random orders wastes time."
+failed_paths:
+  - "9 of 20 levers (A,D,E,F,G,I,J,L,X) remain unreached after reaching a stable 487-cell fixed point; none of their initially-open exits touch the known reachable region, and no second-order bridge was found yet."
+tools:
+  - "uv (python version manager)"
+  - "Python 3.15.0rc2"
+  - "custom BFS fixed-point driver against live game state"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Rev/lazy-maze/files/lazy-maze-d040a24eb3619536.tar.gz"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Rev/lazy-maze/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Rev/lazy-maze/solve/solve.py"
+time_heuristic: "For a module-graph/maze puzzle gated on a specific (possibly prerelease) language version, install that exact interpreter and drive the real objects live; check whether any toggle/transition operation is commutative before assuming traversal order matters."
+last_verified: "2026-11-04"

@@ -1,0 +1,42 @@
+id: bytemectf2026_return_to_win
+event: ByteMe CTF 2026
+category: pwn/ret2win
+challenge_name: Return to Win
+status: solved
+flag: "OWASP{g3ts_1s_4_s3cur1ty_n1ghtm4r3}"
+confidence: 1.0
+artifact_hashes:
+  - file: files/main.out
+    sha256: 47562939860f420fe54b812cfb223dc9f44698be625fb390e0966a6627fa110f
+signals:
+  - ELF64 x86-64 with `gets` called on a 10-byte buffer.
+  - No PIE and no stack canary; NX enabled.
+  - A fixed `win()` symbol reads and prints `flag.txt`.
+key_idea: Overwrite saved RIP at offset 18 with the fixed `win()` address 0x40125e.
+prerequisites:
+  - ELF symbol/header inspection
+  - x86-64 little-endian stack layout
+exploitation_pattern: gets overflow -> 18 bytes to saved RIP -> little-endian ret2win address -> print target flag.
+verification:
+  method: local debug-marker run followed by one scoped remote response containing the flag
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Return to Win/solve/evidence/recovery.json"
+pitfalls:
+  - The local binary needs a `flag.txt`; use a scratch-only marker rather than inventing the official flag.
+  - Confirm the exact buffer offset from the vulnerable function's disassembly; do not assume the buffer allocation size alone is the offset.
+failed_paths:
+  - Kali `checksec` wrapper failed because `pwnlib` was unavailable; `readelf` and `objdump` supplied the required facts.
+tools:
+  - Python 3 standard library
+  - readelf
+  - objdump
+hexstrike:
+  used: false
+  useful: false
+  notes: Local ELF analysis and a single scoped socket connection were sufficient.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Return to Win/files/main.out"
+playbook: pwn_ret2win_gets
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Return to Win/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Return to Win/solve/solve.py"
+time_heuristic: A non-PIE/no-canary gets-to-win warmup is usually minutes: inspect frame offset, test local marker, then one remote attempt.
+last_verified: "2026-10-09"

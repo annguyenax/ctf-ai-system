@@ -1,0 +1,4 @@
+{"challenge_id":"fortidctf2026_cubism","event":"FortID CTF 2026","challenge_name":"Cubism","flag_status":"verified","attempts":[
+{"t":"2026-10-11","phase":"TRIAGE","hypothesis_id":"H1","action":"Ghidra decompile checker","result":"6 OR-projections -> quirc QR decode -> strcmp SIMON SAYS GIVE ME THE FLAG; <=244 voxels","evidence_path":"Reverse/Cubism/solve/checker_main.asm","notes":""},
+{"t":"2026-10-11","phase":"EXPLOIT","hypothesis_id":"H2","action":"quirc fliplr=transpose insight; GF(2) Gaussian on RS parity with free terminator bits","result":"exact M and M.T dual-QR matrices per word pair","evidence_path":"solve/solve_pair_gf2.py","notes":"L1<->L4 only"},
+{"t":"2026-10-11","phase":"CAPTURE","hypothesis_id":"H2","action":"triple scan + HiGHS MILP 240 voxels; local Correct!; remote submit","result":"platform accepted","evidence_path":"Reverse/Cubism/final_flag.txt","notes":""}]}

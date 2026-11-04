@@ -1,0 +1,37 @@
+{
+  "challenge_id": "securinetsquals2026_nyoom",
+  "event": "Securinets CTF Quals 2026",
+  "category": "web",
+  "challenge_name": "nyoom",
+  "flag_status": "verified",
+  "flag": "Securinets{68b8f90ea6be091c5a7f4c6092fd6140}",
+  "attempts": [
+    {
+      "t": "2026-10-18T11:00:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "POST /preview with an ESI include of /fragments/session-info",
+      "result": "Fragment is included only through ESI. Direct GET is 403. Body is text/plain and contains data-session of the caller cookie.",
+      "evidence_path": "raw/winning_visit.txt",
+      "notes": "Absolute ESI src is fetched as a backend path, not as SSRF."
+    },
+    {
+      "t": "2026-10-18T11:10:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Leak meta CSP nonce with script[nonce*=] CSS and restore the cached dashboard via history.go(-2)",
+      "result": "Local Chrome 131 reused the nonce. Unique-end trigram merge missed some nonces; Hamiltonian overlap recovered them.",
+      "evidence_path": "raw/winning_visit.txt",
+      "notes": "bfcache persisted stayed false. The extra dashboard URL is what overwrites /profile."
+    },
+    {
+      "t": "2026-10-18T11:23:32Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2",
+      "action": "Warm bot visit of http://edge:8080/dashboard?u=nyoomx with HTTP/1.1 gzip leak",
+      "result": "verified",
+      "evidence_path": "raw/winning_visit.txt",
+      "notes": "Nonce cd31facf3f72c806017151658bafe771. GET /me with the leaked cookie returned admin/administrator."
+    }
+  ]
+}

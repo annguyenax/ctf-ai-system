@@ -12,6 +12,7 @@
 | hash + offline note | crack hash offline |
 | `^ key[i%len]` / short key missing | repeating-key XOR |
 | AES-CBC + structured fields + no MAC | CBC bit-flip |
+| poly evals mod large p, coeffs = hash/key ≪ p, fewer points than deg+1 | small-coeff LLL (`PLAYBOOKS/crypto_small_coeff_poly_lll.md`; **flint not sympy**) |
 
 ## Fast path checklist
 

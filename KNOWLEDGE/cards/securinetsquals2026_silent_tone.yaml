@@ -1,0 +1,30 @@
+id: securinetsquals2026_silent_tone
+event: SecurinetsQuals2026
+category: forensics
+challenge_name: Silent Tone
+status: solved
+flag: "Securinets{d0ppl3r_w13n3r_r4pp_rlc_g4rdn3r_3kf_rs255_ph4nt0m}"
+confidence: 1.0
+artifact_hashes:
+  - "capture.sal: d005bbe0ea2396cbc632803067a10776a9a7e095a6bb018716fd2a57e842bbdc"
+signals: [native Saleae analog chunks, QPSK, Zadoff-Chu, overlapping transmitters, repeated packets]
+key_idea: "Skip rendering pyramids; cancel reconstructed strong packets and combine weak repetitions with CRC-gated RS decoding."
+prerequisites: [numpy, scipy, reedsolo]
+exploitation_pattern: "chunk parsing -> synchronization -> repeated-codeword SIC -> soft RS -> UID-keyed SHA256-CTR"
+verification:
+  method: "Fresh original-artifact replay, three CRC32 checks, RS parity and exact re-encryption"
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Forensics/Silent Tone/solve/evidence/recovery.json"
+pitfalls: [flat sample loading, ZC timing-frequency ambiguity, incorrect interleave order, accepting RS without CRC]
+failed_paths: [using rendering pyramids as samples, applying new firmware settings to old frames, hard decoding weak individual frames]
+tools: [Python, numpy, scipy, reedsolo]
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local DSP sufficient; service not checked."
+sources:
+  - https://github.com/nemanjan00/sigrok2sal/blob/master/SAL_FORMAT.md
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Forensics/Silent Tone/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Forensics/Silent Tone/solve/solve.py"
+time_heuristic: "Check native chunk boundaries and compare repeated codewords before expensive DSP tuning."
+last_verified: "2026-10-18"

@@ -1,0 +1,41 @@
+id: 07ctf2026_herbarium
+event: 07CTF 2026
+category: crypto/goppa-code-interleaved
+challenge_name: "Herbarium"
+status: solved
+flag: "07CTF{r00t5_wh0_d035n_l0ve_THEM?!}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "instance.json gives q=43, Goppa polynomial g, support points as (a,b) pairs in F_q^2 with an unresolved +/- sign ambiguity, a public generator matrix G, and 5 interleaved received words sharing the same 105 error positions."
+  - "Designed error weight t=105 is exactly twice the classical unique-decoding radius floor(deg(g)/2)=52, ruling out a single-codeword decode."
+  - "5 rows share one error locator but have independent error values -> interleaved/collaborative decoding applies."
+key_idea: "Recover the support-point sign ambiguity with a linear nullspace attack using the dual-code orthogonality of G against H, then solve the interleaved Goppa key equation across all 5 rows at once (5x the equations, same unknown locator) to decode beyond the single-word bound."
+prerequisites:
+  - "Linear algebra over F_q and F_q^2 (Goppa parity-check construction, syndromes, key equation)"
+  - "Classical Goppa code decoding theory (error locator/evaluator polynomials)"
+  - "Collaborative/interleaved decoding (Schmidt-Sidorenko-Bossert style) for repeated-error-locator codewords"
+exploitation_pattern: "ambiguous support sign -> dual-code nullspace system Ms=0 over F_q recovers s in {+-1}^n (if nullspace dim==1) -> build real H -> stack key-equation coefficients from all interleaved rows -> overdetermined linear solve for sigma(z) beyond normal t/2 bound -> invert clean generator-matrix columns to get the original messages -> feed the decoded integer into an iterated-squaring time-lock to derive the final decryption key."
+verification:
+  method: "Deterministic solver run (solve.py) reproduces flag; all 5 decoded message rows independently cross-checked against the 215 error-free columns, matching with 100% precision before the time-lock squaring step."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/07CTF2026/Crypto/Herbarium/writeup/writeup.md"
+pitfalls:
+  - "Do not assume the unique decoding bound (t/2) applies when multiple received words share the same error locator; stacking equations from all interleaved rows can push the solvable error weight up to the full designed t."
+  - "The support-point sign ambiguity is not guessable per-point; it must be solved globally as a linear nullspace problem using the public generator matrix's orthogonality to the (unknown-sign) parity-check matrix."
+  - "The final step is a sequential squaring time-lock (not parallelizable); budget wall-clock time (here ~29 minutes at ~55k squarings/sec) rather than trying to shortcut it."
+failed_paths: []
+tools:
+  - Python 3
+  - gmpy2
+  - SageMath-style linear algebra (or NumPy/sympy over finite fields)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/07CTF2026/Crypto/Herbarium/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/07CTF2026/Crypto/Herbarium/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/07CTF2026/Crypto/Herbarium/solve/solve.py"
+time_heuristic: "When a code-based crypto challenge gives several codewords sharing the same claimed error weight beyond t/2, suspect interleaved/collaborative decoding; check for a dual-code relation (generator matrix orthogonal to parity-check) whenever a support parameter has a stated but unresolved ambiguity (sign, ordering, etc.)."
+last_verified: "2026-11-04"

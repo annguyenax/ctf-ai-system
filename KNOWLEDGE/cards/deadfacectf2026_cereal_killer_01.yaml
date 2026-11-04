@@ -1,0 +1,38 @@
+id: deadfacectf2026_cereal_killer_01
+event: DeadfaceCTF2026
+category: rev/multi-stage-custom-b64-hash-rc4-chain
+challenge_name: "Reverse / Cereal Killer 01"
+status: solved
+flag: "deadface{You-Vill-Eat-Ze-Bugz-Und-You-Vill-Be-Happy!!!}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Binary defines a non-standard 64-character Base64 alphabet table in .rodata (characters reordered/substituted from the standard alphabet, `=` included as a regular alphabet member).
+  - A target SHA-1 hash is itself stored custom-base64-encoded, decoded at runtime, and compared against sha1(user_password).
+  - "After password validation, a separately-stored custom-base64 blob is RC4-decrypted using the *validated password itself* as the RC4 key, revealing a URL to fetch the actual flag image."
+key_idea: Multi-stage binary protections chain together — decode a custom alphabet first (map each byte through the binary's own substitution table instead of the standard RFC4648 alphabet), crack the recovered hash with a wordlist (rockyou) to get a human password, then use that cracked password as the key for a second-stage decryption (RC4) of another embedded blob, which may itself just be metadata (a URL) rather than the flag text.
+prerequisites:
+  - Static analysis to recover the custom alphabet table and all offsets (encoded hash, encoded RC4 blob)
+  - A wordlist (rockyou.txt) for the final hash crack step
+exploitation_pattern: extract custom alphabet from .rodata -> custom-base64-decode the stored hash -> crack sha1 hash via wordlist -> use cracked password as RC4 key -> custom-base64-decode + RC4-decrypt the second blob -> follow resulting URL -> read flag text embedded in the linked image.
+verification:
+  method: sha1("cookiecrisp") matched the embedded hash; RC4-decrypting with that key produced a valid URL whose linked image visibly contained the flag text.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Reverse/Cereal Killer 01/writeup/writeup.md"
+pitfalls:
+  - The final secret is not plaintext in the binary at all — it requires following an externally-hosted URL and reading the flag out of an image, so "decrypted output" alone isn't the flag.
+  - Using the standard Base64 alphabet instead of the binary's custom-ordered one silently produces garbage without erroring.
+failed_paths: []
+tools:
+  - Python hashlib (sha1), custom RC4 implementation
+  - rockyou.txt wordlist
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Reverse/Cereal Killer 01/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: rev_strings_password.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Reverse/Cereal Killer 01/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Reverse/Cereal Killer 01/solve/solve.py"
+time_heuristic: If a binary defines its own Base64-looking alphabet table, extract and use it verbatim rather than the standard one — and expect a cracked/recovered secret to be reused as a key for a further decryption stage rather than being the flag itself.
+last_verified: "2026-11-04"

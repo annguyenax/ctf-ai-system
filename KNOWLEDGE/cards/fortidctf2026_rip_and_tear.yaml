@@ -1,0 +1,44 @@
+id: fortidctf2026_rip_and_tear
+event: FortID CTF 2026
+category: misc
+challenge_name: Rip & Tear
+status: solved
+flag: "FortID{Kn33_Deep_1n_7h3_Fl4gZ!1}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "game engine patch diff"
+  - "RNG table LSB steganography"
+  - "screen-melt wipe side channel"
+  - "gameplay video as data source"
+key_idea: >-
+  flag XORed into doom rndtable LSBs; wipe_initMelt/doMelt consume the table;
+  each column's melt walk leaks one flag bit via mod-3 residue (vanilla%3 vs
+  observed); width/=2 hides half the table per wipe, 3 screen transitions in
+  the 175s video cover all 256 entries.
+prerequisites:
+  - "chocolate-doom source"
+  - "video tick/edge tracking"
+  - "Viterbi decoding"
+exploitation_pattern: "diff patch -> find table consumers -> track per-column melt edges at 35Hz ticks -> known-plaintext anchor (FortID{ / }) -> Viterbi with random-walk constraint"
+verification:
+  method: "480/480 bit consistency + platform accepted"
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Misc/Rip & Tear/final_flag.txt"
+pitfalls:
+  - "width/=2 hides half table per wipe"
+  - "low-contrast right-edge bits corrupt; verify with leetspeak reading + full simulation"
+failed_paths: []
+tools:
+  - "ffmpeg/opencv"
+  - "numpy"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "patch + video"
+playbook: ""
+writeup: "CTFTimeWriteup/FortIDCTF2026/Misc/Rip & Tear/writeup/writeup.md"
+solver: "CTFTimeWriteup/FortIDCTF2026/Misc/Rip & Tear/solve/solve_wipe_melt.py"
+time_heuristic: "2-4h"
+last_verified: "2026-10-11"

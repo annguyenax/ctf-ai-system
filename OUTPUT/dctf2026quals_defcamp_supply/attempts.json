@@ -1,0 +1,73 @@
+{
+  "challenge_id": "dctf2026quals_defcamp_supply",
+  "event": "DefCamp CTF 2026 Quals",
+  "category": "web",
+  "challenge_name": "defcamp-supply",
+  "flag_status": "verified",
+  "flag": "CTF{00fd1af2af55ba826af4759fc024770d7ae720622e457b570d16224a8f43b5e2}",
+  "attempts": [
+    {
+      "t": "source-analysis",
+      "phase": "triage",
+      "hypothesis_id": "H1",
+      "action": "Extract public.zip and read profile_check.py / verify_profile.py",
+      "result": "profile_check.verify_custom_profile() builds 'python3 verify_profile.py \"<profile>\"' and runs it with shell=True — command injection sink",
+      "evidence_path": "raw/profile_check.py",
+      "notes": "verify_profile.py only echoes an ALLOWED whitelist check"
+    },
+    {
+      "t": "map-app",
+      "phase": "triage",
+      "hypothesis_id": "H0",
+      "action": "Baseline GET / and enumerate endpoints",
+      "result": "Endpoints: /, /redeem, /checkout (JSON), /orders/<id> (JSON). Premium item zero_day_debugger (20 credits) is the only item whose profile reaches the sink",
+      "evidence_path": "raw/observations.md",
+      "notes": "Session cookie {_permanent, started_at, user_id} with 30-min lifetime"
+    },
+    {
+      "t": "credit-race",
+      "phase": "test",
+      "hypothesis_id": "H2",
+      "action": "Fire N concurrent POST /redeem requests",
+      "result": "check-then-act race: each request before the first commit adds +2 credits (15 req -> 30 credits)",
+      "evidence_path": "raw/observations.md",
+      "notes": "Reaches the 20-credit premium price"
+    },
+    {
+      "t": "injection-timing",
+      "phase": "test",
+      "hypothesis_id": "H1",
+      "action": "Checkout premium item with valid ('stealth') and injected profiles; inspect result field",
+      "result": "result is always null at checkout; the sink runs at ORDER DELIVERY (created_at + eta), not at checkout",
+      "evidence_path": "raw/observations.md",
+      "notes": "eta is random ~1800-2200 s (~30-37 min) and cannot be mass-assigned"
+    },
+    {
+      "t": "session-vs-delivery",
+      "phase": "test",
+      "hypothesis_id": "H1",
+      "action": "Compare 30-min session lifetime against ~30-37 min delivery eta",
+      "result": "Delivery always outlasts the session; cannot poll order result after delivery via the session",
+      "evidence_path": "raw/observations.md",
+      "notes": "Adopted static/-write exfiltration to read the flag without the session"
+    },
+    {
+      "t": "exfil-order",
+      "phase": "exploit",
+      "hypothesis_id": "H1",
+      "action": "Place premium orders whose injected profile cats /flag* and writes it to static/pwned.txt (plus absolute candidates and /tmp)",
+      "result": "Orders queued; at delivery the injected command wrote the flag to /static/pwned.txt",
+      "evidence_path": "raw/observations.md",
+      "notes": "Polling /static/pwned.txt (no session needed)"
+    },
+    {
+      "t": "flag-read",
+      "phase": "verify",
+      "hypothesis_id": "H1",
+      "action": "Read /static/pwned.txt independently after delivery",
+      "result": "CTF{00fd1af2af55ba826af4759fc024770d7ae720622e457b570d16224a8f43b5e2} (64 lowercase hex)",
+      "evidence_path": "raw/flag.txt",
+      "notes": "two independent reads agree (poller + direct fetch)"
+    }
+  ]
+}

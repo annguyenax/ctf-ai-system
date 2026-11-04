@@ -1,0 +1,38 @@
+id: rstconctf2026_life_is_a_highway_detail
+event: RSTCON CTF 2026
+category: forensics/can-bus-geo-dead-reckoning
+challenge_name: "Life is a Highway"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - SocketCAN candump log from a Toyota vehicle; destination coordinates given, task is to recover the starting coordinates (geo-reconstruction, 1km tolerance).
+  - comma.ai opendbc Toyota DBC defines SPEED (0x0B4), WHEEL_SPEEDS (0x0AA), STEER_ANGLE (0x025), YAW_RATE (0x024) signals usable for dead-reckoning.
+key_idea: "Best hypothesis (unconfirmed): decode speed/yaw-rate/steer-angle CAN signals via the Toyota DBC, integrate speed over time and yaw rate for heading to dead-reckon a trajectory backward from the known destination, then map-match the reconstructed path against real road geometry (OSRM) to correct for gyro-drift bias and recover the starting lat/long."
+prerequisites:
+  - CAN/DBC signal decoding (scale/offset/bit-length per signal)
+  - Dead-reckoning integration and map-matching against routing-engine road geometry
+exploitation_pattern: decode CAN signals via DBC -> integrate speed+yaw for a dead-reckoned path -> map-match against OSRM route geometry to find best global rotation/offset -> output starting coordinate.
+verification:
+  method: One submission attempt was made and rejected by the challenge server; no accepted coordinate has been found.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Life is a Highway/solve/evidence/server_verification.txt"
+pitfalls:
+  - Accumulated gyro drift in YAW_RATE makes raw dead-reckoning unreliable over the ~22km, ~30-minute trip; map-matching is needed to correct it but has not yet converged on an accepted answer.
+  - A rotation/offset-search map-matching result (reported in the writeup as `39.02376, -77.40312`) was computed but is NOT confirmed — do not reuse it as a verified answer; the one coordinate actually submitted to the server (`38.89077, -77.05353`) was rejected as incorrect.
+failed_paths:
+  - "Candidate 38.89077, -77.05353 submitted to the live server on 2026-10-25: server responded 'INCORRECT: Incorrect location. Try again!'. This does not verify any solution and the candidate must not be reused."
+tools:
+  - comma.ai opendbc Toyota DBC definitions
+  - numpy (trajectory integration)
+  - OSRM (route map-matching)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Life is a Highway/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Life is a Highway/solve/solve.py"
+time_heuristic: Vehicle CAN-bus geolocation challenge giving only a destination and asking for an origin -> decode speed/yaw/steering via the vehicle's public DBC, dead-reckon backward, then map-match against real road geometry to correct drift; verify any candidate against the server before treating it as solved.
+last_verified: "2026-11-04"

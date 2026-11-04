@@ -1,0 +1,35 @@
+﻿{
+  "challenge_id": "fortidctf2026_meteor_shower",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Meteor Shower",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Parse the iNES header, inspect sparse PRG strings, and identify the 6502 game state flow.",
+      "result": "Found an Easter Egg renderer with the clues BACON and FIVE STRIPS, plus a 95-bit verifier at $8158.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Reverse/Meteor Shower/files/meteor_shower.nes",
+      "notes": "No remote instance is listed."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Treat the final Easter Egg prose as the requested flag phrase.",
+      "result": "Rejected: the visible text is a clue, and the PRG verifier encodes a 95-bit sequence that decodes to a different phrase.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Reverse/Meteor Shower/writeup/writeup.md",
+      "notes": "The initial text-only candidate was not submitted."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H3",
+      "action": "Recompute the 95 expected bits from the two PRG tables, group into five-bit values, and map 0-25 to A-Z.",
+      "result": "Decoded SCIENTIAPOTENTIAEST and the instructed flag FortID{SCIENTIA_POTENTIA_EST}; preserved target submission output reports success.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Reverse/Meteor Shower/solve/evidence/verification.txt",
+      "notes": "A later read-only status query also lists the challenge as SOLVED."
+    }
+  ]
+}

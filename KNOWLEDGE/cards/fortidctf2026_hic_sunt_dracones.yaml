@@ -1,0 +1,51 @@
+id: fortidctf2026_hic_sunt_dracones
+event: "FortID CTF 2026"
+category: "crypto/curve-coordinate-obfuscation"
+challenge_name: "Hic Sunt Dracones"
+status: solved
+flag: "FortID{1f_D0n_Knu7h_H4s_1t_0n_th3_W4ll_Th3n_17_Mu57_B3_G00d_F0r_Crypt0_r1ght?}"
+confidence: 1.0
+artifact_hashes:
+  - "files/handout.zip: 384B4B3ADE8E0A008E54AF7C4820EFE0C4F2E907B5D0F35CDDC413DAA7A036A0"
+  - "files/output.txt: A722EF26E919C78DBF3710D08BCC216534BE400FF0CE74137F928BE840A5C583"
+  - "solve/verify.py: E0E1CD07D97BAF9DB0AF00408F4B2A3ED84A2336183FDB7FCE4A62D4F53FFDA4"
+signals:
+  - "Coordinate encryption applies a dragon-curve walk with a persistent turtle heading."
+  - "Plaintext x-coordinates follow the Koblitz form 20*ord(c)+j, with 1 <= j <= 19."
+key_idea: >
+  Simulate the stateful walk to obtain displacement coefficients, recover the
+  128-bit step size from printable x-coordinate bounds, then reconstruct and
+  verify the elliptic-curve points from both axes.
+prerequisites:
+  - "Python source tracing"
+  - "Integer coordinate simulation"
+  - "Elliptic-curve equations over a prime field"
+exploitation_pattern: >
+  Port the dragon turn sequence -> preserve heading across render calls ->
+  constrain the step size using Koblitz x-coordinate bounds -> reconstruct
+  points -> derive p, a, b from point equations -> verify all square roots and
+  first-valid-j choices.
+verification:
+  method: "Offline verifier found one candidate and checked all 78 curve equations, prime/parameter bounds, patched square roots, nonzero discriminant, and first-j encoder choices. Read-only status also listed the challenge as SOLVED."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Crypto/Hic Sunt Dracones/solve/evidence/verification.txt"
+pitfalls:
+  - "The turtle heading persists between calls; resetting it changes all later offsets."
+  - "Readable text recovered from x coordinates alone is not sufficient verification."
+  - "Check that each Koblitz j is the first acceptable candidate."
+failed_paths:
+  - "An initial manual y-offset derivation used a misaligned parse; exact renderer state and a full coefficient simulation corrected it."
+tools:
+  - "Python standard library"
+  - "PyCryptodome primality check"
+hexstrike:
+  used: false
+  useful: false
+  notes: "The complete challenge input is local and the challenge has no remote instance."
+sources:
+  - "Supplied challenge archive: CTFTimeWriteup/FortIDCTF2026/Crypto/Hic Sunt Dracones/files/handout.zip"
+  - "Supplied output: CTFTimeWriteup/FortIDCTF2026/Crypto/Hic Sunt Dracones/files/output.txt"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/Hic Sunt Dracones/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/Hic Sunt Dracones/solve/verify.py"
+time_heuristic: "When outputs add a persistent-state geometric walk, reconstruct per-call offsets from source before attempting decryption; use the encoding's numeric bounds to solve the translation size."
+last_verified: "2026-10-10"

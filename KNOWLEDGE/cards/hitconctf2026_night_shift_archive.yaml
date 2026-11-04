@@ -1,0 +1,38 @@
+id: hitconctf2026_night_shift_archive
+event: "HITCON CTF 2026"
+category: "misc/dbus-blackbox-via-ttyd-websocket"
+challenge_name: "Night Shift Archive"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "Instancer gives a ttyd (web terminal) shell reachable programmatically only by connecting its raw websocket with subprotocols=['tty'] (a plain websocket connect without that subprotocol gets a 101 but no frames) and sending a JSON auth/size handshake before any stdin frames."
+  - "A private D-Bus session bus exposes a coordinator service (Stage/Submit/Discard/ListRecords/GetHistory, all usable by the low-priv player) and a worker service that denies every method call including introspection -- but error messages from the denial still leak the worker's real interface/method names."
+  - "An admin-only service connects fresh every 10s, logs 'submitted the nightly verification' then 'giving up after waiting for verification', and never succeeds even on a clean instance -- the admin's own flow appears designed to be completed by the player somehow (unresolved)."
+key_idea: "Map the full D-Bus object/method/policy surface from the outside using systematic probing (benign calls, malformed names, introspection-denial error text) before guessing exploit primitives; here the coordinator's Submit() accepted a validation bypass (Stage a bogus name then Submit its generated stg-id instead of the rejected literal name) but no path from that into the worker or the admin's stalled verification job was found."
+prerequisites:
+  - "D-Bus method/policy model"
+  - "ttyd websocket protocol (subprotocol negotiation, binary frame prefixes)"
+exploitation_pattern: "enumerate D-Bus services/objects/interfaces via introspection + error-message leakage -> find input-validation bypass in a permitted method (Stage+Submit instead of direct Submit) -> look for a way that bypass reaches the denied worker or stalled admin verification job (not yet found)."
+verification:
+  method: "No exploit achieved; D-Bus surface and ttyd access pattern were independently reproduced and documented for a next session."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/../HITCONCTF2026/Misc/Night Shift Archive/solve/findings.md"
+pitfalls:
+  - "A bare websocket connection to a ttyd instance returns HTTP 101 but delivers no frames unless the client negotiates the 'tty' subprotocol and sends the JSON auth/size handshake first -- don't mistake the silent 101 for a dead service."
+  - "AppArmor/D-Bus policy denials often still leak the target interface/method names in their error text; read denial messages carefully even when every call is rejected."
+failed_paths:
+  - "Direct Submit() with a literal unknown record name ('verification') is rejected outright, but Stage(x)+Submit(returned stg-id) bypasses that validation -- exploring further from there did not yet reach the worker or unstick the admin's job."
+tools:
+  - "Python websocket-client (custom ttyd client)"
+  - "dbus-monitor / manual D-Bus probing"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/Night Shift Archive/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/Night Shift Archive/solve/solve.py"
+time_heuristic: "For an instancer that hands out a ttyd web shell for scripted automation, connect its websocket with subprotocols=['tty'] plus the JSON handshake up front; for a blackbox D-Bus surface, systematically enumerate services/methods via both normal calls and deliberately malformed ones to harvest policy-denial error text."
+last_verified: "2026-11-04"

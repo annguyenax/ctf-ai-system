@@ -1,0 +1,34 @@
+id: bytemectf2026_the_last_soul
+event: ByteMe CTF 2026
+category: steganography/lsb-base64-layer
+challenge_name: "The Last Soul"
+status: solved
+flag: "OWASP{th3_l4st_s0ul_w4s_n3v3r_l0st}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Sequential RGB-LSB extraction from an 80x80 PNG yields a fixed-length printable ASCII string, not a direct OWASP{...} match.
+  - The extracted string's length/character set (mixed case + digits + trailing "=") matches base64, not the flag charset.
+key_idea: If LSB extraction produces a string that doesn't itself match the flag format but looks base64-like (padding, valid alphabet), base64-decode it before searching for the flag; a single LSB pass can carry more than one encoding layer even when there is no further XOR key involved.
+prerequisites:
+  - Standard sequential LSB extraction
+  - Recognizing base64 by alphabet and `=` padding
+exploitation_pattern: extract LSBs sequentially -> take the fixed-size leading byte run -> base64-decode -> flag.
+verification:
+  method: Deterministic local solver replay; decoded flag matches recorded flag.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Steganography/The Last Soul/solve/solve.py"
+pitfalls:
+  - Searching the raw LSB output directly for an "OWASP{" regex fails silently when an extra base64 layer is present; always sanity-check the decoded bytes' charset against the expected flag format first.
+failed_paths: []
+tools:
+  - Python 3 (Pillow, base64)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Steganography/The Last Soul/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Steganography/The Last Soul/solve/solve.py"
+time_heuristic: LSB-decoded bytes that don't match the flag charset but look base64-shaped -> base64-decode before concluding the stego failed.
+last_verified: "2026-11-04"

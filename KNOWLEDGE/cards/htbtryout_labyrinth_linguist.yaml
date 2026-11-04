@@ -1,0 +1,37 @@
+id: htbtryout_labyrinth_linguist
+event: HTB Try Out
+category: web/mislabeled-template-engine-ssti
+challenge_name: "Labyrinth Linguist"
+status: solved
+flag: "HTB{f13ry_t3mpl4t35_fr0m_th3_d3pth5!!_a3ce0020cb78a323c28c8b6d8769d3ed}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "pom.xml artifact naming suggests FreeMarker, but the actual Maven dependency declared (twice) is Apache Velocity 1.7."
+  - "A translation form substitutes user input directly for a TEXT placeholder in an HTML template string, then calls runtimeServices.parse + Template.merge (Velocity's template-string evaluation API) with no sanitization."
+  - "#set($x=7*7)$x evaluating to 49 in the response immediately confirms live server-side template evaluation of a Velocity expression."
+key_idea: "Don't trust a project's apparent branding/artifact name as the template engine identity; verify by checking the actual dependency declarations and by sending a cheap arithmetic probe (#set($x=7*7)$x for Velocity, ${7*7} for FreeMarker/others) directly against the live app. Once Velocity SSTI is confirmed, use the empty-string .class.forName('java.lang.Runtime') chain to get Runtime.exec, then read the process's stdout via #foreach over InputStream.available()/read() characters to retrieve a file's contents without ProcessBuilder or external libraries."
+prerequisites:
+  - Java app embedding untrusted input into a template string later evaluated by a template engine (any engine)
+  - Willingness to disambiguate claimed vs actual template engine before building a payload for the wrong one
+exploitation_pattern: "probe with a cheap arithmetic SSTI test string matching the real (not assumed) engine syntax -> confirm with #set($x=7*7)$x==49 -> Velocity .class.forName Runtime.exec chain reads flag file via process stdout"
+verification:
+  method: "Live POST with the Velocity Runtime.exec payload directly returned the flag file's contents in the HTTP response body; replayed a second time with identical result."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Labyrinth Linguist/final_flag.txt"
+pitfalls:
+  - "A project's artifact/class naming (e.g. suggesting FreeMarker) can be misleading; always confirm the actual template engine from the real dependency manifest and a live syntax probe before building an SSTI payload."
+  - "Velocity restricts direct string literals' .class access in some configurations, but an empty string variable's .class.forName() chain reliably reaches arbitrary classes including java.lang.Runtime."
+failed_paths: []
+tools:
+  - Python urllib
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Labyrinth Linguist/writeup/writeup.md"
+playbook: web_ssti.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Labyrinth Linguist/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Labyrinth Linguist/solve/solve.py"
+time_heuristic: "Never assume the template engine from naming/branding alone; verify from the real dependency manifest and a cheap live arithmetic probe matching that engine's exact syntax before building an SSTI RCE payload."
+last_verified: "2026-11-04"

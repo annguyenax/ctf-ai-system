@@ -1,0 +1,37 @@
+id: "h7ctf2026_mic_drop"
+event: "H7CTF 2026 Quals"
+category: "hardware/afsk-exfil-hidden-in-live-av-stream"
+challenge_name: "Mic Drop"
+status: "solved"
+flag: "H7CTF{83e19d7c-0e0c-49be-a395-1590279aadc5}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A \"live\" web instance serves an HLS audio stream (.m3u8 + .ts segments) from a hidden directory discovered only via brute-forcing common path names."
+  - "Spectrogram of the reassembled audio shows a short burst with two distinct tone bands rather than normal room noise."
+key_idea: "When a challenge presents a live streamed feed (HLS/RTSP/etc.) rather than a static file, first find and download the manifest + segments (brute-forcing likely directory names if undocumented), reassemble to a single audio file with ffmpeg, then inspect a spectrogram for an anomalous tone-burst region; two tone bands at roughly 1200/2200 Hz are the classic Bell-202 AFSK modem tones -- measure the minimum symbol run-length to get the true baud rate (don't assume the nominal 1200 baud), demodulate with simple quadrature correlators per symbol window, then frame as UART 8N1 LSB-first to recover ASCII."
+prerequisites:
+  - "ffmpeg for HLS reassembly"
+  - "numpy/scipy for spectrogram + simple FSK demod"
+exploitation_pattern: "brute-force/discover the hidden stream path -> download m3u8+segments -> ffmpeg reassemble to WAV -> spectrogram to locate the tone burst -> measure run-length to get actual baud (symbols/sample count) -> non-coherent FSK demod per symbol window -> UART 8N1 LSB-first framing -> ASCII flag."
+verification:
+  method: "Deterministic demodulation pipeline reproduced a clean ASCII flag across several sampling-offset checks."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Mic Drop/writeup/writeup.md"
+pitfalls:
+  - "Don't assume the nominal/textbook baud rate for the detected tone pair (1200 Hz tones does not imply 1200 baud) -- measure the actual minimum symbol run-length in samples to derive the true baud."
+failed_paths: []
+tools:
+  - "ffmpeg"
+  - "numpy"
+  - "scipy"
+  - "requests"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: "rf_multimode_audio_spectrogram.md"
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Mic Drop/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Mic Drop/solve/solve.py"
+time_heuristic: "For \"live feed\"/streamed hardware-exfil challenges, reassemble the HLS/RTSP stream to a flat audio file and spectrogram-scan for an anomalous short tone-burst before assuming the whole file needs analysis; two tones near 1200/2200 Hz is Bell-202 AFSK regardless of the apparent baud."
+last_verified: "2026-11-04"

@@ -1,0 +1,39 @@
+id: ptitctf2026_approve_please_genie
+event: "PTITCTF2026"
+category: "web/blind-css-exfiltration"
+challenge_name: "Approve Please, Genie!"
+status: solved
+flag: "PTITCTF{youtu.be/XKZIQlqVjjk?si=n3v3r_th0ught_css_c0uld_b_that_dang3r0us_ab8d8535d15b}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "CSP blocks inline <script> but has style-src 'self' 'unsafe-inline', and the HTML sanitizer strips <script>/onX handlers/javascript: hrefs but leaves <style> and inline style= fully intact."
+  - "A secret value sits in a hidden input (#flag-holder) that only the admin bot's page render actually populates; the attacker's own view shows a redacted placeholder."
+  - "The CSS attribute-selector prefix matcher ([value^=\"...\"]) combined with the general-sibling combinator (~) can bridge a hidden secret-bearing element to a visible sibling element, letting a background:url() on the visible sibling fire conditionally on the hidden element's attribute value."
+key_idea: "Blind CSS exfiltration: inject <style> rules using attribute-selector string-prefix matching ([value^=\"prefix\"]) on a hidden secret input, combined via the ~ sibling combinator to a visible sibling whose background-image URL only loads when the prefix matches. Batch one candidate character per out-of-band collector query per note, submit the note to an admin bot that renders the real secret, then poll the collector log to see which single candidate fired -- repeat per character to exfiltrate the whole secret through a CSP that blocks JS but allows inline CSS."
+prerequisites:
+  - "An admin bot (or any victim) that renders attacker-supplied HTML containing the real secret value, while the attacker's own view is redacted"
+  - "A same-document DOM layout where the secret element and a background-fetching visible element are siblings (or otherwise reachable via a CSS combinator)"
+  - "An out-of-band collector endpoint (here provided by the challenge) to observe which background request fired"
+exploitation_pattern: "CSP allows unsafe-inline style-src and sanitizer preserves <style>/style= -> attribute-selector prefix oracle on a hidden secret input -> sibling combinator bridges hidden element to a visible background-fetching element -> one correct candidate per batch fires a distinct collector URL -> report to admin bot -> poll collector -> repeat per character/position to reconstruct the full secret."
+verification:
+  method: "Live exploitation against the actual challenge instance: incrementally exfiltrated characters assembled into the exact submitted flag, confirmed correct on submission."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Web/Approve Please, Genie!/writeup/writeup.md documents the full character-by-character oracle loop and solve/solve_fast.py with solve/progress.txt as the incremental extraction log."
+pitfalls:
+  - "A shared single headless admin bot can be fragile and crash after only ~2-3 note loads per challenge instance -- batch the per-character candidate set into as few notes/bot-visits as possible (light CSS payload, small charset) rather than one bot visit per character."
+  - "If multiple users/agents share the same scarce admin-bot capacity, contention from other actors burns through bot loads without producing results -- coordinate or serialize access."
+  - "Once partial plaintext becomes guessable (e.g. recognizable English/leetspeak substrings), skip ahead by hand and let the oracle only verify the guess, saving expensive bot-visit budget instead of exhaustively exfiltrating every remaining character."
+  - "Use one combined URL-aware charset for the whole secret rather than a light-then-extended two-phase charset split -- the two-phase approach wastes an entire bot load whenever a special character outside the light set appears."
+failed_paths: []
+tools:
+  - "Python requests-based batch note/report/poll solver (solve/solve_fast.py)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Web/Approve Please, Genie!/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Web/Approve Please, Genie!/solve/solve_fast.py"
+time_heuristic: "When a CSP blocks script-src but allows style-src 'unsafe-inline' and a sanitizer preserves <style>/style=, and a secret sits in a hidden DOM element rendered only for a privileged victim, build a per-character attribute-selector + sibling-combinator CSS oracle with background:url() as the side channel, and budget for a fragile/limited-use bot by batching candidates per visit."
+last_verified: "2026-11-04"

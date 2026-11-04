@@ -1,0 +1,35 @@
+id: rstconctf2026_universal_suffering_begins_usb
+event: RSTCON CTF 2026
+category: forensics/usb-link-layer-reconstruction
+challenge_name: "Universal Suffering Begins (USB)"
+status: solved
+flag: "rstcon{yu_es_be_m0n}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - pcap with LinkType 288 (raw USB link-layer/physical packets), several devices on one hub (printer, mass-storage flash drive, HID).
+  - Mass-storage device exchanges SCSI Bulk-Only Transport commands (CBW/CSW) with `Write(10)` (0x2a) carrying LBA/sector-count metadata.
+key_idea: At USB link-layer capture granularity, a file write shows up as separate OUT token packets (announcing device/endpoint), DATA0/DATA1 packets (payload), and the host's ACK/NYET handshake that confirms acceptance. Track the last (device, endpoint) seen on an OUT token, buffer the following DATA packet, and only commit it to the reconstructed stream once an ACK/NYET is observed (NAK/STALL means retry — discard the pending buffer). Locate the SCSI CBW signature (`USBC` + little-endian tag) in the reassembled stream to find file-part offsets, then concatenate the parts and trim to a known file magic/trailer (e.g. PNG `IEND` chunk) to recover the embedded file.
+prerequisites:
+  - Understanding of USB Bulk-Only Transport (CBW tag, LBA, sector count) and USB PID bytes (OUT=0xe1, DATA0/1=0xc3/0x4b, ACK=0xd2, NYET=0x96, NAK=0x5a, STALL=0x1e)
+  - Manual pcapng record parsing (gzip + raw record struct unpack) when scapy/tshark USB dissection is insufficient for a given link-layer encoding
+exploitation_pattern: parse raw pcapng records -> track last OUT token's (device, endpoint) -> buffer next DATA packet -> commit to stream only on ACK/NYET, discard on NAK/STALL -> locate CBW tag signatures to find file byte offsets -> concatenate parts -> trim by file magic/trailer -> extract embedded file -> read flag from its content (visually, here inside image dialogue bubbles).
+verification:
+  method: Deterministic extraction of an exact PNG (confirmed by `IEND` trailer) from reconstructed SCSI write payloads; flag text visible inside the extracted image was then read.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensic/Universal_Suffering_Begins__USB_/solve/solve.py"
+pitfalls:
+  - The decoy printer device (IPP over USB) prints documents containing a fake "Lack of rstcon{} flag lmao" string — don't trust the first flag-shaped string found; confirm which device/endpoint is the real data channel (the mass-storage device).
+  - Readily-available high-level USB dissectors may not expose raw DATA/ACK sequencing cleanly for this capture; manual byte-level pcapng parsing of PIDs was required.
+failed_paths: []
+tools:
+  - Python 3 (gzip, struct) for manual pcapng/USB PID parsing
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: forensics_pcap.md
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensic/Universal_Suffering_Begins__USB_/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensic/Universal_Suffering_Begins__USB_/solve/solve.py"
+time_heuristic: Raw USB link-layer capture (LinkType 288) with a mass-storage device present -> reconstruct Bulk-Only Transport writes by pairing OUT-token device/endpoint tracking with DATA-packet buffering gated on ACK/NYET, then hunt for file magic bytes in the reassembled stream.
+last_verified: "2026-11-04"

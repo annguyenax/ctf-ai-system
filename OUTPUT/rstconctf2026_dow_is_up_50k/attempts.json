@@ -1,0 +1,24 @@
+{
+  "challenge_id": "rstconctf2026_dow_is_up_50k",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-25",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Send harmless React Flight marker through Next Server Action",
+      "result": "HTTP 303 redirect contained RCE_PROBE",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\RSTCONCTF2026\\Web\\Dow is Up 50k\\solve\\evidence\\rce_marker.txt",
+      "notes": "Scoped request; no unrelated targets."
+    },
+    {
+      "t": "2026-10-25",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Read only /flag.txt and submit extracted flag to official RSTCON checker",
+      "result": "Accepted Correct",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\RSTCONCTF2026\\Web\\Dow is Up 50k\\solve\\evidence\\submission.txt",
+      "notes": "Scoped request; no unrelated targets."
+    }
+  ]
+}

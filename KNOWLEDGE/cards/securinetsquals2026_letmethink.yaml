@@ -1,0 +1,44 @@
+id: securinetsquals2026_letmethink
+event: "Securinets CTF Quals 2026"
+category: "rev/memfd-execveat-self-decrypt+glibc-version-patch+seccomp-notify-trace"
+challenge_name: "letmethink"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "An ELF stub decodes its own syscall numbers via XOR with a constant, then uses `memfd_create`+`write`+`execveat(AT_EMPTY_PATH)` to decrypt and directly execute an inner, much larger ELF entirely in memory (no file ever touches disk) -- the RC4 key is simply the literal ASCII string 'letmethink', but the initial S-box is a non-identity permutation embedded as 16 SIMD-sized blocks in a specific file-offset order that must be reconstructed before running standard KSA/PRGA."
+  - "The inner ELF is a Go binary (garble-obfuscated, no real version string) requiring GLIBC_2.44 for `sinh`/`cosh`, which the available Linux environment doesn't have -- patching only the `.gnu.version` index for those two symbols is insufficient; the corresponding `vernaux` entry (version name+hash) must ALSO be repointed to an available version (e.g. GLIBC_2.2.5) for the dynamic linker to accept the patched binary."
+  - "Running the inner binary under `strace` (or any tool, even renamed, whose own comm name isn't masquerading as 'init') triggers a 'wrong os version' anti-ptrace branch; a seccomp-BPF USER_NOTIFY filter that only intercepts `openat`/`write`/`exit`/`exit_group` (ALLOWing everything else, including `execve`) lets you observe syscall traffic WITHOUT setting TracerPid, bypassing that specific anti-debug check."
+key_idea: "Layered anti-analysis (self-decrypting memfd+execveat ELF launcher, a Go binary requiring a newer GLIBC than available, and a ptrace-detecting inner binary) can each be defeated by a narrowly-scoped technique: reconstruct a scrambled RC4 S-box from its exact on-disk block order rather than assuming identity init; patch BOTH the `.gnu.version` index AND its corresponding `vernaux` entry (not just one) to downgrade a required symbol version the local loader lacks; and use a seccomp USER_NOTIFY filter limited to only the syscalls you need to observe, since it does not set TracerPid and so evades a ptrace-based anti-debug check that a normal strace/gdb session would trigger."
+prerequisites:
+  - "ELF overlay/memfd+execveat self-launch pattern"
+  - "RC4 KSA/PRGA with non-identity initial S-box"
+  - "ELF symbol versioning (.gnu.version/.gnu.version_r/vernaux) internals"
+  - "seccomp-BPF SECCOMP_RET_USER_NOTIFY for ptrace-free syscall observation"
+exploitation_pattern: "locate the overlay after the ELF section-header table and decode its syscall-number XOR obfuscation -> reconstruct the RC4 S-box from the exact file-offset block order and RC4-decrypt with the literal key -> on the inner ELF, patch both gnu.version index AND vernaux hash/name for the unsupported GLIBC_2.44 symbols to a locally-available version -> run under a seccomp USER_NOTIFY filter (not strace/gdb) limited to a few syscalls to observe behavior without triggering the anti-ptrace branch -> the final observed write() payload is itself a 'no alphabetic characters' Python pyjail string (`exec(str(eval)[...])`) requiring further static decoding."
+verification:
+  method: "No flag recovered yet; all decoy flag-shaped strings seen in memory are confirmed bait. This documents confirmed, reproduced mechanics at each layer."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/letmethink/notes/ANALYSIS.md"
+pitfalls:
+  - "An RC4 cipher whose decrypted plaintext starts with the expected magic bytes (e.g. `7f454c46` ELF magic) when using the LITERAL challenge-name string as the key is a strong correctness signal -- don't assume a more complex key derivation is needed if the obvious string already produces a structurally valid result."
+  - "Patching only a symbol's `.gnu.version` index to point at an available version string is NOT enough if the loader also validates the version's name/hash via a separate `vernaux` table entry -- both must be changed together or the dynamic linker will still reject the binary."
+  - "A binary's anti-ptrace check can trigger on ANY tracer, including a renamed copy of `strace` run as a normal child -- but the SAME binary executed under a parent process whose `comm` happens to match an expected name (e.g. `init`) does not trigger it, suggesting the check inspects parent identity/environment rather than literally detecting ptrace; a seccomp USER_NOTIFY filter sidesteps the question entirely since it never sets TracerPid."
+failed_paths:
+  - "Tried TRUSTISKEY, asdf, Letmethink, Securinets, securinets, blackkader, key, password, and the zip password itself as the RC4 key -- all wrong; the correct key was the literal unmodified string 'letmethink'."
+  - "Running under strace (even copied to /tmp/init and exec'd with argv[0]='init') still triggers the 'wrong os version' anti-debug branch when the actual COMM of the parent process is 'bash'/'timeout' rather than 'init' -- COMM of the immediate parent, not argv[0] of the traced process, appears to be what's checked."
+tools:
+  - "Python 3 (RC4, ELF/PE parsing)"
+  - "seccomp-BPF USER_NOTIFY harness (custom)"
+  - "manual ELF symbol-versioning patcher"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/letmethink/files/letmethink.zip"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/letmethink/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/letmethink/solve/solve.py"
+time_heuristic: "For a self-decrypting ELF overlay (memfd_create+execveat pattern), try the literal challenge name/title as the decryption key before anything more complex; when a target binary requires a newer GLIBC symbol version than is locally available, patch BOTH the .gnu.version index and its vernaux name/hash entry; to observe syscalls without triggering ptrace-based anti-debug, use a seccomp USER_NOTIFY filter instead of strace/gdb."
+last_verified: "2026-11-04"

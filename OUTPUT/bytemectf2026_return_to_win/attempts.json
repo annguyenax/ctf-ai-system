@@ -1,0 +1,42 @@
+{
+  "challenge_id": "bytemectf2026_return_to_win",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Inspect the supplied binary, challenge description, and archive contents",
+      "result": "ELF64 x86-64; archive contains main.out; remote host/port explicitly given by challenge",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Return to Win/solve/evidence/recovery.json",
+      "notes": "No existing solve or flag file was present."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Read ELF headers, symbols, and hello() disassembly",
+      "result": "No PIE/canary, NX enabled; hello() uses gets at [rbp-0xa], win() is fixed at 0x40125e; saved RIP offset is 18",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Return to Win/solve/evidence/recovery.json",
+      "notes": "checksec wrapper lacked pwnlib; readelf/objdump supplied the needed evidence."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Send offset-18 payload to local binary with a scratch debug flag",
+      "result": "win() printed OWASP{LOCAL_DEBUG_ONLY}",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Return to Win/solve/evidence/recovery.json",
+      "notes": "Local test used only a task-scoped scratch file."
+    },
+    {
+      "t": "2026-10-09 step 04",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Make one connection to the challenge-provided endpoint and send the locally verified payload",
+      "result": "Remote service returned OWASP{g3ts_1s_4_s3cur1ty_n1ghtm4r3}",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Return to Win/solve/evidence/remote_response.txt",
+      "notes": "No portal submission or additional network enumeration was performed."
+    }
+  ]
+}

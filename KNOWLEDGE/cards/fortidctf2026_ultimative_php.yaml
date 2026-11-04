@@ -1,0 +1,50 @@
+id: fortidctf2026_ultimative_php
+event: "FortID CTF 2026"
+category: "web/php-multistep-type-juggling-lfi"
+challenge_name: "Ultimative PHP"
+status: solved
+flag: "FortID{C0RP_M1GR4T10N_1S_WH3R3_D4T4_G03S_T0_D13_cdbe8b1741}"
+confidence: 1.0
+artifact_hashes:
+  - "src/index.php: 3B5A9CBC8FE88FE8AE3DC7E36639926D46F9A384026523D0A38A07A6355564D2"
+  - "src/manual/operations.php: 9006E4ACC78C7607E57210FA584049B1A5A0C2278085C0E088D95E3619809624"
+  - "solve/solve.py (credential removed): C65030A3E7A6D0BF461C2AFB539C17C0FF80F325542AEE058F21F0B4B4150414"
+signals:
+  - "Raw query-string guard differs from PHP's normalized $_GET key."
+  - "Strictly different arrays collapse to the same concatenated string."
+  - "Distinct 0e-prefixed digests are compared loosely."
+  - "Allowed PHP objects invoke a template path check with a falsey zero offset."
+key_idea: >
+  Chain PHP key normalization, array-to-string conversion, magic-hash numeric
+  comparison, and a strpos-at-zero path traversal in a single migration request.
+prerequisites:
+  - "PHP request parsing"
+  - "PHP loose and strict comparison semantics"
+  - "PHP serialization and path traversal"
+exploitation_pattern: >
+  Use dotted parameter key -> send distinct same-type arrays -> find a dual
+  0e-style hash collision -> deserialize an allowed template object whose ../
+  prefix occurs at offset zero -> read /flag.
+verification:
+  method: "The preserved target response and submission record contain the same flag as final_flag.txt; read-only platform status also reports SOLVED."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Web/Ultimative PHP/solve/evidence/verification.txt"
+pitfalls:
+  - "All four checks must pass in one request."
+  - "A raw-query filter does not see PHP's normalized parameter name."
+  - "Zero is false in a PHP conditional even though strpos returns an integer."
+  - "Do not embed bearer credentials in solver source."
+failed_paths: []
+tools:
+  - "PHP source review"
+  - "urllib request construction"
+hexstrike:
+  used: false
+  useful: false
+  notes: "The target response and source evidence are sufficient; the exploit was not replayed in this pass."
+sources:
+  - "Challenge source: CTFTimeWriteup/FortIDCTF2026/Web/Ultimative PHP/files/ultimative_php/src/index.php"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Ultimative PHP/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Ultimative PHP/solve/solve.py"
+time_heuristic: "Inspect every server-side gate as a PHP type-flow pipeline; combine parser normalization, coercion, comparison, and object side effects only when the source proves each transition."
+last_verified: "2026-10-10"

@@ -1,0 +1,35 @@
+id: rstconctf2026_intercepted
+event: RSTCON CTF 2026
+category: crypto/encoding-onion
+challenge_name: "Intercepted"
+status: solved
+flag: "rstcon{p33l_the_3ncoding_0ni0n}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - A single hex string that decodes through multiple keyless encodings (hex -> base64 -> base32), described as having "been through the encoder a few too many times".
+  - After the first base64 decode, the result has `=` padding at the FRONT of the string, not the end — base32/base64 padding is only ever valid at the end.
+key_idea: "Decode layer by layer by alphabet/shape recognition (hex = 0-9a-f only; base64 = mixed case+digits with trailing `=`; base32 = A-Z2-7 with trailing `=`). Leading `=` padding after a decode step is the decisive signal that the layer underneath was reversed before being wrapped — reverse the string to restore valid padding-at-end before decoding the next layer."
+prerequisites:
+  - Familiarity with hex/base64/base32 alphabets and padding rules
+exploitation_pattern: hex-decode -> base64-decode -> observe leading `=` padding -> reverse string -> base32-decode -> flag.
+verification:
+  method: Deterministic solver replay against the preserved artifact; writeup documents the per-layer output explicitly, same flag text reproduced every run.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Crypto/Intercepted/solve/solve.py"
+pitfalls:
+  - Attempting base32-decode directly on the step-2 output fails because the padding sits at the front; the reverse step is mandatory and easy to miss.
+tools:
+  - Python 3 (base64 module), or CyberChef "Magic"/manual recipe
+failed_paths:
+  - Trying base32 decode directly on the reversed-looking string without first reversing it fails (padding-at-front is invalid for standard base32).
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/RSTCONCTF2026/Crypto/Intercepted/files/transmission.txt"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Crypto/Intercepted/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Crypto/Intercepted/solve/solve.py"
+time_heuristic: Stacked-encoding challenge ("peeled the encoder too many times") -> decode by alphabet shape one layer at a time; padding characters in the wrong position (front instead of end) signal a hidden string-reversal step.
+last_verified: "2026-11-04"

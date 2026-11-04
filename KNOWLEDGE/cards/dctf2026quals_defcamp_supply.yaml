@@ -1,0 +1,43 @@
+id: dctf2026quals_defcamp_supply
+event: DefCamp CTF 2026 Quals
+category: web
+challenge_name: defcamp-supply
+status: solved
+flag: "CTF{00fd1af2af55ba826af4759fc024770d7ae720622e457b570d16224a8f43b5e2}"
+confidence: 1.0
+artifact_hashes:
+  - "public.zip sha256:47675f7f7d64ebf81bdbbdb225e1d32d9bd869c563eedf4a5c31b782707e3904"
+signals:
+  - Flask shop with a daily free-credit claim (/redeem) and a premium item gated at 20 credits
+  - profile_check.py interpolates profile into a shell=True command
+  - checkout returns result:null (sink runs at order delivery, eta ~30-37 min)
+  - 30-min Flask session vs ~30-37 min delivery eta
+key_idea: Race /redeem (check-then-act daily claim) for credits; buy the premium item with a command-injection profile that runs at delivery; exfiltrate the flag by writing it into the served static/ directory so it is readable without the expired session.
+prerequisites: []
+exploitation_pattern: concurrent POST /redeem -> >=20 credits; premium checkout profile='stealth"; ... ; for d in static ...; echo "$FLAG" > "$d/pwned.txt"; ...; #'; then poll /static/pwned.txt.
+verification:
+  method: two independent reads of /static/pwned.txt returned identical CTF{64hex}
+  evidence: "D:\\\\download\\\\ctf-ai-system\\\\OUTPUT\\\\dctf2026quals_defcamp_supply\\\\raw\\\\flag.txt"
+pitfalls:
+  - command injection runs at DELIVERY, not checkout (result is null immediately)
+  - delivery eta (~30-37 min) outlasts the 30-min session, so poll the static write, not the order result
+  - eta/created_at/status are not mass-assignable
+  - non-premium items hard-code profile=standard and never reach the sink
+failed_paths:
+  - quantity manipulation for a refund (clamped to [1,100])
+  - mass-assigning eta/created_at/status to force instant delivery (ignored)
+  - session forgery to outlive the 30-min session (secret key not cracked)
+  - waiting for delivery on the first instance (terminated before delivery)
+tools:
+  - python
+  - curl
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: ""
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Web\\\\defcamp-supply\\\\writeup\\\\writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Web\\\\defcamp-supply\\\\solve\\\\solve.py"
+time_heuristic: ~30 min wall-clock (delivery ETA dominates)
+last_verified: "2026-09-19"

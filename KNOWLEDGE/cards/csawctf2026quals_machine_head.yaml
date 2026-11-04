@@ -1,0 +1,36 @@
+id: csawctf2026quals_machine_head
+event: "CSAW CTF Qualifications 2026"
+category: "rev/custom-vm-bytecode-z3"
+challenge_name: "Machine Head"
+status: solved
+flag: "csaw{cl1mb1ng_th3_v1rtu4l_st4ck_0n3_0pc0d3_4t_4_t1m3}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Binary interprets a custom byte-triple [opcode, op1, op2] instruction set from a static .rodata blob instead of using native opcodes."
+  - "Opcodes map to simple register ops (load flag byte, xor/add/mul const or register, rotate, equality-check, halt) -- all straightforwardly symbolically executable."
+  - "638 instructions total -- too many to invert by hand in reasonable time, but trivial to model symbolically."
+key_idea: "A custom-VM 'crackme in a language you won't find in any disassembler' is best solved by writing a tiny symbolic interpreter for the VM's few opcodes in Z3 (one BitVec per flag byte, one constraint per equality-check opcode) rather than manually reverse-engineering hundreds of bytecode instructions."
+prerequisites:
+  - "Z3 SMT solver (BitVec modeling)"
+  - "Ability to statically extract/read the bytecode blob from the binary"
+exploitation_pattern: "identify bytecode pointer/offset in .rodata -> enumerate opcode semantics from a handful of representative instructions -> build Z3 BitVec(8) per flag char with ASCII-range + known prefix/suffix constraints -> symbolically execute the whole instruction stream, adding an equality constraint for each check opcode -> solve -> decode flag bytes from the model"
+verification:
+  method: "Ran the binary with the Z3-recovered flag string; got the program's own 'Correct!' success message."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Reverse/Machine Head/writeup/writeup.md"
+pitfalls:
+  - "Do not manually trace hundreds of custom VM instructions by hand; a short symbolic interpreter in Z3 scales to any instruction count."
+failed_paths: []
+tools:
+  - "z3 (python bindings)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Reverse/Machine Head/files/masterkey"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Reverse/Machine Head/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Reverse/Machine Head/solve/solve.py"
+time_heuristic: "Custom-VM/bytecode crackme with many instructions: write a short symbolic (Z3) interpreter for the opcode set rather than manually inverting the program."
+last_verified: "2026-11-04"

@@ -1,0 +1,37 @@
+id: ptitctf2026ck_infosecptit_code_cli
+event: "PTITCTF2026-CK"
+category: "pwn/heap-leak-blocked-rce"
+challenge_name: "InfosecPTIT Code CLI"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A markdown-table renderer stores the declared column count in a narrower field than the value accepted from user input (65540 columns requested, '(stored as 4)' observed in the renderer's own debug output), consistent with an integer-truncation bug similar to other challenges in this batch."
+  - "Triggering the wide-table render path leaks a heap/stdout pointer directly (observed values like 0x7fe4c684b5c0), from which the libc build and version (Ubuntu 25.04, glibc 2.41-6ubuntu1.2) and key offsets (_IO_2_1_stdout_, system, /bin/sh) were identified with certainty."
+  - "A second overflow-triggering 'collect' write of a large but bounded size (0x80040 bytes) reaches close to a guard/FP region (guard+0x8fff8) but does not actually reach/overwrite it -- the write is short of the needed offset by design or due to incomplete understanding of the heap layout at that point."
+key_idea: "A working, reliable libc-base leak was achieved live against the real challenge instance via a size-truncation bug in a markdown-table renderer. The next stage (achieving control-flow hijack via overwriting a function-pointer-like guard field) is blocked: the known overflow write is a fixed large size that lands short of the target FP offset, and the overflow's controlled bytes are only heap-allocated mmap cell pointers rather than arbitrary attacker data, so a write-what-where primitive at the needed offset was not yet constructed. No RCE or flag was obtained."
+prerequisites:
+  - "A live, authenticated session against the challenge (signup/login flow required before reaching the vulnerable renderer)"
+  - "Heap layout reasoning across repeated large allocations (skip-free leaving corrupted allocator state that blocks simple chunk reuse)"
+exploitation_pattern: "authenticate -> trigger the markdown-table renderer with a column count wide enough to overflow its internally truncated column-count storage -> observe a direct stdout/heap pointer leak revealing exact libc build/version/offsets -> attempt a second, larger overflow ('collect', 0x80040 bytes) hoping to reach a nearby guard/FP field, but the fixed write size lands short of the actual FP offset and the overflowed content is not attacker-controlled, blocking further progress."
+verification:
+  method: "Live leak confirmed: libc base/version/offsets were derived directly from an observed runtime pointer value against the real instance, independently matching the known glibc 2.41-6ubuntu1.2 Ubuntu 25.04 symbol offsets supplied in files/libc241."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Pwn/InfosecPTIT Code CLI/notes/SESSION.md records the exact leaked pointer value and the resolved libc offsets, and the 0x80040-byte vs guard+0x8fff8 size mismatch blocking stage 2."
+pitfalls:
+  - "A successful, confirmed info leak (here, libc base) does not by itself imply the next overflow in the same feature area is exploitable -- carefully recompute the exact byte distance between the overflow's fixed write size and the actual target field offset before assuming the primitive reaches it."
+  - "An overflow whose overflowing bytes are internal allocator/mmap pointers (not attacker-supplied data) is not a write-what-where primitive even though it does corrupt memory -- distinguish 'corruption observed' from 'controlled write achieved' before planning the next stage."
+  - "Repeatedly triggering the same large allocation path can leave the allocator's free-list/skip-free state corrupted in a way that prevents expected chunk reuse on subsequent attempts -- track allocator state across requests rather than assuming each trigger behaves identically."
+failed_paths:
+  - "A second wide-table trigger intended to smash the FP guard only reached roughly 64KiB, short of the ~0x8fff8 target offset, and did not overwrite the function pointer."
+tools: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "pwn_stack_overflow.md"
+writeup: ""
+solver: ""
+time_heuristic: "After confirming an info leak via a size-truncation bug in one code path, before attempting control-flow hijack via a second overflow in a related path, explicitly compute the byte distance between the second overflow's exact write size and the actual target field offset, and verify the overflowing bytes are attacker-controlled data rather than internal allocator pointers, before committing further effort to that chain."
+last_verified: "2026-11-04"

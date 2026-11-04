@@ -1,0 +1,46 @@
+id: fortidctf2026_eu_gift
+event: "FortID CTF 2026"
+category: "misc/yaml-scalar-type-confusion"
+challenge_name: "EU Gift"
+status: solved
+flag: "FortID{Erling_15_7h3_5olut10n_7o_Th3_Norw4y_Pr0bl3m}"
+confidence: 1.0
+artifact_hashes:
+  - "handout.zip: a6018f341f5dceb380eb094927970c1db615a1accf71403173f9d33753ec6556"
+  - "verification.jpg: e7feae7ae0f1fb42c8ce4c5ad7daeb92ba12e3271b7528875f19460e5803159c"
+signals:
+  - "Application converts YAML blocklist to a set and compares submitted ISO alpha-2 code."
+  - "Configuration contains bare scalar NO."
+key_idea: >
+  Under the target's YAML 1.1 loader, bare NO parses as boolean false rather
+  than the string country code NO, so a string membership check does not block it.
+prerequisites:
+  - "YAML scalar resolution rules"
+  - "Reading application configuration semantics"
+exploitation_pattern: >
+  Inspect unquoted policy values -> parse with the target's actual loader ->
+  compare the parsed type/value with the application's submitted value -> use
+  an otherwise valid credential whose string does not match the coerced value.
+verification:
+  method: "Exact local config parsed with PyYAML shows one boolean False, no string NO; prior protocol record shows verifier success and the retained result JPEG displays the matching flag."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Misc/EU Gift/solve/verification.txt"
+pitfalls:
+  - "Assuming YAML country-code-looking tokens always remain strings."
+  - "The old exploratory note treated NO as a string and concluded every code was blocked; that conclusion is superseded."
+failed_paths: []
+tools:
+  - "Python zipfile"
+  - "PyYAML safe_load"
+  - "Local image inspection"
+hexstrike:
+  used: false
+  useful: false
+  notes: "The supplied source/config and preserved result image were sufficient."
+sources:
+  - "Local handout: D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/EU Gift/files/handout.zip"
+  - "Local result evidence: D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/EU Gift/solve/verification.jpg"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/EU Gift/writeup/writeup.md"
+solver: ""
+time_heuristic: "Whenever a policy is loaded from YAML, verify its runtime scalar types before analyzing the policy logic."
+last_verified: "2026-10-10"

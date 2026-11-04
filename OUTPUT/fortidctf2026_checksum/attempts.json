@@ -1,0 +1,44 @@
+{
+  "challenge_id": "fortidctf2026_checksum",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Checksum",
+  "flag_status": "none",
+  "attempts": [
+    {
+      "t": "2026-10-11",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Expand the statically selected FLAG call graph into its ordered XOR trace and fold it.",
+      "result": "1,912 reachable functions emit 4,818 XOR bytes; folding reproduces 0x39, but the byte trace does not contain the flag.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Reverse/Checksum/solve/flag_xor_trace.bin",
+      "notes": "Preserved in the event analysis; do not interpret the trace as plaintext."
+    },
+    {
+      "t": "2026-10-11",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Compare each reachable symbol ID with SHA-1 of machine-code bytes, subtree trace, folded values, and four direct local-operation serializations.",
+      "result": "No matches among 1,912 reachable functions.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Reverse/Checksum/solve/symbol_hash_probe.txt",
+      "notes": "Kills only these direct SHA-1 hypotheses."
+    },
+    {
+      "t": "2026-10-11",
+      "phase": "TEST",
+      "hypothesis_id": "H3",
+      "action": "Run the local binary with FLAG=A and FLAG=FortID{test}, then enter FLAG.",
+      "result": "Both runs returned Checksum: 39.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Reverse/Checksum/solve/runtime_env_probe.txt",
+      "notes": "No remote service or platform URL was contacted."
+    },
+    {
+      "t": "2026-10-11",
+      "phase": "TEST",
+      "hypothesis_id": "H4",
+      "action": "Inspect ELF sections, notes, compiler comment, and search the local workspace for the exact build fingerprint.",
+      "result": "No DWARF or debuglink exists; build ID 3871fdb2df718b8a5646d39d6835290914d2d633 and standard rustc/LLD/GCC version strings yielded no separate local artifact.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Reverse/Checksum/notes/analysis.md",
+      "notes": "Metadata does not add flag entropy. Stop this lead pending a behavioral side channel or matching source/build artifact."
+    }
+  ]
+}

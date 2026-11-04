@@ -1,0 +1,46 @@
+{
+  "challenge_id": "securinetsquals2026_misdirection_part_2",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-18T15:40:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Read forgePrf and the WebAuthn stub",
+      "command_or_step": "read bot/authenticator.js and browser-stub.js",
+      "result": "confirmed",
+      "evidence_path": "raw/residues.txt",
+      "notes": "Random ECDSA nonce. Unchecked point multiplication returns SHA256 of x."
+    },
+    {
+      "t": "2026-10-18T15:50:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Unlock the free alternate-path hint",
+      "command_or_step": "POST /api/v1/unlocks target 5 type hints",
+      "result": "confirmed",
+      "evidence_path": "raw/residues.txt",
+      "notes": "Hint is AES-ECB ciphertext, same KDF shape as Part 1."
+    },
+    {
+      "t": "2026-10-18T16:20:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H3",
+      "action": "Invalid-curve oracle through polluted baseURL",
+      "command_or_step": "13 bot reports, brute userHandle, CRT",
+      "result": "confirmed",
+      "evidence_path": "raw/residues.txt",
+      "notes": "One 32-byte scalar decrypts the hint."
+    },
+    {
+      "t": "2026-10-18T16:30:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H3",
+      "action": "Submit the decrypted flag",
+      "command_or_step": "submit_flag.py Misdirection: Part 2",
+      "result": "confirmed",
+      "evidence_path": "final_flag.txt",
+      "notes": "Portal status Correct."
+    }
+  ]
+}

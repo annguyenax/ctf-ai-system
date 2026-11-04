@@ -1,0 +1,44 @@
+id: compfest18ctf2026_hello
+event: "CTF COMPFEST 18 (2026)"
+category: "crypto/rsa-generalized-wiener"
+challenge_name: "hello"
+status: solved
+flag: "COMPFEST18{c0ngr4tzzz_h3ngk3rrrr_g3n3r4l1Zed_w13n3R_4ttacK_f91f71b7c1b857d2}"
+confidence: 1.0
+artifact_hashes:
+  - file: "files/chall.sage"
+    sha256: "1ce040b9b711903d392cc200f1ccf1aeb43eccd84516e3e4833bd0370805e04f"
+signals:
+  - "phi = (p^10 - 1) * (q^10 - 1) and e = inverse_mod(phi - d, phi), with a deliberately small bounded d."
+  - "ed + 1 = k*phi for small k and d, exactly the Wiener continued-fraction shape, but scaled to N^10 instead of N."
+  - "phi = N^10 + 1 - (p^10 + q^10), so phi is an extremely accurate approximation of N^10 at the scale needed for the convergent search."
+  - "Plaintext is a polynomial in (Z/NZ)[t]/(t^10-2); naive use of phi-d as the decryption exponent does NOT re-encrypt correctly because t^10-2 is reducible mod p and mod q."
+key_idea: "This is Wiener's small-private-exponent attack generalized to a quotient-ring RSA variant: because e = inverse_mod(phi-d, phi) with the unusual modulus (p^10-1)(q^10-1), ed+1=k*phi still holds, and k/d is recoverable as a continued-fraction convergent of e/N^10 (N^10 approximates phi closely enough). Once candidate phi gives integer p^10+q^10 with exact tenth roots, factor N. Then compute the TRUE quotient-ring decryption exponent via lcm of (r^deg(f)-1) over the factorization of t^10-2 mod each prime, not naively via phi-d."
+prerequisites:
+  - "Continued-fraction / Wiener-attack reasoning generalized beyond modulus N"
+  - "python-flint or Sage for exact large-integer polynomial factorization over finite fields"
+  - "Quotient-ring RSA / finite-field extension exponent (Euler totient analog) understanding"
+exploitation_pattern: "small-d RSA variant -> ed+1=k*phi -> continued fraction of e/N^10 recovers k/d -> factor N via p^10+q^10 -> recompute real decryption exponent from factorization of the quotient polynomial, not from phi-d."
+verification:
+  method: "Deterministic solver re-encrypts the recovered quotient-ring plaintext with the supplied e and asserts equality to all ten supplied ciphertext coefficients, plus a live nc capture of the actual challenge parameters."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Crypto/hello/solve/evidence/verification.txt and solve/evidence/live_nc.txt"
+pitfalls:
+  - "Using phi-d directly as the quotient-ring decryption exponent does not work once t^10-2 is reducible mod p or q — must factor the defining polynomial per-prime and take lcm(r^deg(f)-1) as the true exponent."
+  - "The valid continued-fraction convergent was found at index 3009 out of many; a shallow convergent search depth will miss it."
+  - "The flag text in the source artifact was a placeholder (COMPFEST{fake_flag}); the real flag must come from decrypting the actual live-captured ciphertext, not from the source file's literal string."
+failed_paths:
+  - "Decrypting with exponent (phi-d) directly — mismatches ciphertext because the quotient ring's actual group order differs from (p^10-1)(q^10-1) when t^10-2 factors non-trivially mod p or q."
+tools:
+  - "python-flint 0.9.0"
+  - "Python 3.13 standard library (fractions/continued fractions)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Crypto/hello/files/chall.sage"
+playbook: "crypto_rsa.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Crypto/hello/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Crypto/hello/solve/solve.py"
+time_heuristic: "When an RSA-like challenge defines e as an inverse of (phi - d) rather than of d itself, treat it as a Wiener-attack variant: search continued-fraction convergents of e/(modulus-approximation) for k/d; and separately verify the claimed decryption exponent by exact re-encryption rather than trusting the algebraic phi formula when a non-trivial quotient ring/polynomial is involved."
+last_verified: "2026-11-04"

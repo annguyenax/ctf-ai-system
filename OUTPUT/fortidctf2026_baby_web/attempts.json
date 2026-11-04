@@ -1,0 +1,35 @@
+{
+  "challenge_id": "fortidctf2026_baby_web",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Baby Web",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Inspect the supplied HTML and client-side event handlers.",
+      "result": "The click handler joins three fragments, reverses the joined string, and Base64-decodes it; mouseenter only moves the button.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Web/files/index.html",
+      "notes": "Static client-side extraction is the highest-value path; no remote service is listed."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1",
+      "action": "Replay solve/solve.py from the challenge directory.",
+      "result": "Printed FortID{w3b_15_n07_7h47_h4rd_45_y0u_7h1nk_17_15}.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Web/solve/evidence/verification.txt",
+      "notes": "Deterministic local decode produced the candidate."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Independently concatenate, reverse, and decode the fragments with PowerShell/.NET; compare with final_flag.txt.",
+      "result": "Decoded value matched final_flag.txt, passed FortID{...}, and reversed back to the original concatenated input.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Web/solve/evidence/verification.txt",
+      "notes": "Flag marked verified by deterministic replay and an independent implementation."
+    }
+  ]
+}

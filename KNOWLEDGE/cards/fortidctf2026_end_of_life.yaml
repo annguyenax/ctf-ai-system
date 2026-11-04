@@ -1,0 +1,46 @@
+id: fortidctf2026_end_of_life
+event: FortID CTF 2026
+category: pwn
+challenge_name: End of Life
+status: solved
+flag: "FortID{3oF_15_JU57_4_5u993571On_0a74fcd86c}"
+confidence: 1.0
+artifact_hashes:
+  - "files/handout.zip: sha256 21150e3208b57a351823d3b728d7e67b4e84454bd132b3f79aaa959de65cf33d"
+signals:
+  - "Validation opens INPUT.TXT in DOS text mode and stops at Ctrl-Z"
+  - "Processing reopens the same file in binary mode"
+  - "An unbounded `%[^ ]s` scan writes into a 17-byte stack array"
+  - "The 16-bit stack pointer wraps at offset 0xffff"
+key_idea: >-
+  Use a lowercase prefix followed by Ctrl-Z to pass the text-mode check, then
+  exploit the binary reread to overflow the stack. The near return is redirected
+  into payload bytes reached through a segment alias, and DOS INT 21h calls copy
+  FLAG.TXT into OUTPUT.TXT for the service to return.
+prerequisites:
+  - "DOS text versus binary file semantics"
+  - "16-bit x86 near-call and segment:offset address calculations"
+exploitation_pattern: "Find a validation/use parsing mismatch, calculate the saved return offset, and redirect execution to a small DOS file-copy payload."
+verification:
+  method: "Challenge instance returned the flag from OUTPUT.TXT; portal accepted the submission."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Pwn/End of Life/writeup/writeup.md and chalenge.md"
+pitfalls:
+  - "The validator only sees bytes before Ctrl-Z; the binary-mode consumer still sees later bytes."
+  - "Account for the 16-bit stack wrap and the SS/DS physical alias before choosing the return target."
+  - "The exact payload bytes were not retained; current notes do not support a fully automated replay."
+failed_paths: []
+tools:
+  - "16-bit x86 disassembly"
+  - "TLS TCP challenge client"
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local disassembly and a narrow instance interaction were sufficient."
+sources:
+  - "Challenge handout: CTFTimeWriteup/FortIDCTF2026/Pwn/End of Life/files/handout.zip"
+  - "Challenge writeup and accepted-status record"
+playbook: ""
+writeup: "CTFTimeWriteup/FortIDCTF2026/Pwn/End of Life/writeup/writeup.md"
+solver: ""
+time_heuristic: "20–40 minutes after recognizing the text-mode Ctrl-Z discrepancy; reserve time to calculate the 16-bit stack alias and verify output-file handling."
+last_verified: "2026-10-10"

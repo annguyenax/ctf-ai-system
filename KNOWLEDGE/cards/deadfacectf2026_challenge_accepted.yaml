@@ -1,0 +1,36 @@
+id: deadfacectf2026_challenge_accepted
+event: DeadfaceCTF2026
+category: network/llmnr-ntlmv2-capture
+challenge_name: "DeMonneBreach / Challenge Accepted"
+status: solved
+flag: "deadface{5a2342014fe7f28997ce4dcd09f6b7f8}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - A rogue host on the LAN answers a victim's LLMNR name-resolution query with a poisoned response (classic Responder-style attack).
+  - "Victim workstation immediately opens an SMB2 session to the attacker's IP right after the poisoned reply frame."
+  - SMB2 Session Setup carries NTLMSSP_NEGOTIATE -> CHALLENGE -> AUTH, and the AUTH frame contains the victim's NTLMv2 response including NTProofStr.
+key_idea: To pull a crackable/identifying NTLMv2 value out of a pcap showing LLMNR poisoning, find the poisoned response frame, then look at the very next SMB2 session from that victim to the attacker IP, and extract the NTLMSSP fields (username, NTProofStr) from the AUTH frame with tshark.
+prerequisites:
+  - tshark/Wireshark with NTLMSSP dissector support
+  - Identifying the victim/attacker IPs from the LLMNR query/poisoned-response pair first
+exploitation_pattern: filter LLMNR query+response -> note victim IP and poisoner IP -> find subsequent SMB2 Negotiate/SessionSetup frames between them -> `tshark -r cap.pcap -Y "frame.number == N" -T fields -e ntlmssp.ntlmv2_response.ntproofstr` (or `-e ntlmssp.auth.username`) on the AUTH frame.
+verification:
+  method: tshark field extraction on the identified frame printed the exact 16-byte NTProofStr used as the flag.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneBreach/Challenge Accepted/writeup/writeup.md"
+pitfalls:
+  - Must pick the *first* SMB2 auth from the victim after the poisoned response, not an unrelated/earlier session, or the extracted bytes won't match.
+failed_paths: []
+tools:
+  - tshark
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneBreach/Challenge Accepted/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: forensics_pcap.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneBreach/Challenge Accepted/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneBreach/Challenge Accepted/solve/solve.py"
+time_heuristic: In a pcap showing LLMNR/NBNS poisoning, the victim's very next SMB2 auth to the poisoner's IP carries the NTLMv2 response fields (username, NTProofStr) — pull them with tshark's ntlmssp field extractors rather than parsing manually.
+last_verified: "2026-11-04"

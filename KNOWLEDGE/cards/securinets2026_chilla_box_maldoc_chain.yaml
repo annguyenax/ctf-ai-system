@@ -1,0 +1,40 @@
+id: securinets2026_chilla_box_maldoc_chain
+event: Securinets CTF Friendly 2026
+category: forensics/maldoc-exfil-chain
+challenge_name: "chilla box 1-6"
+status: solved
+flag: "Securinets{m4ld0c_2_bl0b_3xf1l_ch41n}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Invoice_88213.pdf has a /OpenAction entry that calls app.launchURL on open, fetching a second-stage .docm from a cloud blob host."
+  - "Invoice_88213.docm runs a macro on open that uses MSXML2.ServerXMLHTTP.6.0 (a COM object) to make an outbound HTTP request to a private path on the same host."
+  - "capture.pcap captures the live HTTP traffic of both stages and the server's response to the final request, which contains the exfiltrated secret."
+key_idea: "A 6-part DFIR series built around ONE maldoc infection chain: a PDF's /OpenAction JavaScript (app.launchURL) pulls a second-stage Office macro document; that document's VBA macro uses the MSXML2.ServerXMLHTTP COM object to beacon out to a private endpoint; the full exfiltration (request and response, including the secret) is visible in a packet capture. Each sub-challenge asks for one specific artifact along this chain (the JS trigger name, the contacted host, the second-stage filename/path, the COM component used, the exact private path requested, and finally the exfiltrated value itself) -- solve the whole chain once (PDF catalog inspection -> macro extraction/decompilation -> pcap HTTP-stream follow) and every sub-flag falls out of the same analysis."
+prerequisites:
+  - "PDF object/catalog inspection (/OpenAction, JavaScript actions like app.launchURL)"
+  - "Office VBA macro extraction and reading (olevba-style analysis) to find COM automation calls"
+  - "Following an HTTP conversation inside a pcap (Wireshark/tshark 'Follow HTTP Stream')"
+exploitation_pattern: "PDF /OpenAction JS launches a URL for a second-stage Office document -> macro auto-runs on open and uses a scripting COM object to issue an outbound HTTP request to a private path -> pcap capture of that traffic contains the request path and the server's response body with the secret."
+verification:
+  method: "Each of the six sub-challenge answers (JS trigger name, contacted host, second-stage path, COM component, private request path, exfiltrated flag) was independently read directly off the artifacts (PDF catalog, decompiled macro source, and the pcap's HTTP conversation) and matches the recorded flags for all six chilla box parts."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Forensics/chilla box 1/writeup/writeup.md"
+pitfalls:
+  - "When a forensics series splits one infection chain into several small scored questions, solve the full chain once end-to-end (static doc analysis + macro extraction + pcap follow) rather than treating each sub-question as an independent puzzle -- the answers are all artifacts of the same single analysis pass."
+failed_paths: []
+tools:
+  - "PDF structure inspection (catalog/OpenAction)"
+  - "olevba / VBA macro extraction"
+  - "Wireshark/tshark (Follow HTTP Stream)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Forensics/chilla box 1/writeup/writeup.md"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Forensics/chilla box 6/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Forensics/chilla box 1/writeup/writeup.md"
+solver: ""
+time_heuristic: "When a DFIR challenge series provides the same small artifact set (PDF + Office doc + pcap) across several numbered sub-challenges, do the full infection-chain analysis once; every sub-flag is a specific field/value already surfaced by that single pass."
+last_verified: "2026-11-04"

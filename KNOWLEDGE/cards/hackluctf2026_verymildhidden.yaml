@@ -1,0 +1,36 @@
+id: hackluctf2026_verymildhidden
+event: "Hack.lu CTF 2026"
+category: "rev/per-char-bytecode-vm-brute-force"
+challenge_name: "VeryMildHidden"
+status: solved
+flag: "flag{M4yb3_w3_c4n_74k3_0n_3v3n_70ugh3r_ch4113ng3$_n0w?}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A small embedded bytecode VM (256 8-bit registers, 4-byte-per-instruction opcodes: const-set, reg-move, add/sub/xor between regs, add/xor-immediate, read-input-char, putc) processes the flag character by character."
+  - "Each character's bytecode 'chunk' (bounded by a terminating opcode) applies a linear sequence of byte-arithmetic transforms to the just-read input char and must leave register 0 equal to 0 for that character to be 'correct' -- with only 256 possible byte values per position, each chunk is independently brute-forceable."
+  - "The bytecode is embedded at a fixed ELF file offset and is simply 55 consecutive 4-byte-opcode chunks with no cross-chunk dependency."
+key_idea: "When a VM-based obfuscation processes one input byte per independent linear-arithmetic chunk and the chunk's only observable effect is a final zero-check, skip full VM emulation entirely and just brute-force each of the 256 candidate byte values per chunk directly against the chunk's own tiny instruction list -- no need to run the whole program or handle registers beyond the ones that chunk touches."
+prerequisites:
+  - "simple bytecode VM reverse engineering (opcode table)"
+  - "per-character brute-force reasoning"
+exploitation_pattern: "extract the fixed-offset bytecode blob -> split into 55 per-character chunks on the terminating opcode -> for each chunk, brute-force all 256 input byte values and keep the one where the chunk's own tiny interpreter yields register0==0 -> concatenate the recovered bytes as the flag."
+verification:
+  method: "Ran the official binary under WSL with the recovered flag on stdin (as exact bytes via a file, since the shell mangles the literal '$' character) and it printed 'Input: Correct!'; a wrong input printed 'Wrong...'."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/VeryMildHidden/notes/ANALYSIS.md"
+pitfalls:
+  - "When testing a recovered flag against a live binary via a shell pipe, special characters like `$` can be expanded/mangled by the shell itself, producing a false 'wrong flag' result -- pass the exact bytes via a file instead of inline shell arguments."
+failed_paths: []
+tools:
+  - "Python 3 (manual opcode interpreter)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/VeryMildHidden/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/VeryMildHidden/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/VeryMildHidden/solve/solve.py"
+time_heuristic: "For a per-character bytecode VM whose only observable success signal is a zero-check on one register, brute-force each 256-value byte position against just that character's instruction chunk rather than emulating the full program; and always test special flag characters via exact-byte file input, not a shell pipe."
+last_verified: "2026-11-04"

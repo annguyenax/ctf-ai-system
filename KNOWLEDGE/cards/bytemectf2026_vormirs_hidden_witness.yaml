@@ -1,0 +1,41 @@
+id: bytemectf2026_vormirs_hidden_witness
+event: ByteMe CTF 2026
+category: osint/alias-cross-reference
+challenge_name: Vormir's Hidden Witness
+status: solved
+flag: "OWASP{VORMIR-SOUL-UNSEEN}"
+confidence: 1.0
+artifact_hashes:
+  - file: files/evidence_board.txt
+    sha256: 4f5bd49de7522450d855a00ec4dd9b841077b37b74d37c8e81b2bbe14fc8d004
+  - file: files/mirror_04.txt
+    sha256: c374132c9aae1638bc6c2a150529d4c3a5247af3067381c02214f9854110a991
+signals:
+  - Alias chain connects ash_17 to mirror_04 and silent_keeper to archive page 77.
+  - Archive page 77 specifies that the timestamp is the witness evidence.
+  - Four numeric codes map to a prefix corroborated by the case shorthand.
+key_idea: Follow both alias paths, decode the timestamp with the supplied mapping, and cross-check its VORM result against the explicit VORMIR-SOUL-UNSEEN shorthand.
+prerequisites:
+  - Structured text parsing
+  - Cross-file clue validation
+verification:
+  method: Deterministic alias, timestamp-map, and shorthand-prefix assertions
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Vormir's Hidden Witness/solve/evidence/recovery.json"
+pitfalls:
+  - Do not confuse the record number with the coded timestamp.
+  - Preserve the source shorthand punctuation when no normalization rule is given.
+  - Local reconstruction does not prove portal acceptance.
+failed_paths: []
+tools:
+  - Python 3 standard library
+hexstrike:
+  used: false
+  useful: false
+  notes: The two supplied local text files contain all required evidence.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Vormir's Hidden Witness/files/evidence_board.txt"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Vormir's Hidden Witness/files/mirror_04.txt"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Vormir's Hidden Witness/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Vormir's Hidden Witness/solve/solve.py"
+time_heuristic: When a witness story has multiple aliases, resolve each explicit alias chain first; a numeric timestamp plus supplied mapping often identifies a record or signature directly.
+last_verified: "2026-10-09"

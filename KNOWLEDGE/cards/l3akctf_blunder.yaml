@@ -18,7 +18,7 @@ tools:
   - python
   - svg
 playbook: PLAYBOOKS/misc_chess_coordinate_glyphs.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Misc/Blunder/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Misc/Blunder/solve/render_queen_paths.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Misc/Blunder/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Misc/Blunder/solve/render_queen_paths.py
 time_heuristic: inspect per-piece coordinate paths before deep engine analysis when moves look deliberately repetitive
 

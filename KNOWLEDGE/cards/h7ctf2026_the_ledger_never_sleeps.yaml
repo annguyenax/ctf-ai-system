@@ -1,0 +1,33 @@
+id: "h7ctf2026_the_ledger_never_sleeps"
+event: "H7CTF 2026 Quals"
+category: "crypto/ecdsa-lcg-nonce-key-recovery"
+challenge_name: "The Ledger Never Sleeps"
+status: "solved"
+flag: "H7CTF{01dad457-aef7-4b3e-9166-d83c762852b7}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Service signs arbitrary attacker-chosen messages via /sign (refusing a specific privileged message) and separately accepts a forged (msg, r, s) triple via /forge; hint explicitly states \"nonces are a deterministic chain, not random.\""
+key_idea: "If ECDSA nonces are produced by a linear congruential generator (k_{i+1} = a*k_i + b mod n), the second difference of three consecutive nonces vanishes: (k2-k1)^2 = (k1-k0)*(k3-k2). Express each k_i as an affine function of the private key d using the signature equation (k_i = z_i/s_i + r_i/s_i * d mod n), substitute into that quadratic identity to get a single quadratic equation in d, and solve it mod n (e.g. Tonelli-Shanks) -- verify by checking d*G equals the public key."
+prerequisites:
+  - "4 consecutive signatures obtained from the same deterministic nonce chain"
+  - "Modular square root (Tonelli-Shanks) over the curve order"
+exploitation_pattern: "collect 4 consecutive signatures from /sign -> build the quadratic-in-d equation from the LCG second-difference identity -> solve mod n -> verify against pubkey -> forge an arbitrary signature (any nonce you like) for the normally-refused privileged message using the recovered private key -> submit via /forge for the flag."
+verification:
+  method: "Deterministic offline computation; recovered d verified against the service public key and the resulting forged signature was accepted by /forge."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/the-ledger-never-sleeps/writeup.md"
+pitfalls:
+  - "Signatures must be truly consecutive in the nonce chain (no interleaved requests from other sessions) or the second-difference identity won't hold."
+failed_paths: []
+tools:
+  - "Python"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: "crypto_lcg_recover.md"
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/the-ledger-never-sleeps/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/the-ledger-never-sleeps/writeup.md"
+time_heuristic: "A hint that nonces are \\\"a deterministic chain, not random\\\" on an ECDSA signer is a direct pointer to an LCG-nonce attack: this generalizes the existing LCG-recovery playbook by deriving the LCG state algebraically through the signature equation rather than observing LCG outputs directly."
+last_verified: "2026-11-04"

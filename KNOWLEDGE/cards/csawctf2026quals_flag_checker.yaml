@@ -1,0 +1,41 @@
+id: csawctf2026quals_flag_checker
+event: "CSAW CTF Qualifications 2026"
+category: "web/attacker-amplified-timing-oracle"
+challenge_name: "Flag Checker"
+status: solved
+flag: "csaw{tim3_w4its_f0r_n0_0ne}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Flag comparison is a non-constant-time, first-mismatch-breaking loop (classic timing side channel), but repeated `n` times where n is normally fixed/small -- usually too fast to observe over a network."
+  - "The amplification factor n is computed from attacker-controlled values: n = min(build*patch, CAP), where build/patch are parsed directly out of the client's own User-Agent header (bot-detection regex), each individually capped but their PRODUCT is not capped before the min()."
+  - "A missing dependency (inputval/reqmeta) referenced by the app is NOT bundled, but is a real, publicly published PyPI package created specifically for the challenge, with its README literally addressed to contestants -- full source must be pulled from PyPI, not guessed."
+key_idea: "A per-character timing side-channel that is normally too small to observe remotely becomes a practical oracle the moment the attacker can control an amplification multiplier through any client-supplied field (headers, cookies, query params) that influences a repeated-work loop; look for two independently-capped attacker inputs whose PRODUCT is used uncapped as a loop-iteration count."
+prerequisites:
+  - "Recognizing non-constant-time string comparison as a timing side-channel"
+  - "Resolving unbundled custom dependencies via public package registries (PyPI) when a challenge's imports aren't in the provided source"
+  - "Statistical timing measurement over a real network (median over repeated samples per candidate)"
+exploitation_pattern: "retrieve inputval/reqmeta source from PyPI to find the real comparison + amplification logic -> craft a desktop-looking User-Agent containing Chrome/99.0.9999.9999 to force n to its maximum -> incrementally extend a known-correct flag prefix by timing POST /check for every candidate next character -> the candidate with measurably higher median latency extends the prefix -> repeat until the closing brace is hit"
+verification:
+  method: "Live timing attack against the actual CTF portal instance produced a deterministic solver output file matching the flag exactly."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/Flag Checker/solve/FLAG.txt"
+pitfalls:
+  - "chalenge.md/writeup.md in this folder were written before the live instance was available and say 'NOT SOLVED'; always check solve/ for a later run (FLAG.txt) before trusting an outdated writeup's status."
+  - "A dependency imported by challenge source but absent from the provided files may be a real public package deliberately published by the challenge author -- check PyPI before assuming it's unreachable/unsolvable."
+  - "Timing attacks need enough repeated samples per candidate and should interleave/alternate candidate order across rounds to average out network jitter."
+failed_paths: []
+tools:
+  - "python3 (requests, statistics)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/Flag Checker/files/app.py"
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/Flag Checker/files/inputval_1.1.0_win"
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/Flag Checker/files/reqmeta_win"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/Flag Checker/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/Flag Checker/solve/timing_live.py"
+time_heuristic: "Non-constant-time comparison with a repeat-count derived from any attacker-controlled field: check whether two individually-capped inputs' uncapped product can blow the amplification to its maximum, turning a nanosecond leak into a network-observable one."
+last_verified: "2026-11-04"

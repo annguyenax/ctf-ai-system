@@ -1,0 +1,34 @@
+{
+  "challenge_id": "hitcon2026_oct",
+  "flag_status": "verified",
+  "verification_scope": "offline cryptographic reconstruction; scoreboard not confirmed",
+  "attempts": [
+    {
+      "t": "2026-10-25",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1",
+      "action": "Recover the projective integer octonion vector with 8D and 36D LLL, then peel generator indices with Moufang identities",
+      "result": "Recovered 1044 indices; all 1024 generators appear; all 174 blocks peel to the unit element up to sign",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\HITCONCTF2026\\Crypto\\oct\\solve\\evidence\\verification.json",
+      "notes": "Norm congruence and rank-one Gram row were checked before peeling."
+    },
+    {
+      "t": "2026-10-25",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Replay all octonion products and decrypt/re-encrypt AES-CTR ciphertext",
+      "result": "Full public vector matched; ciphertext re-encryption matched byte for byte; flag format valid",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\HITCONCTF2026\\Crypto\\oct\\solve\\evidence\\verification.json",
+      "notes": "Strong offline verification; no official scoreboard acceptance claim."
+    },
+    {
+      "t": "2026-10-25",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Attempt official HITCON flag submission once",
+      "result": "HTTP 403 Cloudflare challenge; acceptance unavailable",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\HITCONCTF2026\\Crypto\\oct\\solve\\evidence\\submission_attempt.txt",
+      "notes": "The flag remains verified by full offline reconstruction; scoreboard status is unknown."
+    }
+  ]
+}

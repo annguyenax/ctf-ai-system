@@ -1,0 +1,58 @@
+id: fortidctf2026_hacker_cinema
+event: FortID CTF 2026
+category: crypto
+challenge_name: Hacker Cinema
+status: solved
+flag: "FortID{F0rg3_7h3_T1ck37_4nd_H4CK_TH3_PL4N3T!_4a87e16651}"
+confidence: 1.0
+artifact_hashes:
+  - "handout.zip sha256 (original in CTFTimeWriteup/FortIDCTF2026/Crypto/Hacker Cinema/files/)"
+signals:
+  - "hand-rolled ECDSA secp256k1 in PHP"
+  - "deterministic nonce = HMAC over ticket fields incl. a partition date"
+  - "two different date functions: '@' constructor vs createFromFormat('U')"
+  - "Dockerfile pins exact runtime version (php:8.4.16)"
+  - "extreme negative timestamp bounds (MIN ~ year -2499)"
+  - "impossible-by-design predicate (sha256 == 64 zeros) forces signature forgery"
+key_idea: >-
+  On PHP 8.4.16, new DateTimeImmutable('@ts') and createFromFormat('U') disagree
+  around year 0: the '@' path maps both Unix days [-62164800000, -62164627200)
+  to partition date 0000-01-29 (a 172800-second day) while createFromFormat
+  rolls to 0000-01-30 at -62164713600. Nonce input uses the '@' date; the signed
+  message uses the createFromFormat date. Same seat + ts=-62164800000 and
+  ts=-62164713600 therefore produce two distinct messages signed with the same
+  nonce (identical r) -> classic ECDSA repeated-nonce private key recovery ->
+  forge winner=true ticket -> QR -> /check returns the flag.
+prerequisites:
+  - "ECDSA repeated-nonce recovery: k=(z1-z2)/(s1-s2), d=(s1*k-z1)/r mod n"
+  - "PHP DateTime behavior differences for negative timestamps"
+exploitation_pattern: >-
+  Scan the pinned runtime (download exact-version binary if needed) over the
+  full accepted timestamp range for f(x)==f(y) && g(x)!=g(y) between the two
+  date functions; buy the colliding ticket pair (same seat); decode QRs from
+  /ticket.png (zbarimg); recover d; verify by re-signing; forge the privileged
+  envelope with a fresh nonce; render QR (python qrcode) and POST to /check.
+verification:
+  method: "identical r across two remote signatures + re-signature reproduces (r,s1) + remote /check JACKPOT + platform accepted flag"
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Crypto/Hacker Cinema/solve/evidence/"
+pitfalls:
+  - "Testing on the local default PHP (8.4.24) shows no divergence — quirk is version-specific; always test the pinned version"
+  - "Prior static analysis wrongly concluded no nonce reuse by only comparing same-day timestamps"
+  - "Instance URL expires (~30 min TTL); restart via PUT /api/v2/integrations/challs/<uuid>/instance"
+failed_paths:
+  - "PHP 8.4.24 day-boundary scan: no divergence (wrong version)"
+  - "Docker Desktop unavailable; worked around by downloading PHP 8.4.16 zip"
+tools:
+  - "PHP 8.4.16 Windows binary (version-exact quirk testing)"
+  - "python requests/qrcode, WSL zbarimg"
+hexstrike:
+  used: false
+  useful: false
+  notes: "Pure crypto/logic challenge; no scanner needed."
+sources:
+  - "handout source (calendar.php, tickets.php, crypto.php, index.php)"
+playbook: ""
+writeup: "CTFTimeWriteup/FortIDCTF2026/Crypto/Hacker Cinema/writeup/writeup.md"
+solver: "CTFTimeWriteup/FortIDCTF2026/Crypto/Hacker Cinema/solve/solve.py"
+time_heuristic: "45-90 min: read source, spot dual date paths, version-diff scan, standard nonce-reuse math"
+last_verified: "2026-10-10"

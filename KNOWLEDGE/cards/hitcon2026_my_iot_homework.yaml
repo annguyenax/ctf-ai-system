@@ -1,0 +1,47 @@
+id: hitcon2026_my_iot_homework
+event: HITCONCTF2026
+category: pwn/nrf51-dfu-gpio
+challenge_name: My IOT homework
+status: solved
+flag: "hitcon{0m43 y4rim4su n3 sugi}"
+confidence: 1.0
+artifact_hashes:
+  - "e0b330b2a3740d635fdc46b13c055a246b7b5af7a9b3f0a84d7a7d136ffc1267"
+  - "ff48e0a55de28ccbdfb580e1c648e750b497244d3226749ea5bd145cae92e9dd"
+signals:
+  - Fixed-length seven-byte maintenance command with independent rotate/XOR checks
+  - GPREGRET marker transitions to Nordic DFU service
+  - Unsigned application image accepted after init metadata and CRC16 checks
+  - GPIO P0.IN streams the instance secret to uploaded guest firmware
+key_idea: "Invert the maintenance transform to reach DFU, upload a minimal Thumb image that reads GPIO P0.IN, then expose the bytes through a valid read-only 128-bit GATT characteristic."
+prerequisites:
+  - Python 3.13
+  - bumble 0.0.236
+exploitation_pattern: "Recover accepted maintenance bytes; send Nordic DFU start/size/init/image/validate/activate messages; guest reads GPIO MMIO and registers static GATT value; read it after reset."
+verification:
+  method: "Local compiled prevalidation and CRC16 postvalidation both returned zero; live DFU success notifications and live GPIO-backed GATT read yielded the exact flag."
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Pwn/My IOT homework_new folder（1）_ver.114514(final）/solve/evidence/verification.json; submit helper received HTTP 403 Cloudflare."
+pitfalls:
+  - "Start DFU completes only after the image-size packet is sent on the packet characteristic."
+  - "The host rejects non-128-bit UUID strings even when the local S130 registry can represent a 16-bit UUID."
+  - "A successful live read does not establish scoreboard acceptance if Cloudflare blocks submission."
+failed_paths:
+  - "Initial 16-bit service UUID image passed local registry checks but the host validator discarded it; use a vendor base UUID."
+  - "Initial submission attempt returned HTTP 403 Cloudflare challenge; scoreboard status remains unknown."
+tools:
+  - Python 3.13
+  - Bumble 0.0.236
+  - Capstone 5
+  - Keystone Engine
+hexstrike:
+  used: false
+  useful: false
+  notes: "Static firmware analysis and the scoped HCI/TCP instance were sufficient."
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Pwn/My IOT homework_new folder（1）_ver.114514(final）/challenge.md"
+  - "https://docs.nordicsemi.com/r/bundle/nrf5_sdk_v9.0.0/page/bledfu_transport_bleservice.html"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Pwn/My IOT homework_new folder（1）_ver.114514(final）/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Pwn/My IOT homework_new folder（1）_ver.114514(final）/solve/solve.py"
+time_heuristic: "Disassemble the reset gate first, then validate metadata and candidate firmware locally before spending an instance connection on a full Nordic DFU transfer."
+last_verified: "2026-10-25"

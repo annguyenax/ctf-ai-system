@@ -1,0 +1,43 @@
+﻿id: bytemectf2026_soul_fragment
+event: ByteMe CTF 2026
+category: osint/archive-cross-reference
+challenge_name: "Soul Fragment"
+status: solved
+flag: "OWASP{fr4gm3nt-17_s0ul_l0st_v0rm1r}"
+confidence: 1.0
+artifact_hashes:
+  - file: files/archive_index_53W3hum.txt
+    sha256: c8a824780abddd0dd47e8104601fcbb904e9eba00f6f324632ea28e1a23cf2c0
+  - file: files/mirror_snippets_w5IyGzB.txt
+    sha256: c20968898622f68453db68105fd9eeb1ada98ac38f7c2c8ef0d9c0060aad2a10
+signals:
+  - Current metadata names versioned attachments with explicit mirror and timestamp selection hints.
+  - Timestamp 21:17 selects archive record 17 and mirror record 21.
+  - Record 21 provides SOUL and LOST; record 08 provides VORMIR.
+key_idea: Extract the four ordered fields from the current attachments, preserve the literal archive label punctuation, join fields with underscores, and apply only the specified letter substitutions.
+prerequisites:
+  - Structured text parsing
+  - Timestamp-based record selection
+exploitation_pattern: timestamp and alias cross-reference -> selected fields -> literal field join -> specified leetspeak map.
+verification:
+  method: Deterministic solver replay over the metadata-named attachments.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Soul Fragment/solve/evidence/recovery.json"
+pitfalls:
+  - Do not use older unsuffixed snapshots as if they were current attachments.
+  - Record 17's FRAGMENT label is a decoy; record 21 supplies the selected SOUL label.
+  - Preserve the hyphen in fragment-17 because the instructions add underscores between fields and do not normalize internal punctuation.
+failed_paths:
+  - Earlier analysis treated an unmentioned hyphen normalization as ambiguous; literal application of the stated transformation resolves it.
+tools:
+  - Python 3 standard library
+hexstrike:
+  used: false
+  useful: false
+  notes: Local clue extraction and deterministic solver replay were sufficient.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Soul Fragment/files/archive_index_53W3hum.txt"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Soul Fragment/files/mirror_snippets_w5IyGzB.txt"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Soul Fragment/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/Soul Fragment/solve/solve.py"
+time_heuristic: For archive-clue chains, separate timestamp-driven record selection from field joining and preserve internal field punctuation unless the instructions say to normalize it.
+last_verified: "2026-10-09"

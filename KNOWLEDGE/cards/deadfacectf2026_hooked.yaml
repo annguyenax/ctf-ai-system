@@ -1,0 +1,36 @@
+id: deadfacectf2026_hooked
+event: DeadfaceCTF2026
+category: forensics/chrome-history-sqlite
+challenge_name: "Forensics / Hooked"
+status: solved
+flag: "deadface{http://demonne-secure-portal.net/login?ref=vpn_auth&token=df4e91bc}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Provided zip contains an imaged Chrome profile directory (`User Data/Default/History`), which is a SQLite database.
+  - Challenge gives an approximate time window (10:23 AM) to anchor the search instead of requiring full-browser-history replay.
+  - "Chrome stores `last_visit_time` as microseconds since 1601-01-01 UTC (Windows/Chrome epoch), not Unix epoch."
+key_idea: To find a specific browsing event in a Chrome profile image, open the `History` SQLite file directly and query the `urls` table ordered by `last_visit_time`, converting the Chrome/WebKit timestamp (microseconds since 1601-01-01) to a normal datetime to correlate with the stated time window.
+prerequisites:
+  - sqlite3 access to the raw `History` file (no running Chrome needed)
+  - Knowing the Chrome epoch offset: 11644473600000000 microseconds between 1601-01-01 and 1970-01-01
+exploitation_pattern: sqlite3.connect('History') -> SELECT url, title, last_visit_time FROM urls ORDER BY last_visit_time -> convert timestamp(s) around the target time -> identify the suspicious/phishing URL visited right before/after a legitimate-looking email open.
+verification:
+  method: Query matched the URL whose converted timestamp fell within the stated 10:23 AM window; URL became the literal flag value.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Forensics/Hooked/writeup/writeup.md"
+pitfalls:
+  - Using Unix-epoch conversion directly on a Chrome timestamp gives a wildly wrong date — must subtract the 1601->1970 offset first.
+failed_paths: []
+tools:
+  - Python sqlite3
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Forensics/Hooked/solve/query_history.py"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: forensics_windows_jumplist.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Forensics/Hooked/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Forensics/Hooked/solve/query_history.py"
+time_heuristic: For a Chrome/Chromium profile image, query the `History` SQLite DB's `urls` table directly and remember to convert `last_visit_time` from the Chrome/WebKit epoch (1601-01-01, microseconds) before comparing to a real-world timestamp.
+last_verified: "2026-11-04"

@@ -34,7 +34,7 @@ hexstrike:
   notes: ""
 sources: []
 playbook: PLAYBOOKS/rev_strings_password.md
-writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\PhoneFarm\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\PhoneFarm\solve\disasm_change.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\PhoneFarm\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\PhoneFarm\solve\disasm_change.py
 time_heuristic: native compare beats OSINT on cracker nickname
 last_verified: "2026-08-22"

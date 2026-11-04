@@ -1,0 +1,43 @@
+id: fortidctf2026_human_rng
+event: FortID CTF 2026
+category: crypto/qr-otp-video-keystream-recovery
+challenge_name: "Human RNG"
+status: paused
+flag: ""
+confidence: 0.2
+artifact_hashes: []
+signals:
+  - "bitstream.txt exposes 2001 visible bits followed by a literal '<1681-bits-redacted>' marker; encrypt.py XORs a QR-encoded flag (v6-H, mask 0, 1681 modules) against the last 1681 bits of the full (human-generated) bitstream as a one-time pad."
+  - "523 of the 1681 key bits are recoverable for free because they align with QR function patterns / fixed scaffolding bytes that are message-independent, giving a clean extrapolation holdout for any bit-prediction model."
+  - "The companion video/audio (a hand typing on a keyboard, 175s) is the presumed entropy source, but no on-screen data, dice, or readable key legends are visible in any sampled frame."
+key_idea: "A full offline-analysis pipeline (QR geometry/RS decoder, affine key-bit structure, multiple video/audio feature probes) was built and verified not to leak the key: the visible bitstream is only first-order-Markov predictable (~70-76% accuracy that does NOT transfer past the known 523-bit holdout), and every tested video/audio feature (motion energy, hand-side centroid, audio envelope, fixed-rate sampling) scores at chance on an honest chronological train/holdout split despite higher numbers on validation-selected offsets -- a textbook look-elsewhere/overfitting trap. No flag was recovered; the real bit-generation method (how the video/audio maps to the human RNG's bits) remains unknown."
+prerequisites:
+  - QR v6 structure + Reed-Solomon decoder to identify which key-stream bits are message-independent (free bits) vs which require full recovery
+  - Rigorous chronological train/validation/holdout splitting to avoid self-deceiving on noisy per-bit classifiers
+exploitation_pattern: "(unresolved) hypothesized: extract per-keystroke timing/acoustic/visual signal from video+audio -> map to bits -> last 1681 bits are the QR one-time-pad key -> XOR + RS-decode -> flag"
+verification:
+  method: "No flag recovered; multiple independently-built decoders (QR+RS, affine key-bit solver) are verified correct against synthetic/known-clean inputs, but no real key recovery signal survived an honest holdout."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/Human RNG/notes/analysis.md"
+pitfalls:
+  - "Any bit/key-recovery classifier that is tuned by scanning many candidate offsets/lags and selected by validation accuracy MUST be checked against a disjoint, never-touched final holdout before trusting it; this challenge repeatedly saw validation accuracy of 55-58% evaporate to ~48-51% (chance) on honest holdouts across audio, video-motion, and fixed-rate-sampling features -- a textbook look-elsewhere-effect trap."
+  - "When a stream cipher/OTP key is derived from a structured object (here, a QR code) being encrypted, check whether any key bits are message-independent (QR function patterns, fixed header bytes) before treating the whole keystream as unknown -- it reduces the effective unknown space and gives a clean validation holdout for any recovery model."
+  - "A video/audio artifact with no visible on-screen data is still worth checking for acoustic/visual side-channel signal (e.g. keystroke acoustic cryptanalysis), but don't assume an easily detectable timing/motion signal exists just because the premise (keyboard typing) suggests one."
+failed_paths:
+  - "Transient/event-based audio keystroke detection found ~959-1189 candidate events vs an expected ~3682 total bits; interval-to-byte / clustering attempts on this produced no printable key material."
+  - "Fixed 21 Hz periodic sampling of video motion energy, hand-side centroid, and audio envelope each reached 55-58% validation accuracy via offset search but only ~48-51% (chance) on an honest disjoint holdout."
+  - "Statistical joint MCMC decoding combining the 523 known key-bit anchors, a first-order Markov prior, QR Reed-Solomon structure, and an English-word body constraint plateaued; the true flag body is not the maximum-likelihood estimate under the tested priors."
+tools:
+  - Python (custom QR decoder with Reed-Solomon error correction, reedsolo)
+  - ffmpeg/ffprobe
+  - numpy/opencv for video frame/motion analysis
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/Human RNG/notes/joint_decode_attempt.md"
+playbook: misc_barcode_qr_recovery.md
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/Human RNG/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/Human RNG/solve/qr_decoder.py"
+time_heuristic: "When a bit-recovery classifier is tuned by scanning many offsets/lags, always score it against a disjoint final holdout never used for selection before trusting a validation-accuracy number above chance."
+last_verified: "2026-11-04"

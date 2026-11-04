@@ -1,0 +1,35 @@
+id: rstconctf2026_dow_is_up_50k
+event: RSTCONCTF2026
+category: web/rsc-server-action
+challenge_name: Dow is Up 50k
+status: solved
+flag: 'rstcon{pr0t0typ3_p0llut10n_m3ets_r34ct_fl1ght}'
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Next.js app with React Server Action endpoint
+  - RSC multipart payload triggers server-side function execution
+key_idea: 'Exploit RSC thenable deserialization and leak only /flag.txt through a redirect-safe base64url value'
+prerequisites:
+  - Python requests
+exploitation_pattern: 'Submit crafted multipart Flight chunks with Next-Action header; validate harmless marker before reading scoped flag file'
+verification:
+  method: 'Harmless command marker, deterministic solver replay, and official checker acceptance'
+  evidence: 'D:/download/CTFTimeWriteup/RSTCONCTF2026/Web/Dow is Up 50k/solve/evidence/manifest.md'
+pitfalls:
+  - 'Do not assert a precise React patch version without package evidence'
+failed_paths: []
+tools:
+  - Python requests
+hexstrike:
+  used: false
+  useful: false
+  notes: 'Narrow HTTP requests were sufficient.'
+sources:
+  - 'D:/download/CTFTimeWriteup/RSTCONCTF2026/Web/Dow is Up 50k/challenge.md'
+playbook: ''
+writeup: 'D:/download/CTFTimeWriteup/RSTCONCTF2026/Web/Dow is Up 50k/writeup/writeup.md'
+solver: 'D:/download/CTFTimeWriteup/RSTCONCTF2026/Web/Dow is Up 50k/solve/solve.py'
+time_heuristic: 'Fingerprint app assets and build, then test one harmless, low-impact RSC proof before targeted extraction.'
+last_verified: '2026-10-25'
+

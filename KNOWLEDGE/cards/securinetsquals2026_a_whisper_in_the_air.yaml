@@ -1,0 +1,31 @@
+id: securinetsquals2026_a_whisper_in_the_air
+event: Securinets CTF Quals 2026
+category: hardware/ble-crackle-ltk
+challenge_name: "A Whisper in the Air"
+status: solved
+flag: "Securinets{bl3_k3yb0ard_w34k_TK}"
+confidence: 1.0
+artifact: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Hardware/A Whisper in the Air"
+signals:
+  - BLE Link Layer capture frames.hex with interleaved connections
+  - Public identity address c5:c5:5e:81:43:fa advertising appearance 0x03c1 (Keyboard) and name KBD-ANSI
+  - BLE Legacy Pairing exchange with 6-digit PIN under connection AA 3fba5691
+  - Reconnection under randomized MAC 53:2a:d8:90:27:12 under AA 3c34ec3d with 106 encrypted packets
+  - ATT Handle Value Notifications carrying HID keyboard reports (Handle 0x0014, Report ID 0x02)
+key_idea: Demux interleaved BLE connections by Access Address. Brute-force 6-digit legacy PIN (483209) against confirm/random pairs using c1. Compute STK via s1 and decrypt the initial pairing link to recover the distributed LTK (opcode 0x06) and EDIV/Rand (opcode 0x07). Derive session key for the reconnection link (3c34ec3d) using recovered LTK. Reorder decrypted packets by AES-CCM packet counter, extract HID keycodes, remove duplicates, and decode the base64-encoded keystroke payload.
+exploitation_pattern: Demux AA -> Brute-force PIN (c1) -> STK (s1) -> Decrypt pairing session (AES-CCM) -> Extract LTK -> Re-derive session key on reconnect -> Decrypt HID keystrokes -> Base64 decode
+verification:
+  method: "Offline PCAP/hex cryptanalysis & live CTFd submit_flag.py"
+  run1: "solve_flag.py recovered Securinets{bl3_k3yb0ard_w34k_TK}; submit_flag.py confirmed Correct"
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Hardware/A Whisper in the Air/writeup/writeup.md"
+pitfalls:
+  - frames.hex packets are captured out of chronological order and lack CRC bytes; ordering must be reconstructed from AES-CCM packet counters.
+  - Retransmitted BLE data packets produce duplicate characters if not filtered.
+  - In BLE AES-CCM, SKD is formed by concatenating reversed SKDs and SKDm, while IV is IVm || IVs.
+tools:
+  - python
+  - cryptography (AESCCM, Cipher)
+  - crackle
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Hardware/A Whisper in the Air/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Hardware/A Whisper in the Air/solve/solve_flag.py"
+last_verified: "2026-10-17"

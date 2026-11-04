@@ -1,0 +1,34 @@
+id: sunshinectf2026_used_goods_of_tomorrow
+event: "SunshineCTF 2026"
+category: "web/graphql-introspection-unauth-mutation-leak"
+challenge_name: "Used Goods of Tomorrow"
+status: solved
+flag: "sun{1_l0v3_fr33_stuff}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A GraphQL endpoint (/graphql) permits full schema introspection (__schema query), revealing every query/mutation name and argument even though no documentation is provided."
+  - "An unauthenticated 'maintenance/diagnostic' mutation (vendorTerminalSync) exists purely to report system diagnostics but discloses a master vendor API key as part of its normal response -- a mutation whose side-effect is an unintended secret leak."
+  - "A second query, gated only by supplying that leaked vendor key (not by user authentication), returns promo codes including a 100%-off code scoped to a specific, otherwise-expensive sealed listing."
+key_idea: "Always run full GraphQL introspection first on any discovered /graphql endpoint when the schema isn't otherwise documented -- it enumerates the complete attack surface (including maintenance/diagnostic mutations the UI never calls), and look specifically for unauthenticated mutations whose only purpose is 'reporting' or 'sync' since their response payloads often over-disclose internal secrets (API keys, vendor tokens) that gate otherwise-protected business logic (promo codes, discounts) elsewhere in the same schema."
+prerequisites:
+  - "GraphQL introspection query construction (__schema with queryType/mutationType field enumeration)"
+exploitation_pattern: "introspect /graphql schema -> find and call the unauthenticated vendorTerminalSync mutation -> extract the disclosed vendorKey -> call promoCodes(vendorKey) to list available discount codes -> register a normal user account -> call placeOrder(listingId, promoCode) with the 100%-off code against the target sealed listing -> response includes the flag"
+verification:
+  method: "Live run against the remote service's GraphQL endpoint reproduced the exact flag in the placeOrder response."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/Used Goods of Tomorrow/writeup/writeup.md"
+pitfalls:
+  - "An unauthenticated 'diagnostics'/'sync' mutation that looks purely operational can still leak a secret key as a field in its response -- read every field of every introspected mutation's response type, not just the ones exercised by the normal UI."
+failed_paths: []
+tools:
+  - "python3 (requests, manual GraphQL queries)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/Used Goods of Tomorrow/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/Used Goods of Tomorrow/solve/solve.py"
+time_heuristic: "Any discovered /graphql endpoint without documentation: run full schema introspection first, then specifically check unauthenticated maintenance/diagnostic mutations for over-disclosed secrets in their response fields."
+last_verified: "2026-11-04"

@@ -1,0 +1,35 @@
+id: "h7ctf2026_gone_not_forgotten"
+event: "H7CTF 2026 Quals"
+category: "forensics/sqlite-deleted-row-raw-recovery"
+challenge_name: "Gone Not Forgotten"
+status: "solved"
+flag: "H7CTF{7adf9695fb655c752810}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "An app's SQLite database shows a gap in sequential row IDs (e.g. rows 1,2,3,5,6,7 but no 4), implying a deleted row."
+  - "A companion preferences file documents the app's own obfuscation scheme for stored message bodies (hex + XOR with a disclosed key)."
+key_idea: "SQLite DELETE does not zero the freed B-tree cell bytes -- it only marks the page's freelist/cell-pointer-array as reclaimed space, so the deleted row's raw bytes typically remain physically present in the .db file until overwritten. Scan the raw file bytes directly (not through the SQL engine) for the missing row's content near the gap, decode it with whatever obfuscation scheme the app documents elsewhere (e.g. secure.xml's own comment describing hex(xor(body,key))), and recover the \"deleted\" data without any forensic SQLite-undelete tool."
+prerequisites:
+  - "Willingness to grep/regex raw DB file bytes instead of only querying through sqlite3"
+  - "The app's own disclosed encoding scheme (often conveniently documented in a sibling config file)"
+exploitation_pattern: "query live table, notice a missing row ID -> read the .db file as raw bytes -> regex for hex-looking strings or the same byte patterns as other message blobs -> XOR-decode with the documented key -> deleted message (and flag) recovered."
+verification:
+  method: "Deterministic XOR decode of bytes found in the raw file produced ASCII text containing the flag."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Gone Not Forgotten/writeup/writeup.md"
+pitfalls:
+  - "Querying only through sqlite3 will never show the deleted row; you must read the file's raw bytes to find it."
+failed_paths: []
+tools:
+  - "sqlite3 (for live table context)"
+  - "Python raw file / regex scanning"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Gone Not Forgotten/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Gone Not Forgotten/solve/solve.py"
+time_heuristic: "When a SQLite-backed app's visible rows have a gap in sequential IDs, grep the raw .db file bytes for the missing content (SQLite does not zero deleted cells) before reaching for a dedicated undelete tool, and check for a sibling config file documenting the app's own obfuscation scheme."
+last_verified: "2026-11-04"

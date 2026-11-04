@@ -1,0 +1,46 @@
+id: fortidctf2026_fortune_teller
+event: "FortID CTF 2026"
+category: "pwn/format-string-global-overwrite"
+challenge_name: "Fortune Teller"
+status: solved
+flag: "FortID{Fortun3_Fav0r5_Th3_b0ld_bu7_al50_Th05e_Th4t_C4n_Expl0i7_F0rma7_Str1ng_VulnZZ_02d63a5fba}"
+confidence: 1.0
+artifact_hashes:
+  - "files/fortune_teller_public.zip: CF6F8253E1D6B29A972AD54BF134D0EAC46A5281806DA09D66BE19A8F9D4DE4D"
+  - "files/chall.c: 501F744E33A2F2E736AB61C71A7890364BC59447902F8EF5989CFB3BE7BAD35B"
+  - "solve/solve.py: 0F34E779EF68E074C3F1663F56D90576E31A33FC8FB507A49F31F2B42DCDEE55"
+signals:
+  - "User input reaches printf as the format string."
+  - "A global blessing integer gates a win() path that reads the flag."
+key_idea: >
+  Use the format string to leak PIE, derive the global blessing address, and
+  write 0x1337 so the guarded action calls win().
+prerequisites:
+  - "Format-string argument indexing"
+  - "PIE base calculation"
+  - "%n writes"
+exploitation_pattern: >
+  Leak a return pointer -> subtract the artifact-specific offset to get PIE ->
+  calculate the global address -> write the gate value -> invoke the guarded
+  menu action.
+verification:
+  method: "The candidate matched final_flag.txt and the writeup; read-only platform status reported SOLVED. The current pass statically confirmed the source vulnerability and did not rerun the network solver."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Pwn/Fortune Teller/solve/evidence/verification.txt"
+pitfalls:
+  - "Verify format-string argument positions and offsets against the exact binary."
+  - "Inspect network solvers for submissions and local file writes before replaying them."
+failed_paths: []
+tools:
+  - "Static C source review"
+  - "Read-only platform status query"
+hexstrike:
+  used: false
+  useful: false
+  notes: "The binary's format-string path is straightforward; no external scanner is needed."
+sources:
+  - "Challenge source: CTFTimeWriteup/FortIDCTF2026/Pwn/Fortune Teller/files/chall.c"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/Fortune Teller/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/Fortune Teller/solve/solve.py"
+time_heuristic: "For menu challenges with a format-string sink and an authorization global, inspect the gate target before spending time on a conventional ROP chain."
+last_verified: "2026-10-10"

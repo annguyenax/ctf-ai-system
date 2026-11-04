@@ -1,0 +1,41 @@
+id: hitconctf2026_mathclipse
+event: "HITCON CTF 2026"
+category: "pwn/python-object-graph-swap-primitive"
+challenge_name: "mathclipse"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "Server performs exactly two swaps `x[i],y[j]=v,u` resolved from attacker-chosen getattr/getitem paths off the pristine `math` module, with a combined step budget of 19 across all 4 paths, and nothing executes after the loop."
+  - "`math.__loader__.create_module.__globals__` reaches `_frozen_importlib_external`'s globals (5 hops), which contains a live `__builtins__` (== builtins.__dict__) and a `sys` module reference, giving read/write to builtins and sys.__dict__/sys.modules within the hop budget."
+  - "Marker-instrumented tracing of every callable invoked during the post-swap CPython 3.14 exception/shutdown path found only `__import__`, `eval`/`exec` (with non-string-literal args), `setattr`, and `open()` on a fixed linecache path -- no sink takes an attacker-controlled string."
+key_idea: "A full 6-hop/19-step BFS of the object graph reachable from `math`, cross-checked against the real Docker image, found zero Python-level dangerous dunders and zero live sink that executes attacker-controlled data; the intended solution is either an undiscovered primitive (e.g. a CPython 3.14 STORE_SUBSCR specialization bug) or a two-plant swap combination not yet tried."
+prerequisites:
+  - "CPython object graph / dunder reachability analysis"
+  - "CPython exception/traceback-display call graph"
+exploitation_pattern: "two arbitrary same-object-graph swaps -> hunt for a write primitive that lands on something later read/called with attacker data -- ruled out: plain dict/list writes nothing re-reads, sys.excepthook (fixed non-attacker args), GC/__del__ (none reachable), atexit (empty)."
+verification:
+  method: "No exploit achieved; negative results confirmed by running the exact provided Docker image locally and reproducing marker-instrumented sink traces."
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/mathclipse/solve/findings.md"
+pitfalls:
+  - "When a challenge limits total addressable steps (hops) across multiple independent primitives, enumerate the FULL reachable graph inside the real target image (not a differing local Python build) before concluding no primitive exists -- version-specific internals (e.g. CPython 3.14 moving `_py_warnings`) change what's reachable."
+failed_paths:
+  - "real os.environ via the bootstrap-global shortcut is unreachable within 6 hops (the shortcut resolves to `posix`, whose `.environ` is an inert plain dict)."
+  - "PEP 562 module __getattr__ hijacking: none exist in the real image."
+  - "sys.excepthook/unraisablehook: reachable but always called with a fixed, non-attacker-controlled argument triple."
+  - "5500+ brute-forced sink x builtin-function combinations produced no code-execution hit."
+tools:
+  - "Python 3.14 (python:3.14-slim Docker)"
+  - "custom BFS reachability crawler"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/mathclipse/files/mathclipse-7c2aa0c80e529aa3.tar.gz"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/mathclipse/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/mathclipse/solve/solve.py"
+time_heuristic: "For a 'two swaps on a pristine stdlib module graph' pwn challenge, budget time to BFS the *exact* target Python version's object graph for dunders before hand-guessing a chain; if no live sink is found within the step budget, suspect a version-specific interpreter bug rather than a pure object-graph trick."
+last_verified: "2026-11-04"

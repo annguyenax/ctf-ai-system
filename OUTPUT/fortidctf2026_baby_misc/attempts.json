@@ -1,0 +1,44 @@
+{
+  "challenge_id": "fortidctf2026_baby_misc",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Baby Misc",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Inspect the public ZIP central directory and decode numeric path components as ASCII.",
+      "result": "The archive has 7,000 PNG entries. 1,833 decoded strings begin with FortID{ and 33 are syntactically valid flags, so path regex alone is insufficient.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Misc/files/drive_archive.zip",
+      "notes": "No extraction was performed during intake."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Hash each PNG's IHDR, PLTE, and IDAT chunks and group by the core image fingerprint.",
+      "result": "Exactly two groups: 6,999 common images and one singleton at 288x320. The singleton path decodes to FortID{D0_or_D0_N07_Th3r3_15_n0_Tri3}.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Misc/solve/evidence/verification.txt",
+      "notes": "The unique image is the discriminator among the flag-shaped decoys."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H3",
+      "action": "Repeat selection with an independent PowerShell/.NET ZIP reader using PNG IHDR dimensions, then decode the path.",
+      "result": "Exactly one 288x320 image among 7,000 entries; decoded path matched the Python result exactly.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Misc/solve/evidence/verification.txt",
+      "notes": "Flag is verified from the public artifact; it was not submitted to the platform."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "TEST",
+      "hypothesis_id": "H4",
+      "action": "Check whether the unique PNG's long hex comment contains normal comments or yields a simple authenticated-encryption/plaintext signal.",
+      "result": "No embedded normal comments, valid AES-GCM authentication, or coherent AES-CBC plaintext was found. The comment did not improve flag verification.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Misc/solve/evidence/verification.txt",
+      "notes": "The verified selection uses the unique image core and path; no broad key search or submission was performed."
+    }
+  ]
+}

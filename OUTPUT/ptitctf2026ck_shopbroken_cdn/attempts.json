@@ -1,0 +1,9 @@
+{
+  "challenge_id": "ptitctf2026ck_shopbroken_cdn",
+  "flag_status": "none",
+  "attempts": [
+    {"t":"2026-09-10T00:00:00","phase":"TRIAGE","hypothesis_id":"H1-cbc-bitflip","action":"Read app.py + templates","result":"AES-CBC session, cookie=base64(iv||ct), no MAC; open_session checks only role in ROLES and exp","evidence_path":"OUTPUT/ptitctf2026ck_shopbroken_cdn/raw/selftest.txt","notes":"plaintext 'guest' in block 1 bytes 6..10"},
+    {"t":"2026-09-10T00:05:00","phase":"EXPLOIT","hypothesis_id":"H1-cbc-bitflip","action":"Flip C[0][6:11] with guest^admin mask","result":"decrypts to role=admin, u=demo, exp valid","evidence_path":"OUTPUT/ptitctf2026ck_shopbroken_cdn/raw/selftest.txt","notes":"mask = 0x06 0x11 0x08 0x1a 0x1a"},
+    {"t":"2026-09-10T00:08:00","phase":"VERIFY","hypothesis_id":"H1-cbc-bitflip","action":"solve.py --selftest (exact seal/open_session replay)","result":"self-test PASSED: guest -> admin","evidence_path":"OUTPUT/ptitctf2026ck_shopbroken_cdn/raw/selftest.txt","notes":"real flag needs live /admin; not captured offline; not fabricated"}
+  ]
+}

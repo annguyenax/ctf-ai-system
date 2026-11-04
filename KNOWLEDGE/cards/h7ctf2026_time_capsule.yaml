@@ -1,0 +1,33 @@
+id: "h7ctf2026_time_capsule"
+event: "H7CTF 2026 Quals"
+category: "misc/git-dangling-blob-recovery"
+challenge_name: "Time Capsule"
+status: "solved"
+flag: "H7CTF{116f8522b35663cde2ce}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A git repo's commit history looks completely clean (no secrets in any committed file across all commits), but the prompt insists \"never committed is not the same as never there.\""
+key_idea: "Files that were `git add`ed (staged) and then removed/reset/amended before a commit, or committed and later rewritten (rebase/amend/filter-branch), leave their original blob objects as loose, dangling objects in .git/objects even though no reachable commit/tree references them anymore. `git fsck --unreachable` (or `--dangling`) lists these blob hashes, and `git cat-file -p <hash>` dumps their raw content directly, completely bypassing the clean visible history."
+prerequisites:
+  - "A git client with access to the repo's .git/objects (even if history/refs look clean)"
+exploitation_pattern: "git fsck --unreachable (or --dangling) in the repo -> regex out \"unreachable blob <sha1>\" entries -> git cat-file -p <sha1> for each -> grep decoded content for the flag/secret pattern."
+verification:
+  method: "Deterministic recovery; one unreachable blob's plaintext contained the flag directly."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Time Capsule/writeup/writeup.md"
+pitfalls:
+  - "Don't stop at `git log`/`git show` across all commits looking clean -- unreachable/dangling objects are invisible to normal history traversal and require fsck explicitly."
+failed_paths: []
+tools:
+  - "git fsck"
+  - "git cat-file"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Time Capsule/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Time Capsule/solve/solve.py"
+time_heuristic: "When a git-forensics challenge claims the committed history is clean but hints something was \"staged\" or \"there\" anyway, run `git fsck --unreachable` and cat-file every dangling blob before concluding the secret isn't recoverable."
+last_verified: "2026-11-04"

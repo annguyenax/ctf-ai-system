@@ -1,0 +1,51 @@
+{
+  "challenge_id": "ptitctf2026ck_megalovania",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-09-14T00:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "stacked SELECT version/user/superuser and dump dialogue via OR 1=1",
+      "result": "success",
+      "evidence_path": "raw/app.py",
+      "notes": "PostgreSQL 16.15, postgres superuser, 80 Sans lines, no flag in dialogue"
+    },
+    {
+      "t": "2026-09-14T00:10:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "information_schema / pg_class enum",
+      "result": "fail",
+      "evidence_path": "raw/app.py",
+      "notes": "WAF \\bpg_ and information_schema; comment-split identifier is invalid SQL"
+    },
+    {
+      "t": "2026-09-14T00:20:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H3",
+      "action": "COPY dialogue (line) FROM PROGRAM echo",
+      "result": "fail",
+      "evidence_path": "raw/app.py",
+      "notes": "WAF bypassed with COPY/**/ FROM/**/PROGRAM but no new rows: table has 3 NOT NULL columns"
+    },
+    {
+      "t": "2026-09-14T00:30:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H4",
+      "action": "row_to_json(dialogue) and table::text",
+      "result": "success",
+      "evidence_path": "raw/app.py",
+      "notes": "columns refight, seq, line; composite (0,1,heya.)"
+    },
+    {
+      "t": "2026-09-14T00:35:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H5",
+      "action": "CREATE TEMP TABLE + COPY FROM PROGRAM cat /flag.txt",
+      "result": "success",
+      "evidence_path": "raw/remote_flag.txt",
+      "notes": "CREATE TEMP TABLE evades create\\s+table; cat /flag.txt twice independently"
+    }
+  ]
+}

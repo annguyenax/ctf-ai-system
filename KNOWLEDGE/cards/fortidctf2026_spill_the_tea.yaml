@@ -1,0 +1,41 @@
+id: fortidctf2026_spill_the_tea
+event: FortID CTF 2026
+category: misc/stained-qr-rs-erasure-reconstruction
+challenge_name: "Spill the Tea"
+status: paused
+flag: ""
+confidence: 0.2
+artifact_hashes: []
+signals:
+  - "A printed QR code photograph has tea stains obscuring some modules; HSV saturation at stained pixels is clearly higher than paper/black-print (tea ~96-105 vs paper ~7.5 vs black ~32), giving a usable per-module stain score."
+  - "A projective (not just affine) geometry fit is required because the photo has visible perspective compression across the code."
+  - "Treating stained modules as Reed-Solomon erasures can reach a 4-of-4 block RS decode, but the decoded bytes still fail basic QR segment-header validity (e.g. invalid mode nibble 0x0c), indicating either wrong geometry/mask/byte-interleaving or a genuinely false decode."
+key_idea: "A 4/4 RS block decode is a necessary but not sufficient signal of a correct reconstruction -- QR data bytes must be correctly re-interleaved across blocks before segment-mode parsing, and even after fixing interleaving order, geometry/mask/erasure-set choices can still produce a self-consistent-looking but semantically invalid decode (wrong mode nibble). Multiple geometry search basins (finder-pattern affine fit vs, function-pattern-template fit ranking L/mask1 highest) disagreed, and no combination tested produced a valid FortID{ byte-mode payload."
+prerequisites:
+  - QR version/format-aware module geometry fitting (projective, not just affine, for photographed codes)
+  - Reed-Solomon erasure-decoding per QR block with correct data/EC codeword interleaving order
+  - A calibrated per-module corruption/erasure score rather than a blind saturation threshold
+exploitation_pattern: "(unresolved) fit projective module geometry -> score tea-stain likelihood per module -> treat high-stain modules as RS erasures -> RS-decode each block -> re-interleave decoded data bytes -> parse QR byte-mode segment for FortID{...}"
+verification:
+  method: "No flag recovered; RS block table (4 blocks x 15 data + 28 parity codewords for v6-H) confirmed correct against the installed qrcode library, ruling out block-count as the cause of invalid decodes."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/Spill the Tea/notes/progress.md"
+pitfalls:
+  - "A successful Reed-Solomon block decode (even 4-of-4) does not guarantee a correct reconstruction; always validate the decoded bytes against the target format's own segment/header rules (e.g. QR mode nibble) before treating a decode as real."
+  - "QR data codewords across multiple RS blocks must be de-interleaved/re-interleaved in the format's specified order before segment parsing; getting this order wrong silently produces plausible-looking but garbage bytes."
+  - "For photographed (not scanned) codes with visible perspective distortion, an affine geometry fit is insufficient; use a projective transform anchored on finder-pattern positions."
+failed_paths:
+  - "A 700+ geometry bounded search reached 4/4 RS block decodes multiple times across different geometry basins and erasure-caps, but every recovered byte stream failed the QR mode-nibble validity check (0x0c), indicating the decode is not the real payload despite RS succeeding."
+  - "A soft-decision chase (testing flips among least-confident symbols across the top format/mask likelihood candidates) found no RS block candidate satisfying the expected FortID{ byte-mode prefix."
+tools:
+  - Python (zxingcpp, reedsolo, qrcode.base/util for RS table and mask logic, OpenCV for projective remap)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/Spill the Tea/notes/progress.md"
+playbook: misc_barcode_qr_recovery.md
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/Spill the Tea/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/Spill the Tea/solve/reconstruct_qr.py"
+time_heuristic: "When reconstructing a damaged/photographed QR code via RS erasure decoding, always validate the decoded bytes against the format's own segment-header rules; a successful RS decode alone does not prove the reconstruction is correct, and photographed codes usually need a projective (not affine) geometry fit."
+last_verified: "2026-11-04"

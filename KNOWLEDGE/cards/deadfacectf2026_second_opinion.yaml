@@ -1,0 +1,36 @@
+id: deadfacectf2026_second_opinion
+event: DeadfaceCTF2026
+category: hardware/debug-interface-disclosure
+challenge_name: "BrainScans / Second Opinion"
+status: solved
+flag: "deadface{hdm1_l34ks_th3_wh0l3_p4t13nt}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - UI redacts patient info to initials/masked MRN, but the device also exposes a maintenance/debug display port (simulated HDMI) unauthenticated.
+  - The debug mirror endpoint accepts an `OSD level` (0-3); redaction is a UI-layer concept that the raw diagnostic mirror does not apply.
+  - "Field manual documented OSD levels 0-3 but the redaction policy was never actually enforced below the top application layer."
+key_idea: When a device has a secondary/maintenance output (debug HDMI mirror, diagnostic port, service display) distinct from the user-facing UI, redaction applied in the main UI is not guaranteed to apply to that secondary channel — query it directly, and try the highest privilege/verbosity level it documents.
+prerequisites:
+  - Reading the field/service manual for documented debug ports and levels
+  - Simple connect+query API/physical-port simulation
+exploitation_pattern: "connect maintenance port -> request raw/debug mirror at max documented level -> server returns unredacted backing data (here: full patient object including flag)."
+verification:
+  method: GET /api/external-display?level=3 returned JSON object containing full unredacted patient fields and the flag.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Second Opinion/writeup/writeup.md"
+pitfalls:
+  - Redaction implemented only in the primary UI layer is not real redaction if any other interface reaches the same backing data unfiltered.
+failed_paths: []
+tools:
+  - Python urllib
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Second Opinion/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Second Opinion/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Second Opinion/solve/solve.py"
+time_heuristic: If a device/app redacts sensitive data in its main UI, check for alternate output channels (debug port, maintenance mirror, secondary API) that may return the same data unredacted.
+last_verified: "2026-11-04"

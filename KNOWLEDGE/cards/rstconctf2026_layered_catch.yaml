@@ -1,0 +1,36 @@
+id: rstconctf2026_layered_catch
+event: RSTCONCTF2026
+category: forensics
+challenge_name: Layered Catch
+status: solved
+flag: rstcon{p0lyglot_png_h1des_a_zip}
+confidence: 1.0
+artifact_hashes:
+- c9d797197954480fd47c7950103b912e4466465cac8488884f9ebef360c7c805
+signals:
+- PNG text passphrase and trailing encrypted ZIP
+key_idea: PNG text passphrase and trailing encrypted ZIP
+prerequisites:
+- stdlib
+exploitation_pattern: PNG text passphrase and trailing encrypted ZIP
+verification:
+  method: deterministic replay and retained portal response
+  evidence: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Layered Catch/solve/evidence/manifest.md
+pitfalls:
+- The visible teal square and Comment text are not the flag. Password guessing is
+  unnecessary because the PNG stores the password.
+failed_paths: []
+tools:
+- Python
+- stdlib
+hexstrike:
+  used: false
+  useful: false
+  notes: Local tooling sufficient; health not queried.
+sources:
+- D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Layered Catch/chalenge.md
+playbook: ''
+writeup: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Layered Catch/writeup/writeup.md
+solver: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Layered Catch/solve/solve.py
+time_heuristic: Shallow structure inspection before heavy tools
+last_verified: '2026-10-25'

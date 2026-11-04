@@ -1,0 +1,34 @@
+id: picoctf2026_binary_digits
+event: picoCTF 2026
+category: forensics/ascii-binary-text-to-file
+challenge_name: "Binary Digits"
+status: solved
+flag: "picoCTF{h1dd3n_1n_th3_b1n4ry_a59b2b0a}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - A file consisting entirely of ASCII '0' and '1' characters (not actual binary data) with no other obvious structure.
+key_idea: A file of literal ASCII '0'/'1' text is almost always a byte stream written out as binary digits rather than bits already packed into bytes. Filter to keep only '0'/'1' characters, chunk into groups of 8, and convert each chunk with `int(chunk, 2)` to rebuild the real byte stream — check the first few resulting bytes against known file magics (here `FFD8FFE0` = JPEG) to confirm correct framing before further processing.
+prerequisites:
+  - Recognizing ASCII-encoded binary text vs. actual binary content
+  - Common file-magic bytes for sanity-checking reconstruction
+exploitation_pattern: filter file content to '0'/'1' characters only -> group into 8-bit chunks -> int(chunk,2) per chunk -> reassemble bytes -> check magic bytes -> save as the identified file type -> read flag visually/by content from the reconstructed file.
+verification:
+  method: Deterministic reconstruction confirmed by matching JPEG magic bytes; flag text was then read directly from the rendered image and written to final_flag.txt by the same script.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Forensics/Binary Digits/solve/solve.py"
+pitfalls:
+  - Don't assume the file needs any bit-level parsing tool; a naive character filter + 8-bit regrouping is sufficient when the content is plain ASCII digits.
+failed_paths: []
+tools:
+  - Python 3 (basic string/byte manipulation)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Forensics/Binary Digits/files/digits.bin"
+playbook: null
+writeup: ""
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Forensics/Binary Digits/solve/solve.py"
+time_heuristic: A ".bin" file that is actually readable as plain ASCII '0'/'1' text -> it's binary digits written as characters, not packed bits; strip non-01 chars, regroup into bytes, and check against known file magic numbers to recover an embedded file.
+last_verified: "2026-11-04"

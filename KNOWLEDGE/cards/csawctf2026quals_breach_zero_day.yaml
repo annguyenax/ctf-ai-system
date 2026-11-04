@@ -1,0 +1,41 @@
+id: csawctf2026quals_breach_zero_day
+event: "CSAW CTF Qualifications 2026"
+category: "forensics/ioc-correlation-paused"
+challenge_name: "Breach: Zero Day"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A memory dump contains malware/service names planted REVERSED in memory (e.g. ELUDOMDUF -> FUDMODULE, EGDEHREPPOC -> COPPERHEDGE), requiring manual string reversal to spot known-malware names."
+  - "Windows event log 7045 (service install) narrows 143 total user-mode services down to exactly 2 kernel-mode drivers, both installed close together in time -- the two suspect services."
+  - "pcap shows one external, non-Microsoft DNS name (a typosquat of the real internal portal) alongside internal beacon traffic to a fixed IP:port."
+key_idea: "This challenge's flag format (csaw{C2INDICATOR_SERVICENAME_BACKDOORNAME}) requires exactly 3 components pulled from 3 different exhibits (pcap, event log XML, memdump); every combination tried so far of the most-obvious string candidates for each slot was rejected, meaning at least one component's expected exact string form (full URL vs bare domain, filename vs display name vs .sys suffix, or a different backdoor-name candidate among the reversed strings) differs from what was tried."
+prerequisites:
+  - "Windows Security event log 7045/7036 (service install/start) triage"
+  - "Reversed-string IOC spotting in memory dumps"
+exploitation_pattern: "memdump: find reversed planted strings near Windows Defender/CryptAcquireContextW/Services\\Afd keys -> event log: filter 7045 events to kernel-driver type, cross-check with 7036 (actually-ran) events -> pcap: identify the one external non-Microsoft DNS name vs internal beacon host:port -> assemble csaw{C2_SERVICE_BACKDOOR} candidate and submit"
+verification:
+  method: ""
+  evidence: ""
+pitfalls:
+  - "Do not fabricate or guess-submit a flag string without exhausting the exact-format space; every one of the 'most obvious' candidate combinations (bare domain x 2 service display names x 2 backdoor names) was rejected by the live scoring API."
+failed_paths:
+  - "csaw{docs-fenwick-portal.com_Afd4Eop12_x64.dll_COPPERHEDGE} and csaw{docs-fenwick-portal.com_BkupAgent64.sys_COPPERHEDGE} (and FUDMODULE variants) -- rejected."
+  - "csaw{docs-fenwick-portal.com:443/80_Afd4Eop12_COPPERHEDGE} and IP-based (52.112.198.39) variants with BkupAgent64 -- rejected."
+  - "csaw{docs-fenwick-portal.com_Afd4Eop12_TIGER} and _FOREST variants -- rejected."
+tools:
+  - "python3 (manual log/pcap parsing)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Breach Zero Day/files/fenwick_capture.pcap"
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Breach Zero Day/files/fenwick_security.xml"
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Breach Zero Day/files/fenwick_memdump.txt"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Breach Zero Day/writeup/writeup.md"
+solver: ""
+time_heuristic: "Flag format demands exact strings from 3 separate exhibits: try every plausible string FORM (bare/full-URL/with-extension/display-name) for each slot systematically rather than guessing a few combinations and giving up."
+last_verified: "2026-11-04"

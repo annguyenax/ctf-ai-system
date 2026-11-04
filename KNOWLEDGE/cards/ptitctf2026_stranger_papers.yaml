@@ -40,7 +40,7 @@ hexstrike:
 sources:
   - "https://latitude.to/map/vn/vietnam/cities/ha-djong/articles/10069/temple-of-literature-hanoi - Temple of Literature coordinates 21.0286, 105.8356"
 playbook: ""
-writeup: D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/Stranger Papers/writeup/writeup.md
-solver: D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/Stranger Papers/solve/solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Crypto/Stranger Papers/writeup/writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Crypto/Stranger Papers/solve/solve.py
 time_heuristic: Long; the pivot from English to Vietnamese is the whole puzzle.
 last_verified: "2026-08-22"

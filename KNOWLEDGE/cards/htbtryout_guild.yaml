@@ -1,0 +1,40 @@
+id: htbtryout_guild
+event: HTB Try Out
+category: web/ssti-waf-bypass-exif-admin-chain
+challenge_name: "Guild"
+status: solved
+flag: "HTB{mult1pl3_lo0p5_mult1pl3_h0les_c7d6e9e6f977892138674af6b827a0ad}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A profile-share feature does render_template_string(template % bio), evaluating Jinja2 on the user-controlled bio with the ORM User object present in context."
+  - "A WAF/filter blocks substrings like __, [], os, popen, config, attr, class, * on bio content, but doesn't block reading plain attributes like other users' fields via the ORM object already in context."
+  - "A password-reset token is sha256(email) with no secret/salt/expiry, and an admin-verification endpoint re-renders an EXIF 'Artist' tag with render_template_string and no WAF filtering at all."
+key_idea: "Use the WAF-filtered bio SSTI only to read data (leak the admin's email via the ORM object already in Jinja2 context, e.g. {{User.query.get(1).email}}), since the WAF blocks the tokens needed for direct RCE; take over the admin account via the unsalted sha256(email) password-reset token; then use a second, unfiltered SSTI sink (the admin's own 'Verify' action rendering an uploaded image's EXIF Artist tag) to get full RCE, since that path has no WAF at all."
+prerequisites:
+  - Multiple SSTI sinks in the same app with different filtering strength
+  - "An ORM/ambient object already present in one sink's template context, letting a WAF-blocked RCE site still leak data via plain attribute access"
+  - A predictable password-reset token (hash of a known/leakable value, no secret or expiry)
+exploitation_pattern: "WAF-filtered SSTI sink used for data leak only (ORM attribute read) -> leak admin email -> forge password-reset via unsalted hash(email) -> takeover admin -> unfiltered second SSTI sink (EXIF tag re-render) for full RCE"
+verification:
+  method: "Live multi-step HTTP session (signup, bio SSTI leak, password reset, admin login, EXIF upload, verify) ended with the verify endpoint's response body containing the flag."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Guild/final_flag.txt"
+pitfalls:
+  - "A WAF that blocks RCE-enabling tokens (__, [], os, popen, class, attr) on an SSTI sink doesn't stop that same sink from leaking data via any object already present in the template context (e.g. an ORM model instance) -- treat a 'blocked' SSTI as still useful for read-only leaks."
+  - "A password-reset token that is just hash(email) with no server-side secret is forgeable by anyone who learns the target email, regardless of hash strength."
+  - "When one SSTI sink is filtered, look for a second, differently-reachable sink (here, an EXIF metadata field re-rendered only for an admin-only action) that may have no filtering at all."
+failed_paths: []
+tools:
+  - Python urllib
+  - Pillow (to craft a JPEG with a malicious EXIF Artist tag)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Guild/writeup/writeup.md"
+playbook: web_ssti.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Guild/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Guild/solve/solve.py"
+time_heuristic: "When an SSTI sink is WAF-filtered against RCE tokens, check whether it can still leak data via objects already in the template context, and look for a second, less-filtered SSTI sink elsewhere in the app (metadata fields like EXIF are a common unfiltered secondary sink)."
+last_verified: "2026-11-04"

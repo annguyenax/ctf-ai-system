@@ -1,0 +1,36 @@
+id: bytemectf2026_soul_forge
+event: ByteMe CTF 2026
+category: crypto/reused-keystream-crib-drag
+challenge_name: "Soul Forge"
+status: solved
+flag: "OWASP{s0ul_f0rge_pr1m3s_4r3_n3v3r_r4nd0m}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Two transmissions T1, T2 encrypted with the same stream-cipher/OTP keystream K.
+  - XORing T1 and T2 cancels K, leaving P1 XOR P2; identical leading bytes in the XOR output indicate identical plaintext prefixes between the two messages.
+key_idea: Compute T1 XOR T2 to get P1 XOR P2 (keystream cancels). Crib-drag a guessed/known phrase (flag prefix "OWASP{" or thematic plaintext) against the XOR output at the matching offset to recover the corresponding bytes of the other plaintext, then extend the guessed crib using context/theme until the full flag is readable.
+prerequisites:
+  - Reused-keystream / two-time-pad recognition
+  - Manual crib-dragging (XOR known plaintext guess against ciphertext XOR)
+exploitation_pattern: T1 XOR T2 -> spot known-plaintext anchor (flag format or themed phrase) -> XOR crib against combined stream at matching offset -> recover other plaintext -> extend crib iteratively to complete flag.
+verification:
+  method: Deterministic local solver replay using the recovered crib; reproduces exact recorded flag.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Soul Forge/solve/solve.py"
+pitfalls:
+  - Crib-dragging requires guessing contextual plaintext (challenge lore/theme) for the *other* message, not just the flag format marker.
+  - Partial crib matches must be manually extended word-by-word; an incorrect crib produces garbage past the matched prefix.
+failed_paths: []
+tools:
+  - Python 3 (byte XOR)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Soul Forge/files/transmissions_Mw8eQIT.txt"
+playbook: crypto_xor_repeating.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Soul Forge/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Soul Forge/solve/solve.py"
+time_heuristic: Two ciphertexts of similar length under suspected "reused key" framing -> XOR them immediately; any readable fragment or repeated byte pattern confirms two-time-pad and opens crib-dragging.
+last_verified: "2026-11-04"

@@ -1,0 +1,37 @@
+id: "h7ctf2026_bartbrack"
+event: "H7CTF 2026 Quals"
+category: "web/graphql-alias-batch-ratelimit-bypass-lfi-log-poison-rce"
+challenge_name: "BartBrack"
+status: "solved"
+flag: "WEBVERSE{a4372407c60994e3dd270474f571d2b4}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A GraphQL mutation for verifying a short numeric OTP is rate-limited \"per HTTP request\", and the client-side JS even comments that this is exactly what alias batching defeats."
+  - "A dashboard \"directive\" parameter is include()d server-side after a prefix check, but path traversal past that prefix is still permitted (LFI), with verbose PHP warnings/open_basedir leaking the include base path."
+key_idea: "Chain several classic web primitives: (1) GraphQL endpoints that rate-limit \"per request\" rather than per field are trivially defeated by batching thousands of aliased mutation calls (a0: op(...) a1: op(...) ...) into ONE request, brute-forcing an entire keyspace (e.g. a 5-digit OTP) in seconds via a handful of large concurrent requests; (2) a directory-prefix-checked include/LFI parameter that still allows ../ traversal AFTER the required prefix lets you read arbitrary readable files, including the web server's own access log; (3) poison that access log by putting a PHP payload in your User-Agent header, then LFI-include the poisoned log to achieve RCE via system($_GET['cmd']) (which bypasses open_basedir since system() isn't restricted by it); (4) pivot further by harvesting another user's credentials from a world-readable config/script to reach an internal-only service holding the flag."
+prerequisites:
+  - "A GraphQL schema exposing a brute-forceable mutation (short numeric code) with per-request rather than per-call rate limiting"
+  - "A path-prefix-checked include parameter that still permits ../ traversal"
+  - "Write access to a value the server later logs verbatim (e.g. User-Agent)"
+exploitation_pattern: "GraphQL-introspect for the OTP mutation -> batch thousands of aliased calls per request across many concurrent requests sharing the session cookie -> winning alias flips session to 2FA-verified -> find the directive/include LFI and traverse to the server's own access log -> poison User-Agent with a PHP webshell snippet -> LFI-include the poisoned log with a cmd parameter for RCE -> enumerate further for a privileged credential -> reach the internal service gated by it for the flag."
+verification:
+  method: "Live multi-stage replay; each stage's server response (OTP ok:true, RCE command output, internal-service response) directly confirmed success before the next stage."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Web/BartBrack/writeup/writeup.md"
+pitfalls:
+  - "A rate limit implemented \"per request\" rather than \"per logical operation\" is not a rate limit against GraphQL alias batching -- always check this before assuming a code-guessing attack is infeasible."
+  - "A directory-prefix check on an include/LFI parameter does not stop path traversal that starts AFTER the required prefix string."
+failed_paths: []
+tools:
+  - "requests"
+  - "ThreadPoolExecutor (concurrent GraphQL batches)"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: "web_execution_after_redirect.md"
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Web/BartBrack/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Web/BartBrack/solve/solve.py"
+time_heuristic: "Any GraphQL mutation guarding a short numeric code with a \"per request\" rate limit is breakable via alias batching (thousands of aliased calls in one request); and any include/LFI parameter that only checks a required prefix should always be tried with ../ traversal appended after that prefix, with the web server's own access log as a reliable RCE-via-log-poisoning target once LFI works."
+last_verified: "2026-11-04"

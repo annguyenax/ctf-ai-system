@@ -1,0 +1,36 @@
+id: sunshinectf2026_nas_coal
+event: "SunshineCTF 2026"
+category: "forensics/ole-vba-mediacache-powershell-extraction"
+challenge_name: "NAS coal"
+status: solved
+flag: "sun{yup_issa_gem}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A .pptm (macro-enabled PowerPoint) is really a ZIP archive containing ppt/vbaProject.bin, an OLE compound file."
+  - "The VBA/MediaCache stream inside that OLE file contains a base64-encoded UTF-16LE string that is a PowerShell -EncodedCommand payload, unrelated to any slide media."
+key_idea: "A macro-enabled Office file's VBA project (vbaProject.bin, an OLE compound document reachable via its ZIP/OOXML structure) can carry an encoded payload hidden in the VBA/MediaCache stream -- a location meant for pasted-image clipboard data, not typically inspected for macro logic; scan it directly for base64 blobs rather than only looking at the macro source code modules."
+prerequisites:
+  - "ZIP/OOXML structure of .pptm/.docm/.xlsm files"
+  - "OLE compound file parsing (olefile) to reach VBA storage streams"
+exploitation_pattern: "unzip .pptm -> read ppt/vbaProject.bin -> open as OLE compound file -> read the VBA/MediaCache stream -> regex for a long base64 run -> base64-decode -> decode as UTF-16LE (typical of -EncodedCommand payloads) -> read the flag directly from the decoded PowerShell script text"
+verification:
+  method: "Deterministic extraction; decoded PowerShell script contains the flag as a literal variable assignment."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/NAS coal/writeup/writeup.md"
+pitfalls:
+  - "Don't limit VBA-macro forensics to the decompiled macro source modules; the MediaCache stream (and other non-code OLE streams) can carry hidden payloads too."
+failed_paths: []
+tools:
+  - "olefile"
+  - "python3 (zipfile, base64)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/NAS coal/files/gem_collection.pptm"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/NAS coal/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/NAS coal/solve/solve.py"
+time_heuristic: "Macro-enabled Office file (.pptm/.docm/.xlsm): check the OLE VBA project's non-code streams (e.g. MediaCache) for hidden base64/encoded payloads, not just the decompiled macro source."
+last_verified: "2026-11-04"

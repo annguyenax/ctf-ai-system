@@ -1,0 +1,38 @@
+id: securinetsquals2026_nightfall
+event: "Securinets CTF Quals 2026"
+category: "rev/layered-net-plus-native-packer-crackme"
+challenge_name: "NightFall"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A .NET/Mono WinForms (VB.NET, identified via the `My.Settings`/`My.MyApplication` TypeDef pattern) app embeds its real logic as native resources: an audio engine DLL (BASS.Net) and TWO separately-packed native crackme DLLs, both wrapped by the SAME custom packer whose section names spell 'This File is Pr0t3ct3d by Ad3M...Pr0t3ct0r' (matching the challenge's stated author)."
+  - "One native DLL leaks build-path strings proving it's a Go binary compiled with `go build -buildmode=c-shared` from a source file literally named `combo_crackme.go`, and contains Go stdlib crypto strings (`crypto/aes`, `crypto/subtle` constant-time XOR) -- strong evidence the real validation logic does AES + constant-time compare."
+  - "The second native DLL (`CrackmeLogicWrapper.c`, plain C, different toolchain) exports the identical symbol name (`ProcessInput`) as the Go DLL, and its call relationship to the first (gate vs. forward vs. independent second check) is not yet determined from static analysis alone -- requires decompiling the managed .NET glue code to see the actual P/Invoke call order."
+key_idea: "When a managed (.NET/Mono) application embeds its real crackme/validation logic as native resource DLLs rather than in IL, identify each native DLL's origin toolchain from leaked build-path strings and stdlib fingerprints (Go's `crypto/aes`+`crypto/subtle` strings vs. plain-C `CrackmeLogicWrapper.c`) before assuming a single validation path -- multiple independently-toolchained native validators exporting the SAME symbol name strongly suggests either a gating/chaining relationship or two separate checks that must both pass, which only decompiling the managed glue code's P/Invoke call sites can resolve."
+prerequisites:
+  - "dnfile/dnSpy-style .NET metadata parsing"
+  - "native PE packer section-name branding identification (same technique as the CUR53D ENTR0PY case)"
+  - "Go binary (c-shared buildmode) identification via build-path strings and crypto stdlib fingerprints"
+exploitation_pattern: "parse .NET metadata (dnfile) to confirm VB.NET WinForms origin and locate embedded manifest resources -> extract and identify each native DLL's packer (shared branding with other Ad3M-authored challenges) and compiling toolchain (Go vs C) via leaked strings -> decompile the managed glue code to determine the actual call order/relationship between the two native 'ProcessInput' exports -> unpack and reverse the Go DLL's AES+constant-time-compare validation logic to derive or decrypt the flag."
+verification:
+  method: "No flag recovered yet; this documents confirmed static identification of the layered architecture (managed shell, two independently-packed native validators) for a follow-up reversing session."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/NightFall/notes/ANALYSIS.md"
+pitfalls:
+  - "Two native DLLs exporting the identically-named function from different toolchains (here Go vs plain C) are NOT necessarily redundant or interchangeable -- decompile the managed caller to establish whether they're called in sequence (gate+real-check), in parallel (two independent checks), or one wraps/forwards to the other, before investing reversing effort in just one."
+failed_paths: []
+tools:
+  - "dnfile/pefile (Python)"
+  - "custom packer section-name identification (shared technique with CUR53D ENTR0PY)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/NightFall/files/0xNightFALL.rar"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/NightFall/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/NightFall/solve/solve.py"
+time_heuristic: "When a managed-runtime app embeds its real logic as native resource DLLs, fingerprint each native DLL's compiling toolchain and stdlib (leaked build paths, crypto library strings) separately before assuming a single validation path, especially when multiple native modules export identically-named entry points."
+last_verified: "2026-11-04"

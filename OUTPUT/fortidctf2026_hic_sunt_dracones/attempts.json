@@ -1,0 +1,44 @@
+{
+  "challenge_id": "fortidctf2026_hic_sunt_dracones",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Hic Sunt Dracones",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Inspect the supplied challenge, patched Koblitz encoder, renderer, and output format without running the challenge entry point.",
+      "result": "The output contains 78 x and 78 y coordinates; the turtle heading persists between renders, and the private-key ranges are present in chall.py.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Crypto/Hic Sunt Dracones/files/",
+      "notes": "No remote instance is listed."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Reproduce the dragon turn sequence and intersect printable Koblitz x-coordinate bounds across the permitted iteration and angle choices.",
+      "result": "A unique full candidate was obtained for 14 iterations, angle 0, and step size 278012580452280145225903631781209822295.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Crypto/Hic Sunt Dracones/solve/verify.py",
+      "notes": "The persistent heading produces alternating axis translations."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Recover the curve modulus and coefficients from the reconstructed points; run the independent offline verifier.",
+      "result": "A 256-bit prime and valid coefficients were recovered; all 78 curve equations, patched square roots, and first-j encoder checks passed.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Crypto/Hic Sunt Dracones/solve/evidence/verification.txt",
+      "notes": "Exactly one candidate passed the full checks."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Query the event status through status.py, which was inspected as a read-only GET.",
+      "result": "Hic Sunt Dracones was listed as SOLVED; event status showed 7/37 solved.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/status.py",
+      "notes": "No flag was submitted during this solve pass."
+    }
+  ]
+}

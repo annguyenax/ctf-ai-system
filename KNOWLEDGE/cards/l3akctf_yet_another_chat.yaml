@@ -1,0 +1,48 @@
+id: l3akctf_yet_another_chat
+event: L3akCTF2026
+category: rev/network-protocol-replay-oracle
+challenge_name: "Yet Another Chat"
+status: solved
+flag: "L3AK{1t_is_@ll_jU5t_4n0th3r_d30bf_uZzZc4t!0n_game_hopeyouenjoy:)_asengishere}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Archive contains both sides of a custom encrypted chat protocol as packed 32-bit PE binaries (client.exe, server.exe) plus a packet capture (challenge.pcap) of a real conversation."
+  - "strings on the unpacked client reveal it defaults to connecting to 127.0.0.1 on the same port seen in the pcap, and that it is the party responsible for displaying (decrypting) incoming messages."
+  - "The binaries are packed and the custom crypto looks nontrivial to reverse statically."
+key_idea: >
+  When a capture contains one side of a custom encrypted protocol and the
+  corresponding legitimate binary that already implements the decrypt-and-
+  display logic, you don't need to reverse the crypto at all: become the
+  other endpoint. Extract the captured server->client byte stream from the
+  pcap, stand up a listener on the port/address the client defaults to, feed
+  it the captured bytes verbatim, and let the real client decrypt and print
+  the conversation for you.
+prerequisites:
+  - The legitimate binary that decrypts/displays messages must be runnable locally (unpacked enough to execute, even if not statically reversed)
+  - The binary's default connection target (host:port) must be discoverable (e.g. via strings) and must match what the capture used
+exploitation_pattern: >
+  Unpack dist.zip -> identify which binary is the "receiver" (prints decoded
+  content to the user) -> Wireshark: Follow TCP Stream, isolate the
+  server-to-client direction, save raw bytes (srv.bin) -> `nc -lvnp <port> <
+  srv.bin` to replay those exact bytes to anyone who connects -> run the real
+  client binary against localhost -> it connects, decrypts, and prints the
+  full conversation including the embedded flag.
+verification:
+  method: Running the unpacked client.exe against the replayed capture printed the full decoded chat transcript ending in the flag string, both inline in the chat log and echoed again on its own line.
+  evidence: "writeup transcript showing 'password is L3AK{...}' decoded twice (once per client) plus a standalone flag line"
+pitfalls:
+  - Reversing the packed binaries' crypto from scratch (x32dbg + Scylla unpack-and-dump, full algorithm analysis) is far more expensive than this shortcut and was the first instinct before the replay trick was noticed.
+failed_paths:
+  - "Initial approach was full unpacking (x32dbg + Scylla run-and-dump) plus understanding the custom crypto directly from the binary, which the author describes as taking hours before switching to the replay approach."
+tools:
+  - Wireshark (Follow TCP Stream, raw export)
+  - netcat (replay listener)
+  - x32dbg / Scylla (only used during the initially-abandoned direct-unpack attempt)
+sources:
+  - "https://ch3f.dev/post.html?slug=l3ak26"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/L3akCTF2026/rev/Yet Another Chat/writeup/writeup.md"
+solver: ""
+time_heuristic: "If you have a capture of one side of a custom encrypted protocol AND the legitimate binary that consumes/decrypts that side, check whether you can just replay the capture at the binary before spending hours reversing the crypto by hand."
+last_verified: "2026-11-04"

@@ -1,0 +1,54 @@
+id: fortidctf2026_tangled
+event: "FortID CTF 2026"
+category: "misc/blueprint-matrix-qr"
+challenge_name: "Tangled"
+status: needs_verification
+flag: ""
+confidence: 0.0
+artifact_hashes:
+  - "handout_file_1.txt: 61c8673b712db46824ed81c0319e56955d7ad6f211fcd4f4b8a315f97f175bf7"
+  - "handout_file_2.txt: 6ef74a5b724168f457c8d53e4a953d9829194dff765a74ed27bbf040d41b577e"
+  - "codex_xor_qr.py: b68f781562b4b88d0303335879b4ae02498e0f69078ca9358c0d4cf3c74e6628"
+signals:
+  - "Two Factorio blueprint strings contain a factory layout and a landfill tile mask."
+  - "Each blueprint maps to a 25x25 coordinate grid."
+key_idea: >
+  XORing factory entity occupancy with a second blueprint's landfill tiles,
+  then inverting polarity, reveals the QR clue
+  `_5p49hett1_tr41n5_8ec0m3_`. The clue has not been transformed into a valid
+  flag; the literal wrapper and a title-based completion were rejected.
+prerequisites:
+  - "Factorio blueprint string decoding (Base64 and zlib JSON)"
+  - "Coordinate-grid rasterization"
+  - "QR decoding"
+exploitation_pattern: >
+  Parse both blueprint payloads -> rasterize entity centers and tile positions
+  into a shared grid -> XOR -> invert colors -> add quiet zone -> decode QR.
+verification:
+  method: "ZXing-C++ and OpenCV independently recover the same QR clue. The portal rejected both the literal wrapped clue and a title-completion guess, so no flag is verified."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Misc/Tangled/solve/verification.txt; CTFTimeWriteup/FortIDCTF2026/Misc/Tangled/solve/submission_result.md"
+pitfalls:
+  - "The landfill mask alone resembles a maze and does not decode as the final QR."
+  - "Coordinate offsets and bit polarity must be correct before barcode decoding."
+  - "The decoded QR clue is not itself a verified flag."
+  - "Title-based phrase completion is unsupported and was rejected by the portal."
+failed_paths:
+  - "FortID{_5p49hett1_tr41n5_8ec0m3_}: rejected by the portal."
+  - "FortID{spaghetti_trains_become_tangled}: rejected by the portal."
+tools:
+  - "Python base64/json/zlib"
+  - "NumPy and Pillow"
+  - "ZXing-C++"
+  - "OpenCV QRCodeDetector"
+hexstrike:
+  used: false
+  useful: false
+  notes: "The local blueprint files and image libraries were sufficient."
+sources:
+  - "Local challenge files: D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/Tangled/files/"
+  - "Local writeup: D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/Tangled/writeup/writeup.md"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/Tangled/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Misc/Tangled/solve/codex_xor_qr.py"
+time_heuristic: "If two structured designs occupy a common coordinate grid, test whether their binary masks XOR into a barcode before modeling the embedded machinery."
+last_verified: "2026-10-11"

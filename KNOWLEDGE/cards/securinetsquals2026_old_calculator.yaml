@@ -1,0 +1,44 @@
+id: securinetsquals2026_old_calculator
+event: Securinets CTF Quals 2026
+category: crypto/hidden-affine-arithmetic-oracle
+challenge_name: Old Calculator
+status: solved
+flag: "Securinets{ed9a482110a5a6936482e700155f811742f97a04decfa75d3cee28bca77239c1}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - JSON add/mult/add_const/mult_const on tables x and y of length 100
+  - submit shows a cell only when it is non-negative and bit_length <= 8
+  - 16 rounds then a flag
+  - secret map is affine F(t)=a*t+b and y[i]=a*x[i]+b
+key_idea: Cancel b with table differences, invert the weighted sum of deltas with a float Newton reciprocal, pack a+b/256 into the one 8-bit display, then answer a*R+b. Repeat for 16 rounds.
+prerequisites:
+  - constants with bit_length <= 8
+  - float Newton because the opcode set has no division
+exploitation_pattern: weighted dy/dx via Newton -> b = y[0]-a*x[0] -> display a+b/256 -> submit a*R+b for 16 rounds
+verification:
+  method: "Two live runs against calculator-crypto.securinets.tn:4873 each returned the flag JSON after round 16"
+  evidence: "Securinets{ed9a482110a5a6936482e700155f811742f97a04decfa75d3cee28bca77239c1}"
+pitfalls:
+  - A wrong final answer leaks F(R) and closes the connection. The leak is too late to use on that round.
+  - Zeroing the tables does not change F. The secret is snapshotted from the original samples.
+  - Unique-pair division is NaN when x[i]==x[j]. Weight several pairs.
+  - Packing b into a nibble collides when b>=16. Use b/256.
+  - The prompt text contains the word number before the real answer prompt, so a socket reader must wait for the exact {\"y\" : number } marker.
+  - Negative cells and integers wider than 8 bits cannot be submitted.
+failed_paths:
+  - treating F as a fixed function of R across connections
+  - low-degree polynomial fit of (shown, R, expected)
+  - reading a wide y by adding 0.5 (only small floats are printed)
+tools:
+  - python
+hexstrike:
+  used: false
+  useful: false
+  notes: "Direct socket oracle. No scanner."
+sources: []
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Crypto/Old Calculator/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Crypto/Old Calculator/solve/solve.py"
+time_heuristic: "One connection, 16 rounds, a few seconds each. Recover a,b inside the round before answering."
+last_verified: "2026-10-18"

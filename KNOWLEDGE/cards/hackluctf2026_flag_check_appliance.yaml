@@ -1,0 +1,37 @@
+id: hackluctf2026_flag_check_appliance
+event: "Hack.lu CTF 2026"
+category: "rev/systemd-units-as-bdd-circuit"
+challenge_name: "flag_check_appliance_v2_FINAL.raw"
+status: solved
+flag: "flag{https://github.com/systemd/systemd/commit/294446dcb98eaa1ced5839da674c2065b1367a3a}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "The flag is passed into a QEMU VM as per-byte SMBIOS kernel command-line fields (`ctf.byte.0=66 ctf.byte.1=6c ...`), and the 'flag checker' is entirely implemented as ~7,958 systemd `.service` unit files inside the root filesystem -- no custom binary/script exists."
+  - "Eight parameterized template units test individual bits of `ctf.byte.%i` via `ConditionKernelCommandLine=`; all other units form a Requisite/OnSuccess/OnFailure acyclic graph (a Binary Decision Diagram) terminating at an ACCEPT or REJECT leaf service."
+  - "The DAG has ~7,118 nodes on paths to ACCEPT once pruned to forward-reachable-and-backward-reachable-from-accept nodes."
+key_idea: "Recognize that a sprawling systemd unit-file graph using only `Requisite=`/`OnSuccess=`/`OnFailure=` dependencies is a Binary Decision Diagram encoding a boolean circuit over the kernel command-line bits, then model reachability-to-ACCEPT as a Z3 SAT problem over per-bit booleans and per-node 'is this node executed' booleans rather than trying to trace the graph by hand."
+prerequisites:
+  - "systemd unit dependency semantics (Requisite/OnSuccess/OnFailure)"
+  - "SAT/SMT modeling of DAG reachability"
+  - "GPT/SquashFS/FAT image extraction"
+exploitation_pattern: "extract GPT partitions (ESP FAT32 + SquashFS root) from the raw disk image -> parse every systemd unit's Requisite/OnSuccess/OnFailure into a DAG -> prune to nodes on some path from start to ACCEPT -> encode bit-test conditions and node-execution implications in Z3 -> solve for the unique flag-length and bit assignment."
+verification:
+  method: "Z3 found the unique satisfying assignment (length 88) in ~2 seconds, which decoded directly to the real flag string."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/flag_check_appliance_v2_FINAL.raw/writeup/writeup.md"
+pitfalls: []
+failed_paths: []
+tools:
+  - "7z / dd / unsquashfs (image extraction)"
+  - "Python + z3-solver"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/flag_check_appliance_v2_FINAL.raw/files"
+playbook: "rev_template_z3.md"
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/flag_check_appliance_v2_FINAL.raw/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/flag_check_appliance_v2_FINAL.raw/solve/solve.py"
+time_heuristic: "When a 'flag checker' turns out to be built entirely from systemd unit dependency chains (or any other declarative config graph with conditional AND/OR-like dependency semantics), model it as a boolean circuit and solve with Z3 instead of manually tracing thousands of nodes."
+last_verified: "2026-11-04"

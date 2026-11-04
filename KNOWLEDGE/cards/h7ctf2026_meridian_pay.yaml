@@ -1,0 +1,36 @@
+id: "h7ctf2026_meridian_pay"
+event: "H7CTF 2026 Quals"
+category: "mobile/multi-flaw-neobank-api-attestation-mass-assignment"
+challenge_name: "Meridian Pay"
+status: "solved"
+flag: "H7CTF{3f846711-8007-4069-8053-b90725582e61}"
+confidence: 0.9
+artifact_hashes: []
+signals:
+  - "A device-auth endpoint requires only a hardcoded constant \"attestation\" header string (lifted straight from the decompiled APK) with no real hardware attestation behind it."
+  - "A WebView in the app blindly follows server-supplied links with the bearer token attached, reaching an undocumented \"internal\" API route never exposed in the app's own navigation."
+  - "A PATCH profile endpoint accepts and writes ANY JSON field sent (mass assignment), including privilege/role flags."
+key_idea: "Decompiled mobile API clients frequently reveal three compounding flaws at once: (1) a static, hardcoded \"attestation\" header the server trusts as if it proved device integrity -- replay it verbatim to authenticate as any device; (2) hidden/internal endpoints only reachable because the app's own WebView forwards the bearer token to a server-supplied URL -- once you know the attestation header, call the hidden endpoint directly; (3) a profile/update endpoint with no field allowlist (mass assignment) -- PATCH arbitrary privileged fields (role, is_admin, kyc, balance) directly to escalate, then hit an admin-only endpoint gated on that field."
+prerequisites:
+  - "androguard decompilation to recover the hardcoded attestation string and discover undocumented routes referenced only in WebView-loading code"
+  - "Testing PATCH/PUT endpoints with extra unexpected JSON fields"
+exploitation_pattern: "decompile APK for attestation header + full route list -> auth/device with attestation header -> GET the hidden internal endpoint directly for flag 1 -> read accounts/me for an onboarding memo flag -> PATCH profile with role=admin -> GET admin-only ledger endpoint for another flag."
+verification:
+  method: "Three of four flags (v1 internal/promo, v2 accounts/me memo, v4 mass-assignment admin ledger) were captured via live API replay with clear server acceptance in each response. The fourth (v3), a device/app-layer exported-component flaw, was identified via static analysis (exported ExportProvider path traversal + RouterActivity/WebViewActivity base-URL prefix check) but NOT captured live -- treat v3 as a documented hypothesis, not a verified flag."
+pitfalls:
+  - "The v3 flaw requires device/emulator-level exploitation of exported Android components (ContentProvider path traversal, deep-link-triggered WebView token leak via weak startsWith() URL prefix check) -- API-only tooling cannot reach it; needs an actual device/emulator or adb-driven intent."
+failed_paths:
+  - "v3 was investigated purely via static APK analysis; no working live exploit against the actual app/device was completed in this source."
+tools:
+  - "androguard"
+  - "requests"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Mobile/Meridian Pay/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Mobile/Meridian Pay/solve/solve.py"
+time_heuristic: "Decompile the mobile client fully before touching the API blind -- look specifically for (a) a hardcoded \"attestation\"/integrity header string, (b) WebView code that forwards the bearer token to server-supplied URLs (revealing hidden endpoints), and (c) any PATCH/PUT handler that writes whole request bodies without an allowlist (mass assignment); these three combine in many \"neobank\"-style mobile challenges, but a device/app-layer exported-component flaw (ContentProvider traversal, weak URL-prefix check on a deep link) typically needs real device/emulator interaction and not just API replay."
+last_verified: "2026-11-04"

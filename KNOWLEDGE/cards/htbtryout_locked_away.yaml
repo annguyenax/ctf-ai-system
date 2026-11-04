@@ -1,0 +1,37 @@
+id: htbtryout_locked_away
+event: HTB Try Out
+category: misc/python-exec-substring-blacklist-bypass
+challenge_name: "Locked Away"
+status: solved
+flag: "HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_3462bed930bb8122f0049078751a9f2f}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A Python jail blocks input containing any of a list of forbidden substrings (import, open, [, ], quotes, etc.) before calling exec(command)."
+  - "exec() runs with the module's own globals() dict, which already contains the target function (open_chest) the challenge wants reached."
+  - "The blacklist blocks bracket indexing and all quote characters, so no literal string and no dict/list subscript syntax is directly usable."
+key_idea: "Build the target function's name at runtime from chr(ord) codes (avoiding any literal string containing a blocked substring), then retrieve it from globals() using dict.get(name) instead of globals()[name] to avoid the blocked bracket characters, and call the result -- bypassing a substring blacklist that filtered quotes, brackets, and the literal function/keyword names."
+prerequisites:
+  - exec()/eval() running with access to globals() containing a sensitive function
+  - A blacklist based on substring matching rather than an AST/token whitelist
+exploitation_pattern: "chr(ord)-constructed name string (no quotes) + globals().get(name)() (no brackets) -> calls sensitive function while containing none of the blacklisted substrings"
+verification:
+  method: "A live TCP session sent the payload and the server printed the flag.txt contents directly in response."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Locked Away/final_flag.txt"
+pitfalls:
+  - "Substring blacklists on exec()/eval() input are fundamentally bypassable: any forbidden token can be reconstructed from allowed primitives (chr/ord, string concatenation) and any forbidden syntax (brackets, quotes) usually has an equivalent method call (dict.get, getattr) that isn't blocked."
+  - "Real defenses need an AST-based allowlist or a sandboxed restricted execution environment, not substring filtering."
+failed_paths: []
+tools:
+  - Python socket
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Locked Away/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Locked Away/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Locked Away/solve/solve.py"
+time_heuristic: "When a Python jail blocks exec()/eval() input by substring blacklist, assume it's bypassable: reconstruct blocked identifiers via chr()/ord() and replace blocked syntax (brackets, quotes) with equivalent builtin method calls (dict.get, getattr)."
+last_verified: "2026-11-04"

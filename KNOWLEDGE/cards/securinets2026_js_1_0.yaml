@@ -1,0 +1,34 @@
+id: securinets2026_js_1_0
+event: Securinets CTF Friendly 2026
+category: misc/js-identifier-escape-filter-bypass
+challenge_name: "JS_1.0"
+status: solved
+flag: "Securinets{th3_f1lt3r_s4w_t3xt_th3_p4rs3r_s4w_j4v4scr1pt}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "JS eval sandbox blocks a fixed set of substrings (treasure, flag, etc.) in the submitted source text, but the character allowlist for the rest of the input still permits backslash, which enables JavaScript's \\uXXXX unicode identifier-escape syntax."
+  - "The flag's value lives in a variable literally named 'treasure', which is itself one of the blocked substrings."
+key_idea: "Spell the banned identifier using JavaScript's unicode escape sequences inside an identifier (e.g. replacing one or more letters of 'treasure' with their \\uXXXX escape) so the raw submitted text never contains the literal blocked substring, while the JS parser still resolves the escaped identifier to the exact same variable name at parse time, defeating a text-level substring filter."
+prerequisites:
+  - "JavaScript identifier syntax: \\uXXXX escapes are valid inside identifiers and are resolved by the parser to the same identifier as the unescaped spelling"
+exploitation_pattern: "substring blacklist filters the literal banned word in the submitted source text -> respell one or more characters of the banned identifier using a language-level escape syntax the filter doesn't normalize/decode -> submitted text passes the filter -> the interpreter's own parser decodes the escape back to the original (now-reachable) identifier."
+verification:
+  method: "Payload with an escaped spelling of 'treasure' sent to the live nc service; response contained the flag."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/JS_1.0/writeup/writeup.md"
+pitfalls:
+  - "A text-level keyword blacklist must normalize the input through the TARGET LANGUAGE's own escaping/encoding rules before matching, or any escape syntax the language accepts in that position (unicode identifier escapes, string escapes, alternate numeric bases, etc.) can smuggle the banned token past it."
+failed_paths: []
+tools:
+  - "nc"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/JS_1.0/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/JS_1.0/writeup/writeup.md"
+solver: ""
+time_heuristic: "For any eval/exec sandbox that filters a blocked word by substring match on raw source text, check whether the target language has an escape or alternate-encoding syntax for identifiers/literals (unicode escapes, string concatenation, numeric base tricks) that the filter does not decode before matching -- this generalizes the same bypass pattern seen in Python eval-sandbox challenges to JS."
+last_verified: "2026-11-04"

@@ -1,0 +1,33 @@
+{
+  "challenge_id": "bytemectf2026_sacrifice",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Triage the supplied PCAP for protocol flows and cleartext flags",
+      "result": "FTP control traffic and many passive uploads; no cleartext flag",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Forensics/Sacrifice/solve/evidence/recovery.json",
+      "notes": "Used local Scapy; no network scanning."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Reassemble passive FTP data streams and identify file signatures",
+      "result": "A unique JPEG stream was uploaded; its comment provides a ZIP passphrase and a ZIP archive is appended",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Forensics/Sacrifice/solve/evidence/recovery.json",
+      "notes": "Initial steghide extraction failed because the image contains an appended ZIP rather than steghide payload."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Decrypt ZIP comms.bin, decompress gzip/bzip2/gzip, read tar log, and Base64-decode the flag",
+      "result": "Decoded flag matches the pre-existing final_flag.txt and OWASP format",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Forensics/Sacrifice/solve/evidence/recovery.json",
+      "notes": "Independent replay did not run the old script that writes the saved flag. Portal acceptance remains unverified."
+    }
+  ]
+}

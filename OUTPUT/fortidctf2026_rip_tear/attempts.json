@@ -1,0 +1,66 @@
+{
+  "challenge_id": "fortidctf2026_rip_tear",
+  "flag_status": "none",
+  "attempts": [
+    {
+      "t": "2026-10-11T02:09:48Z",
+      "phase": "INTAKE",
+      "hypothesis_id": "H1",
+      "action": "Fingerprint the locally present gameplay copy without accessing its external prompt link.",
+      "command_or_step": "ffprobe -show_entries format=duration:stream=codec_name,width,height,r_frame_rate gameplay.mkv; SHA-256",
+      "result": "partial",
+      "evidence_path": "raw/audio_probe.md",
+      "notes": "Local scratch video hash 54a529228be00a59d84da676f049d722b57ac22cd57851a29b35c5b5f31b5aa9; duration 251.967 s, H.264 1920x1080 at 60 fps, AAC 48 kHz stereo."
+    },
+    {
+      "t": "2026-10-11T02:09:48Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Test whether repeated high-amplitude sound bursts encode table output through pitch scaling.",
+      "command_or_step": "Extract 60 s from video time 4 s; high-pass at 1.2 kHz; compute 5 ms RMS peaks; compare 105 ms clips by normalized correlation and resampling across playback rates 0.95-1.05.",
+      "result": "partial",
+      "evidence_path": "raw/audio_probe.md",
+      "notes": "For audio-relative windows 7.5-15 s, 19-28 s, and 42-56 s, high-similarity repeated clips all matched best at rate 1.00. This does not expose a pitch bit in the sampled sound classes; it does not rule out other classes or channels."
+    },
+    {
+      "t": "2026-10-11T06:19:47Z",
+      "phase": "MODEL",
+      "hypothesis_id": "H3",
+      "action": "Trace the first HUD-face sample and initial screen-wipe RNG consumption from the exact local source.",
+      "command_or_step": "Inspect G_InitNew, G_DoLoadLevel, P_SpawnPlayer/ST_Start, G_Ticker, ST_Ticker, M_Random, D_Display, D_RunFrame, and wipe_initMelt; compare local m_random.c Git blob with patch base.",
+      "result": "partial",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\FortIDCTF2026\\Misc\\Rip & Tear\\notes\\progress.md",
+      "notes": "M_ClearRandom precedes level setup; M_Random increments before reading; the first expected HUD sample is index 1 if P_Ticker starts no sound first. The transition wipe then consumes 320 M_Random calls and pauses game tics. The face-class mapping and any first-tic sound call remain unverified; no table observation or flag candidate."
+    },
+    {
+      "t": "2026-10-11T06:23:00Z",
+      "phase": "MODEL",
+      "hypothesis_id": "H4",
+      "action": "Check whether the first visible post-wipe neutral face is the first random HUD selection.",
+      "command_or_step": "Inspect all assignments to st_facecount and compare consecutive video face crops around the new-game transition.",
+      "result": "partial",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\FortIDCTF2026\\Misc\\Rip & Tear\\notes\\progress.md",
+      "notes": "ST_initData resets st_faceindex but not the static st_facecount; ST_Start also leaves it untouched. The authorized gameplay video has a stable face through the early post-wipe segment, with a visible change only around 9.18 s. The first clear face therefore cannot be tied to table index 1 without reconstructing the carried timer and any face-priority events."
+    },
+    {
+      "t": "2026-10-11T07:56:19Z",
+      "phase": "MODEL",
+      "hypothesis_id": "H5",
+      "action": "Fit the first three screen-melt boundaries against the exact source recurrence and known flag prefix.",
+      "command_or_step": "python CTFTimeWriteup/FortIDCTF2026/Misc/Rip & Tear/solve/recover_rip_and_tear.py",
+      "result": "partial",
+      "evidence_path": "raw/wipe_model.md",
+      "notes": "Three independent transition fits recovered 255/256 table bits. The best starts were 2, 144, and 21. Index 134 remained unresolved because the preceding y=-15 state reflects both possible increments back to -15. No submission."
+    },
+    {
+      "t": "2026-10-11T07:56:19Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H5",
+      "action": "Use extra frames from the first and third wipes to distinguish the remaining bit.",
+      "command_or_step": "Fit frames 12060-12090 and 350-400 with phase-consistent tic sequences; compare forced bit 0 and bit 1 at index 134.",
+      "result": "negative",
+      "evidence_path": "raw/wipe_model.md",
+      "notes": "Both phase variants produce identical scores; the first wipe also ties. The byte resolves to either ']' or '_' from observed bits. '_' is a coherent phrase candidate, but there is no independent observation or scoreboard check; do not create final_flag.txt or submit."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+id: sunshinectf2026_welcome_call
+event: "SunshineCTF 2026"
+category: "forensics/sip-rtp-mulaw-reversed-audio"
+challenge_name: "Welcome Call!"
+status: solved
+flag: "sun{thankyouforplaying}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "pcap contains a SIP handshake on port 5060 establishing a call, with SDP negotiating RTP audio on PCMU/8000 (G.711 u-law, mono, 8kHz) over a separate UDP port pair."
+  - "Decoded u-law audio is intelligible speech but plays backwards/garbled until the raw sample sequence is reversed."
+key_idea: "A pcap carrying a VoIP call should be parsed for its SIP/SDP negotiation to find the actual RTP media ports and codec (don't guess), then the RTP payloads reassembled in packet order and decoded per the negotiated codec (G.711 u-law here); if the resulting audio sounds reversed/garbled, try reversing the sample order before assuming it's a different codec or corrupted capture."
+prerequisites:
+  - "SIP/SDP basics (locating negotiated RTP port + codec)"
+  - "G.711 u-law -> linear PCM decoding formula"
+exploitation_pattern: "rdpcap -> find RTP UDP stream by negotiated SIP/SDP ports -> strip 12-byte (+CSRC) RTP header from each payload -> concatenate in packet order -> u-law decode each byte to 16-bit linear PCM -> reverse the sample sequence -> write WAV -> listen/transcribe spoken flag"
+verification:
+  method: "Reconstructed WAV audio is clear, intelligible speech that states the flag verbatim."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/Welcome Call!/writeup/writeup.md"
+pitfalls:
+  - "If decoded VoIP audio sounds like noise/garbled speech, try reversing the sample sequence before assuming the codec identification or decoding formula is wrong."
+failed_paths: []
+tools:
+  - "scapy"
+  - "python3 (wave, struct, manual u-law decode)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/Welcome Call!/files/welcomecall.pcap"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/Welcome Call!/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/Welcome Call!/solve/solve.py"
+time_heuristic: "VoIP pcap challenge: parse SIP/SDP to get the real RTP ports/codec, decode per-codec to PCM, and if the result sounds garbled, try reversing the sample order before changing the codec assumption."
+last_verified: "2026-11-04"

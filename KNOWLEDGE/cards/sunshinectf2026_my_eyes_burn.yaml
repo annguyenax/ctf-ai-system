@@ -1,0 +1,36 @@
+id: sunshinectf2026_my_eyes_burn
+event: "SunshineCTF 2026"
+category: "forensics/keyboard-layout-deadkey-chain"
+challenge_name: "my eyes burn"
+status: solved
+flag: "sun{praisethesun}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Attachment is a Microsoft Keyboard Layout Creator (.klc) file, UTF-16 encoded, defining an unusually large DEADKEY table."
+  - "The flag is not stored as plaintext anywhere in the file; it is encoded as a graph of DEADKEY transitions where each step consumes one input character and lands on the next deadkey state."
+key_idea: "A .klc (Microsoft Keyboard Layout Creator) file with an extensive DEADKEY section encodes a hidden message as a walk through a state graph: starting from a specific base deadkey (identified from the prompt/theme, e.g. the backtick/OEM_3 key), each DEADKEY block's hex (input_char -> next_state) entries can be followed sequentially by parsing the file as a transition table rather than trying to 'type' the layout by hand."
+prerequisites:
+  - "UTF-16 text parsing of .klc files"
+  - "Understanding DEADKEY block syntax in Keyboard Layout Creator source files"
+exploitation_pattern: "parse .klc as UTF-16 text -> build a dict of {deadkey_state: {input_char: next_state}} from each DEADKEY block -> start at the deadkey reachable from the prompt-relevant base key -> walk the chain, appending each consumed input char, until reaching a terminal/symbol state -> concatenated chars = flag"
+verification:
+  method: "Deterministic graph traversal of the parsed .klc file reproduces the exact flag string."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/my eyes burn/writeup/writeup.md"
+pitfalls:
+  - "Do not try to manually install/type through the custom keyboard layout; parse the .klc file as a plain state-transition table instead."
+  - "The file is UTF-16 encoded, not UTF-8/ASCII -- read with the correct encoding or the DEADKEY lines won't parse."
+failed_paths: []
+tools:
+  - "python3 (manual .klc parsing)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/my eyes burn/files/boardwriter.klc"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/my eyes burn/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/my eyes burn/solve/solve.py"
+time_heuristic: "A .klc keyboard-layout file with an unusually large DEADKEY table: parse it as a character-transition state graph and walk it programmatically rather than trying to reproduce the layout by typing."
+last_verified: "2026-11-04"

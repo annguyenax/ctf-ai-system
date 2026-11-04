@@ -1,0 +1,33 @@
+id: "h7ctf2026_ghost_in_the_timeline"
+event: "H7CTF 2026 Quals"
+category: "forensics/ext4-timestomp-detection-ctime-crtime"
+challenge_name: "Ghost in the Timeline"
+status: "solved"
+flag: "H7CTF{e211b7db9d4f5c9f0812}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A file's atime/mtime were backdated to build an alibi, but the scenario asks you to \"check their work\" on an ext4 filesystem image."
+key_idea: "On ext4 (and similar modern filesystems with extra inode fields), atime/mtime are trivially user-settable (utimes/touch) and therefore useless as tamper-evidence, but ctime (inode change time) and crtime/birth time (extra inode field, kernel-set) cannot be forged by ordinary userspace timestomping tools -- a mismatch between a backdated mtime and a much later ctime/crtime is direct proof of timestomping and pinpoints the real creation/modification time to pivot the investigation around (e.g. correlating with auth.log entries at that real timestamp)."
+prerequisites:
+  - "Manual ext4 superblock/inode parsing (or debugfs/istat) to read all four timestamp fields"
+  - "Basic ext4 extent-tree traversal to pull file data out of an inode"
+exploitation_pattern: "parse ext4 superblock for block size/inode size -> read target inode's atime/mtime/ctime/crtime -> spot the backdated atime/mtime vs. honest ctime/crtime -> use the honest timestamp to find correlating log evidence (e.g. a sudo/zip command in auth.log at the same real time) -> locate and extract the associated archive/evidence file referenced by that log line -> recover the flag from its contents."
+verification:
+  method: "Deterministic parsing of raw inode bytes and extracted ZIP contents; flag found verbatim in the recovered secret.txt."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Ghost in the Timeline/writeup/writeup.md"
+pitfalls:
+  - "Don't trust atime/mtime alone for any \"the file predates X\" alibi claim on ext4 -- always cross-check ctime and crtime."
+failed_paths: []
+tools:
+  - "Python struct-based ext4 parsing"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Ghost in the Timeline/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Ghost in the Timeline/solve/solve.py"
+time_heuristic: "Any disk-forensics challenge framed around \"the timestamps say he's innocent, check their work\" is pointing at ext4 ctime/crtime vs. the forgeable atime/mtime -- parse all four fields before accepting a timeline alibi."
+last_verified: "2026-11-04"

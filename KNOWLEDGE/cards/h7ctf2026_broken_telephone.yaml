@@ -1,0 +1,37 @@
+id: "h7ctf2026_broken_telephone"
+event: "H7CTF 2026 Quals"
+category: "crypto/noise-protocol-nonce-reuse-poly1305-forbidden-attack"
+challenge_name: "Broken Telephone"
+status: "solved"
+flag: "H7CTF{9a878d41-fe0e-43ef-90f5-2826e626ac08}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A Noise-protocol-style mesh (XKpsk3, ChaCha20-Poly1305) advances a length-mask index per transport frame but the AEAD counter/nonce itself never advances, so every frame in one direction reuses the same (key, nonce)."
+  - "Keepalive/control frames have an all-zero plaintext, so their ciphertext equals the raw keystream directly."
+key_idea: "When an AEAD nonce is stuck/reused across many frames, (1) recover the keystream for free from any frame whose plaintext is known/zero (keepalives), then (2) run the Poly1305 \"forbidden attack\": with >=2 tags produced under the same reused one-time key, treat the two tag equations as a polynomial over GF(2^130-5), solve for the authenticator key r via root-finding (respecting the clamping constraints), derive s, and now you can forge a valid tag for any chosen ciphertext under that nonce."
+prerequisites:
+  - "Understanding of ChaCha20-Poly1305 construction (keystream, one-time poly key)"
+  - "Polynomial root-finding mod a large prime (Cantor-Zassenhaus / gcd with x^p-x)"
+  - "Protocol-specific length masking derived from a known transcript hash"
+exploitation_pattern: "compute transcript hash to unmask frame lengths -> pull keystream from a known-plaintext (zero) keepalive -> collect multiple same-nonce tags -> solve forbidden-attack polynomial for Poly1305 key -> forge an authenticated privileged control frame (e.g. role=admin) -> inject it; server has no replay protection on the reused nonce so it accepts."
+verification:
+  method: "Live protocol replay; the forged frame was accepted by the gateway, which responded with the provisioning secret, decrypted with the independently-recovered g2n keystream."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/broken-telephone/writeup.md"
+pitfalls:
+  - "The AEAD nonce/counter not advancing is easy to miss if you only look at the length-mask index, which does advance independently -- check both separately."
+  - "Forging a frame also requires matching the protocol's own length-masking scheme, not just the ciphertext+tag."
+failed_paths: []
+tools:
+  - "Python"
+  - "custom Noise/ChaCha20-Poly1305 implementation"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/broken-telephone/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/broken-telephone/exploit.py"
+time_heuristic: "In any custom Noise/AEAD mesh protocol, check first whether the nonce/counter actually increments per message independently of any other advancing index (sequence number, length-mask index); a stuck nonce with >=2 captured tags under it is an immediate Poly1305 forbidden-attack forgery opportunity."
+last_verified: "2026-11-04"

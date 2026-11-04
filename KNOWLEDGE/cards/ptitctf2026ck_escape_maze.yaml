@@ -1,0 +1,43 @@
+id: ptitctf2026ck_escape_maze
+event: "PTITCTF2026-CK"
+category: "reverse/static-maze-bfs-ambiguous-format"
+challenge_name: "Escape maze"
+status: needs_verification
+flag: "PTITCTF{S1D4F2D2W2D4S6A2S6D2S6A4S2A2S2A2S1}"
+confidence: 0.4
+artifact_hashes: []
+signals:
+  - "The entire maze is static (no RNG/time seed): two 16-byte blocks copied from .rdata give width/height/player/start/exit, and a 206-entry edge-recipe table (idx<<2|dir) builds the wall bitmask deterministically -- fully recoverable by reading .rdata and simulating, no live game execution required."
+  - "The maze graph contains loops, so the shortest start-to-exit path is not unique among single (non-backtracking) paths; BFS over the recovered bitmask found exactly 6 distinct simple paths, with path #1 uniquely the shortest at 50 physical steps / 17 RLE runs."
+  - "The flag-format instruction's own example ('AAAADDD -> A4D3') establishes the RLE encoding rule, but the challenge prompt contains two deliberately broken words (capitalized/misspelled letters) that plausibly point at run-index 3 and 13 of the 17-run RLE string -- but the prompt supports at least three mutually exclusive readings of which positions/characters those hints modify."
+key_idea: "This is a fully statically solvable deterministic maze (recover width/height/edges/start/exit from .rdata, BFS for shortest path, RLE-encode per the example in the prompt), but the submitted answer format is ambiguous: the prompt embeds two intentional typos/capitalizations ('Fải', 'Sáng') that could be hints to alter specific characters of the RLE-encoded answer, but there are at least 3 non-equivalent readings (count by RLE-run index vs. by raw keypress-string character index vs. no alteration at all) each producing a different flag string, and the challenge enforces a hard 5-submission limit, so guessing wrong burns an irreplaceable attempt."
+prerequisites:
+  - "PE DWARF/symbol-assisted static analysis (symbols were left intact, making this straightforward)"
+  - "BFS/graph pathfinding over a recovered adjacency bitmask"
+  - "Careful RLE encoding matching the exact rule implied by the flag-format example"
+exploitation_pattern: "recover static maze layout + edges directly from .rdata tables (no execution needed) -> BFS all simple paths start->exit -> identify the unique shortest path -> RLE-encode per the prompt's own example -> disambiguate which of several plausible hint-based corrections (if any) the platform actually expects, under a tight submission-attempt budget."
+verification:
+  method: "The maze reconstruction and shortest-path recovery are verified by a BFS solver that reads the exact .rdata tables and independently simulates Game::try_move's wall-check logic; the final answer-format ambiguity is NOT resolved -- the writeup explicitly states the flag is unconfirmed and lists 5 ranked candidate submissions plus a fallback."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Reverse/Escape maze/solve/solve.py reproduces the maze map and the shortest path deterministically."
+pitfalls:
+  - "A hard submission-attempt limit (5 tries) on a format-ambiguous answer means guessing order matters -- rank candidates by how much independent textual evidence supports each hint-reading before submitting, rather than guessing in arbitrary order."
+  - "Three different 'count to position N' interpretations (Nth raw keypress, Nth RLE run, Nth character within the RLE string) can each land on a different token and are easily conflated -- always state explicitly which indexing scheme is used when documenting an encoding-position hint."
+  - "A seemingly natural shortcut (e.g. dropping a redundant leading '1' from an RLE run, or halving all run-lengths) can look plausible but fails to actually replay as a winning keypress sequence in the real game logic -- always re-simulate any transformed candidate against the recovered game rules before trusting it."
+failed_paths:
+  - "Candidate with the leading '1' dropped from runs (SD4S2D2W2D4S6A2S6D2S6A4W2A2S2A2S) -- position 3 and 13 land on digits, not letters, breaking every hint-reading."
+  - "Halving all run-lengths under an assumption that one logical step equals two physical steps uniformly -- does not reproduce an actual winning keypress sequence when replayed."
+  - "Summing total presses per key (e.g. A10S24D12W4) -- discards path-order information, cannot be validated against the real traversal."
+  - "Converting WASD to ESDF before RLE -- position 13 produces the wrong letter under every hint-reading tested."
+tools:
+  - "Static PE/DWARF symbol reading"
+  - "Python BFS solver (solve/solve.py)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Reverse/Escape maze/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Reverse/Escape maze/solve/solve.py"
+time_heuristic: "When a reverse challenge's core logic is fully statically recoverable (no live execution needed) but the prompt contains deliberate typos/capitalization that plausibly encode an answer-format correction, exhaust the textual evidence and rank disambiguation hypotheses explicitly before spending any of a limited submission budget, rather than guessing in arbitrary order."
+last_verified: "2026-11-04"

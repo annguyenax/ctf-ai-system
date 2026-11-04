@@ -1,0 +1,36 @@
+id: picoctf2026_jitfp
+event: picoCTF2026
+category: reverse/jit-function-pointers
+challenge_name: JITFP
+status: solved
+flag: "picoCTF{pr0cf5_d36ugg3r_65632918}"
+confidence: 1.0
+artifact: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Reverse/JITFP"
+signals:
+  - musl PIE checker ad7e550b with 33 cmp-immediate functions
+  - selector table at VA 0x4020; function pointers in BSS 0x4120 with no relocs
+  - host python /root/jitfp-service.py rewrites pointers during sleep(1)
+  - static initial-table password fails on a fresh process
+key_idea: After each sleep the live checker pointer for selector[i] is JIT-updated; recover argv[i] from that function's cmp immediate, or LD_PRELOAD sleep (via memfd, because shm is noexec) to patch argv in-process.
+exploitation_pattern: host JIT of function-pointer table during sleep -> dump cmp immediate per iteration -> 33-char picoCTF{...} password
+verification:
+  method: "Live ./ad7e550b on dolphin-cove.picoctf.net:63505"
+  run1: "hook recovered picoCTF{pr0cf5_d36ugg3r_65632918}; clean rerun printed Correct RC=0"
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Reverse/JITFP/writeup/writeup.md"
+pitfalls:
+  - Dumping BSS once yields a shuffled alphabet string that is not the live flag.
+  - NOP-ing sleep freezes the initial table and can print a false Correct.
+  - /dev/shm is writable but noexec; LD_PRELOAD the .so from a memfd.
+  - Numeric suffix may change per instance; recover on the live node.
+tools:
+  - objdump/readelf
+  - gcc
+  - Python 3 ctypes/ptrace
+hexstrike:
+  used: false
+  useful: false
+sources:
+  - Local copy of ad7e550b and live SSH node
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Reverse/JITFP/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Reverse/JITFP/solve/solve.py"
+last_verified: "2026-08-28"

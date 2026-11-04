@@ -1,0 +1,60 @@
+{
+  "challenge_id": "bytemectf2026_house_of_water",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Inspect the challenge ELF, menu operations, and supplied runtime archive",
+      "result": "PIE, Full RELRO, NX, and canary are enabled; freed slots retain pointers and the bounds checker permits show/edit on freed slots; setup loads flag.txt into an unreachable 0x80 allocation",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/House of Water/solve/evidence/recovery.json",
+      "notes": "The binary and runtime files were extracted and SHA-256 recorded. The bundled loader/libc pair did not run reliably together."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Run a local marker-only tcache-poison check with Kali WSL's system glibc",
+      "result": "Recovered OWASP{LOCAL_TEST_MARKER} from the hidden allocation",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/House of Water/solve/local_test.py",
+      "notes": "This verifies the primitive only; the marker is not the challenge flag."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "REMOTE",
+      "hypothesis_id": "H2",
+      "action": "Try the local runtime's fixed p0-minus-0x780 secret offset on the scoped service",
+      "result": "The remote process closed before the poisoned allocation prompt; the local fixed offset was not portable",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/House of Water/solve/evidence/recovery.json",
+      "notes": "No flag was claimed from this attempt."
+    },
+    {
+      "t": "2026-10-09 step 04",
+      "phase": "REMOTE",
+      "hypothesis_id": "H3",
+      "action": "Read from the leaked page base plus 0x10",
+      "result": "The candidate read returned zero bytes; no flag was claimed",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/House of Water/solve/evidence/recovery.json",
+      "notes": "The remote p0 address had page offset 0x510, unlike the local process layout."
+    },
+    {
+      "t": "2026-10-09 step 05",
+      "phase": "ANALYZE",
+      "hypothesis_id": "H4",
+      "action": "Read aligned windows across the leaked heap page",
+      "result": "The flag suffix appeared in one window, but the first runner printed only short previews and did not capture the complete value",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/House of Water/solve/evidence/recovery.json",
+      "notes": "This identified the adjacent page offsets needed for an exact capture."
+    },
+    {
+      "t": "2026-10-09 step 06",
+      "phase": "VERIFY",
+      "hypothesis_id": "H4",
+      "action": "Read and concatenate the adjacent 0x70-byte windows at page offsets 0x240 and 0x2b0",
+      "result": "The exact remote bytes matched OWASP{drink_fr0m_th3_p0is0n3d_tc4ch3}",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/House of Water/solve/evidence/recovery.json",
+      "notes": "The flag was read from the scoped challenge service. Portal submission and acceptance remain unverified."
+    }
+  ]
+}

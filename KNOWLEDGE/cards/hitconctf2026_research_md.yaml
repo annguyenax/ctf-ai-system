@@ -1,0 +1,36 @@
+id: hitconctf2026_research_md
+event: "HITCON CTF 2026"
+category: "misc/anti-agent-trap+finder-metadata-stego"
+challenge_name: "RESEARCH.md"
+status: solved
+flag: "HITCON{CHALL-FOR-HUMAN}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A 23.9MB attachment unpacks to 23 folders full of CLAUDE.md/AGENT.md/PROGRESS-*.md prose and large decoy ELF binaries whose only instruction is 'read everything and keep researching' -- a context-sink/prompt-trap aimed at AI agents."
+  - "The challenge's own category icon is an eye emoji (hint: 'look', not 'read'); the real signal is the hidden macOS `.DS_Store` Finder metadata file present in every folder."
+  - "`.DS_Store` stores one Iloc record per file icon with its (x,y) pixel position in the Finder window; the author positioned icons so the occupied grid cells draw one 7x7 glyph per folder."
+key_idea: "Ignore the agent-bait prose/binaries entirely; parse the Iloc records out of each folder's .DS_Store, rank-cluster the x/y coordinates into a grid with no hard-coded pixel pitch, render the occupied cells as a 7x7 glyph, and match against a template alphabet -- concatenating the 23 glyphs spells the flag."
+prerequisites:
+  - "macOS .DS_Store Iloc record binary format"
+  - "basic image/grid clustering"
+exploitation_pattern: "huge decoy text/binary pile -> suspect hidden filesystem metadata (.DS_Store/EXIF/zip comments) -> parse Iloc icon coordinates -> cluster into grid -> render glyph -> match template alphabet per folder -> concatenate."
+verification:
+  method: "Deterministic solver re-parses raw .DS_Store bytes and aborts (sys.exit(1)) if any glyph fails to match a known template, so the flag cannot be fabricated; two independent extraction paths (all Iloc records vs on-disk-file-only) agree."
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/RESEARCH.md/writeup/writeup.md"
+pitfalls:
+  - "A Misc attachment that is mostly agent-directed prose plus big filler binaries, with instructions like 'keep researching', is very likely a deliberate LLM-agent time-sink -- check hidden filesystem metadata (.DS_Store, EXIF, zip comments) before reading file contents."
+failed_paths: []
+tools:
+  - "Python 3 (struct, manual .DS_Store Iloc parser)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/RESEARCH.md/files/research.md-389257e532210ee8.tar.gz"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/RESEARCH.md/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/RESEARCH.md/solve/solve.py"
+time_heuristic: "When a Misc challenge dumps a huge pile of agent-directed text/binary filler and the category icon is an eye/look hint, check hidden Finder/filesystem metadata immediately instead of reading the bait content."
+last_verified: "2026-11-04"

@@ -1,0 +1,37 @@
+id: csawctf2026quals_csale_revenge
+event: "CSAW CTF Qualifications 2026"
+category: "web/sqli-union-to-xor-vault-idor"
+challenge_name: "CSALE Revenge"
+status: needs_verification
+flag: "csaw{Th4t3_R0ugH_Bud1y}"
+confidence: 0.6
+artifact_hashes: []
+signals:
+  - "The site's search query parameter `q` is injectable into a UNION SELECT with exactly 7 columns, allowing arbitrary data exfiltration from sqlite_master and application tables through the listing-card HTML rendering."
+  - "A password_vault table stores credentials XOR-encrypted with a key assembled from fragments stored, in order, in a password_notes table (ordered by a `phase` column)."
+  - "Unlocking another user's private 'draft' listing via a recovered vault password exposes a `/<slug>/preview` endpoint returning the flag as an image."
+key_idea: "When a UNION-based SQLi can only return a fixed number of text columns, use group_concat() with a row/field separator to exfiltrate whole tables in one query each, then follow the data model (notes ordered by a phase/sequence column assemble a key; that key XOR-decrypts a vault; vault credentials unlock another account's private content)."
+prerequisites:
+  - "UNION-based SQL injection with column-count/type matching to avoid breaking template rendering"
+  - "XOR stream decryption given a recovered multi-part key"
+exploitation_pattern: "sign up a throwaway account -> confirm column count/types via UNION SELECT probe -> group_concat-dump sqlite_master, users, password_notes, password_vault, listings -> assemble vault XOR key from notes ordered by phase -> XOR-decrypt vault rows to get other users' plaintext passwords -> log in as the recovered account -> enumerate /account/drafts -> fetch /<slug>/preview for each draft -> flag image"
+verification:
+  method: "solve.py implements the full extraction and login chain and writes dumps to disk, but no saved output/log in this challenge folder confirms it was actually run against a live target and returned this exact flag."
+  evidence: ""
+pitfalls:
+  - "UNION SELECT column types must satisfy any numeric formatting the template applies (e.g. a price field run through a |format filter) or the injected row will 500 instead of rendering."
+  - "A multi-part secret assembled from several DB rows must be ordered by its true sequence column (here `phase`), not insertion order, or the resulting XOR key will be scrambled."
+failed_paths: []
+tools:
+  - "python3 (requests, manual UNION SQLi)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/CSALE Revenge/files/CSALE_REAL-player.zip"
+playbook: "web_sqli.md"
+writeup: ""
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/CSALE Revenge/solve/solve.py"
+time_heuristic: "UNION SQLi limited to N text columns: use group_concat with a separator to dump whole tables per query; look for a multi-row secret ordered by an explicit sequence column before assembling a derived key."
+last_verified: "2026-11-04"

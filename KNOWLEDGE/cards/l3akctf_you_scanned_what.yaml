@@ -22,7 +22,7 @@ prerequisites:
 exploitation_pattern: variable-width angular mean projections -> restore sums -> centered sinogram -> inverse Radon -> orientation check
 verification:
   method: deterministic archive-to-PNG solver replay plus visual character-boundary check
-  evidence: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/solve/evidence/manifest.md
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Forensics/You Scanned WHAT_!_/solve/evidence/manifest.md
 pitfalls:
   - treating the themed scan as DICOM without checking the container
   - stacking ragged detector vectors without centered padding
@@ -45,7 +45,7 @@ sources:
   - https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon
   - https://www.sqlite.org/uri.html
 playbook: PLAYBOOKS/forensics_variable_width_radon.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned WHAT_!_/solve/solve.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Forensics/You Scanned WHAT_!_/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Forensics/You Scanned WHAT_!_/solve/solve.py
 time_heuristic: "180 angular vectors + changing detector width -> test expanded-canvas Radon reconstruction, ~10 min"
 last_verified: "2026-08-01"

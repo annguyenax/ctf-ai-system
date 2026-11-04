@@ -1,0 +1,39 @@
+id: "h7ctf2026_rev_license_aes_pattern"
+event: "H7CTF 2026 Quals"
+category: "rev/license-key-constraint-solve-then-md5-aes-decrypt"
+challenge_name: "Toll Story (representative of a recurring H7CTF2026 Reverse pattern)"
+status: "solved"
+flag: "H7CTF{ea92e3da-2c11-418a-a5c4-8aa8a8cb84bd}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Binary (ELF, sometimes stripped, sometimes Go/Rust) checks a fixed-length input (\"license\"/\"token\"/\"key\") against per-byte or per-chunk reversible transforms (XOR/ROL/ADD/mul tables, or a linear matrix mod 256) stored as constant tables in .rodata, with no actual branching secret beyond those tables."
+  - "On success, the binary hashes the recovered key (MD5 or SHA-256) to derive an AES-128/256-CBC key with an all-zero (or otherwise static) IV, then decrypts an embedded ciphertext blob (also in .rodata/.data) to produce the flag with PKCS7 unpadding."
+key_idea: "This \"license checker\" shape recurs across many stripped/obfuscated reversing challenges in this event (Constraint Yourself, Lockstep, Modem Operandi, Rust in Peace, Toll Story): the validation is always invertible per-byte or per-block (XOR/ROL/ADD chains, pairwise multiply tables, or a linear matrix over Z_256), so solve it analytically or by brute-forcing each independent byte over 0..255 (never need SMT) rather than reversing the full binary logic; then look immediately past the validation for a hash(key)->AES(IV=0 or static)->ciphertext decrypt step producing the actual flag -- the \"license key\" itself is rarely the flag."
+prerequisites:
+  - "Reading constant tables straight out of .rodata via pyelftools/objdump instead of full disassembly"
+  - "For linear-matrix variants: sympy Matrix.inv_mod(256) to invert mod 2^8"
+  - "For Go binaries: parsing the pclntab/function table to locate user package functions in a stripped static binary"
+exploitation_pattern: "dump .rodata constant tables at their known offsets -> identify the per-byte/per-chunk transform chain (XOR/ROL/ADD, multiply pairs, or 16x16 matrix mod 256) -> invert analytically (matrix inverse mod 256) or brute each byte 0..255 against its own constraint -> recombine into the license key -> hash key (MD5/SHA-256) -> AES-CBC decrypt the embedded ciphertext with IV=0 -> PKCS7 unpad -> flag."
+verification:
+  method: "Deterministic offline computation reproduced the exact flag bytes for each of the five sibling challenges using this same pattern."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Reverse/Toll Story/writeup/writeup.md"
+pitfalls:
+  - "Don't try to brute-force the full N-byte key jointly; each byte/chunk's constraint is almost always independent (or a simple invertible matrix), making brute force or direct inversion trivial per unit."
+  - "Stripped Go/Rust binaries still have a pclntab/function-table or readable panic/string xrefs that locate the validation routine without symbols."
+failed_paths: []
+tools:
+  - "pyelftools"
+  - "sympy"
+  - "hashlib"
+  - "cryptography (AES)"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: "rev_template_feistel.md"
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Reverse/Toll Story/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Reverse/Toll Story/solve/solve.py"
+time_heuristic: "For any \"recover the license/token, then it unlocks the flag\" reversing challenge whose validation looks like independent per-byte/per-chunk invertible math (XOR/ROL/ADD/multiply tables or a matrix mod 256) stored as .rodata constants, solve analytically/per-byte rather than disassembling deeply, and expect the recovered value to feed hash->AES-CBC(IV=0)->ciphertext rather than being the flag itself."
+last_verified: "2026-11-04"

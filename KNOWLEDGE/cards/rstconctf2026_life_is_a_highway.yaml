@@ -1,0 +1,45 @@
+id: rstconctf2026_life_is_a_highway
+event: RSTCONCTF2026
+category: forensics
+challenge_name: Life is a Highway
+status: needs_verification
+flag: ''
+confidence: 0.55
+artifact_hashes:
+- deb265590271624d1fa0288ab6d9171bae61377ba61ce8fdced9e8ae41dedf4e
+signals:
+- Toyota candump IDs 0x0AA, 0x024, 0x025
+- stationary yaw offset -0.061591 deg/s
+- known destination in Tysons, Virginia
+key_idea: Integrate wheel speed with yaw/steering only after compensating sensor bias;
+  then map-match. Current drift prevents reliable origin recovery.
+prerequisites:
+- Toyota 2017 DBC interpretation
+- CAN log parsing
+- geospatial route fitting
+exploitation_pattern: Decode wheel speed/yaw/steer; calibrate bias from stops and
+  turns; match integrated path to local roads; submit origin only if unique and within
+  tolerance.
+verification:
+  method: not yet achieved; require route geometry match and accepted coordinate
+  evidence: D:\download\CTFTimeWriteup\RSTCONCTF2026\Forensics\Life is a Highway\solve\evidence\signals.json
+pitfalls:
+- Global mean stationary bias does not model temperature/time drift.
+- Dead reckoning error is currently about 19km.
+failed_paths:
+- Direct integration using a single stationary bias does not locate start.
+tools:
+- Python
+- NumPy
+- TIGERweb roads dataset
+hexstrike:
+  used: false
+  useful: false
+  notes: Local offline signal processing used.
+sources:
+- https://github.com/commaai/opendbc/blob/master/opendbc/dbc/generator/toyota/_toyota_2017.dbc
+playbook: ''
+writeup: D:\download\CTFTimeWriteup\RSTCONCTF2026\Forensics\Life is a Highway\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\RSTCONCTF2026\Forensics\Life is a Highway\solve\solve.py
+time_heuristic: Calibrate inertial drift before road matching.
+last_verified: '2026-10-25'

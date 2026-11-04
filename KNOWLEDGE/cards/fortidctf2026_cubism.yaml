@@ -1,0 +1,23 @@
+id: fortidctf2026_cubism
+event: FortID CTF 2026
+category: reverse
+challenge_name: Cubism
+status: solved
+flag: "FortID{Th3_CUB3_15_47_tH3_54M3_T1M3_4_SYmB0l_0f_51Mpl1c1tY_4nD_C0Mp13Xi7y}"
+confidence: 1.0
+artifact_hashes: []
+signals: ["voxel cube with OR-projection QR checks", "quirc embedded", "two words per projection", "≤244 voxel budget"]
+key_idea: "quirc decodes fliplr as transpose -> need M and M.T both valid QR; RS parity GF(2)-linear with free post-terminator bits -> Gaussian exact family; MILP assembles ≤244 voxels"
+prerequisites: ["QR structure", "GF(2) linear algebra", "MILP (HiGHS)"]
+exploitation_pattern: "read checker asm; find dual-QR word pairs via BCH-corrected transposed format words; linear solve; MILP assemble"
+verification: {method: "local checker Correct! + remote flag accepted", evidence: "Reverse/Cubism/final_flag.txt"}
+pitfalls: ["format word transposes to rev15(w) - never canonical but BCH fixes it", "only L1<->L4 pairs solvable"]
+failed_paths: []
+tools: ["Ghidra", "quirc", "numpy", "HiGHS"]
+hexstrike: {used: false, useful: false, notes: ""}
+sources: ["binary analysis"]
+playbook: ""
+writeup: "CTFTimeWriteup/FortIDCTF2026/Reverse/Cubism/writeup/writeup.md"
+solver: "CTFTimeWriteup/FortIDCTF2026/Reverse/Cubism/solve/"
+time_heuristic: "3-5h (hard reverse)"
+last_verified: "2026-10-11"

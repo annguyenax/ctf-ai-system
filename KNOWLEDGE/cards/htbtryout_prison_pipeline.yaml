@@ -1,0 +1,41 @@
+id: htbtryout_prison_pipeline
+event: HTB Try Out
+category: web/ssrf-file-read-npm-registry-supply-chain-rce
+challenge_name: "Prison Pipeline"
+status: solved
+flag: "HTB{pr1s0n_br34k_w1th_supply_ch41n!_561be77f7a5a0d4c8b69583ce2fbe1ad}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "An 'import prisoner from URL' feature fetches any attacker-supplied URL with FOLLOWLOCATION and stores the raw response body as a readable record, including for file:// URLs."
+  - "Nginx multiplexes two vhosts on the same external port by Host header, exposing an otherwise-internal private npm registry (verdaccio) to the outside world if the attacker sets the right Host header."
+  - "A cronjob periodically runs `npm outdated` / `npm update` against that private registry for an internal package and restarts the app -- an automated supply-chain trust boundary."
+key_idea: "SSRF with file:// support becomes full arbitrary local file read; use it to steal the private npm registry's auth token from .npmrc, then reach the registry through the Host-header vhost trick and publish a malicious new version of the internally-trusted package (with a backdoored lifecycle/runtime hook), and let the existing automated update+restart cronjob pull and execute it with the app's privileges, finally invoking a setuid readflag helper."
+prerequisites:
+  - "SSRF endpoint that both fetches arbitrary URL schemes (including file://) and persists/returns the response body"
+  - Reverse proxy multiplexing an otherwise-firewalled internal service by Host header on an externally reachable port
+  - An automated dependency-update job trusting that private registry without additional validation
+exploitation_pattern: "file:// SSRF reads .npmrc auth token -> Host-header vhost pivot reaches the internal npm registry externally -> publish malicious package version with that stolen token -> automated update cronjob installs + restarts -> malicious code runs with app privileges -> run setuid flag-reader"
+verification:
+  method: "End-to-end automated script performed each step against the live instance and the final API read-back returned the flag as the stored prisoner record's 'raw' field."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Prison Pipeline/final_flag.txt"
+pitfalls:
+  - "An SSRF feature that fetches file:// URLs is arbitrary local file read, not just internal-network pivoting; always test the file:// scheme."
+  - "Reverse-proxy vhost routing by Host header can expose a service the operator believed was 'internal only' (bound to localhost/private port) if the proxy itself is reachable on a public port and doesn't validate which vhost a given external client is allowed to reach."
+  - "Any automated dependency-update pipeline that trusts a registry reachable via a leaked token is a direct path to code execution under whatever privileges the update/restart job runs with."
+failed_paths: []
+tools:
+  - Python requests/urllib
+  - custom local HTTP server for a temporary npm proxy
+  - npm publish tooling
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Prison Pipeline/writeup/writeup.md"
+playbook: web_ssrf.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Prison Pipeline/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Prison Pipeline/solve/solve.py"
+time_heuristic: "When an app lets you fetch arbitrary URLs and stores the response, always test file:// for local file read, and check whether a reverse proxy's Host-header-based vhost routing exposes an 'internal-only' service you can then feed poisoned data into (e.g. a private package registry behind an automated update job)."
+last_verified: "2026-11-04"

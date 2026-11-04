@@ -1,0 +1,41 @@
+id: bytemectf2026_forgotten_guardian
+event: ByteMe CTF 2026
+category: osint
+challenge_name: The Forgotten Guardian
+status: solved
+flag: "OWASP{VOR}"
+confidence: 1.0
+artifact_hashes:
+  - file: files/archive_notes.txt
+    sha256: 31da2b85e261b974bda337cbc37db8249db779b248693b59be96b84d8a219fa5
+  - file: files/social_cache.txt
+    sha256: 7071593525ee7f0fd7c279c04a0ee9e07b18afa4d263c46b1dd7d1719d9f2982
+signals:
+  - Social clue provides an archive number.
+  - Supplied index maps archive numbers to three-letter marks.
+  - Curator explicitly defines the guardian mark as the record key.
+key_idea: Join the social archive number to the supplied archive table, enforce uniqueness, and use the selected mark as the flag body.
+prerequisites:
+  - Read text artifacts as structured evidence before external searches.
+exploitation_pattern: Extract explicit identifier -> join against local index -> validate independent clue -> wrap the recovered value in the declared flag format.
+verification:
+  method: deterministic solver replay with unique-record and clue assertions
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Forgotten Guardian/solve/evidence/recovery.json"
+pitfalls:
+  - Do not confuse local reconstruction with portal acceptance; no submission was made.
+failed_paths:
+  - Two exact-title web searches returned no matching public walkthrough; local files were sufficient.
+tools:
+  - Python 3
+hexstrike:
+  used: false
+  useful: false
+  notes: The challenge was resolved from two tiny local text artifacts.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Forgotten Guardian/files/archive_notes.txt"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Forgotten Guardian/files/social_cache.txt"
+playbook: none
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Forgotten Guardian/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Forgotten Guardian/solve/solve.py"
+time_heuristic: Parse tiny clue files first; an explicit archive number plus an index often resolves an easy OSINT task in minutes.
+last_verified: "2026-10-09"

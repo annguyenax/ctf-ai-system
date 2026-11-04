@@ -1,0 +1,41 @@
+id: securinetsquals2026_murder
+event: "Securinets CTF Quals 2026"
+category: "osint/godot-game-export-pck-extraction"
+challenge_name: "Murder"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A task framed as a video/photo forensics OSINT challenge actually ships a 109MB PE32+ GUI executable that is a self-contained Godot Engine 4.7.2 export with its data pack (PCK) appended to the EXE."
+  - "The zip entry uses compression method 14 (LZMA, 'need PK compat v6.3'), which both standard `unzip` and PowerShell `Expand-Archive` fail to extract -- 7-Zip extracts it correctly."
+  - "The appended PCK is located via a trailing `GDPC` magic footer: last 4 bytes = magic, preceding 8 bytes (little-endian uint64) = PCK size, giving the exact byte range to scope any keyword search to (avoiding the ~20MB bundled ICU locale-data blob in .rdata, which coincidentally contains real-looking but unrelated words like 'murder'/'killer'/'victim' from its test corpus)."
+  - "The only narrative-relevant string recovered from the actual game data (not the ICU noise) is a developer credits line ('created by <handle>') -- a unique-looking alias intended as the actual OSINT pivot point toward the described person's identity/nationality."
+key_idea: "When an OSINT challenge's 'only evidence file' turns out to be a large self-contained game engine export rather than genuine photo/video evidence, identify the engine (Godot: GDPC magic footer) and extract its embedded data pack directly by byte offset rather than relying on a generic unzip tool that may silently fail on the archive's compression method; then scope any string/keyword search strictly to the data-pack byte range to avoid false-positive matches inside bundled engine locale/test data that coincidentally contains thematically-relevant words."
+prerequisites:
+  - "Godot Engine PCK format (GDPC magic, trailing size field)"
+  - "zip compression-method awareness (method 14/LZMA support gaps in standard tools)"
+  - "entropy/noise filtering of bundled engine assets (ICU locale data)"
+exploitation_pattern: "extract the zip with 7-Zip when standard tools fail on LZMA method 14 -> locate the GDPC footer at EOF to compute the embedded PCK's exact byte range -> extract res://-relative script/scene paths and raw strings from strictly that byte range -> ignore large low-signal blobs elsewhere in the binary (ICU locale data) -> follow the one genuine narrative string (developer credit/alias) as the real OSINT pivot."
+verification:
+  method: "No flag recovered yet; this documents the confirmed file-format identification and extraction method only."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/OSINT/Murder/notes/ANALYSIS.md"
+pitfalls:
+  - "A zip archive using compression method 14 (LZMA) is silently unsupported by `unzip` and PowerShell's `Expand-Archive` -- use 7-Zip (or an LZMA-aware library) instead of assuming extraction failure means a corrupt/encrypted archive."
+  - "Bundled engine runtime data (Unicode/ICU locale databases, test corpora) can contain large amounts of real-world English text that coincidentally matches a challenge's narrative keywords -- always scope keyword searches to the identified payload/data byte range, not the whole binary, to avoid chasing false positives."
+failed_paths: []
+tools:
+  - "7-Zip"
+  - "manual GDPC footer parser"
+  - "strings (scoped to PCK byte range)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/OSINT/Murder/files/parkour.zip"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/OSINT/Murder/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/OSINT/Murder/solve/solve.py"
+time_heuristic: "When an OSINT 'evidence file' is unexpectedly a large executable, check for a known game-engine export format (Godot GDPC footer, Unity data files, etc.) and extract its data pack directly by offset; always scope string searches to the actual payload region to avoid bundled-library noise."
+last_verified: "2026-11-04"

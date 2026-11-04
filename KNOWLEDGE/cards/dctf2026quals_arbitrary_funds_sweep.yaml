@@ -1,0 +1,37 @@
+id: dctf2026quals_arbitrary_funds_sweep
+event: DefCamp CTF 2026 Quals
+category: web3/cross-chain-address-aliasing
+challenge_name: "arbitrary-funds-sweep"
+status: solved
+flag: "DCTF{b4s3_l4y3r_15_4lw4y5_b0r1ng_th4t5_l1f3}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A Vault contract on L2 is owned by an L1 contract address (Saylor), but the L1->L2 relayer rewrites the caller address by adding a fixed offset (+0x1111...1111), i.e. standard L2 address aliasing for cross-chain messages."
+  - "Calling Saylor.relay -> L2 execute() reverts 'not the owner' because the aliased address never equals the real L1 Saylor address recorded as vault.owner."
+  - "An identical CREATE2 factory exists on both L1 and L2 with a deterministic address formula (salt + bytecode)."
+key_idea: "Instead of relaying through the (aliased, mismatched) bridge path, redeploy the exact same owner contract bytecode and salt directly on L2 via CREATE2 so the resulting contract address matches vault.owner exactly; then call the vault's execute() directly on L2 through that redeployed contract, bypassing the cross-chain aliasing mismatch entirely."
+prerequisites:
+  - "Understanding of L2 bridge address aliasing (sender address + fixed offset, e.g. Arbitrum's 0x1111...1111 alias offset)"
+  - "CREATE2 deterministic deployment (address = f(deployer, salt, init code hash))"
+exploitation_pattern: "owner address check expects the UNALIASED L1 contract's address on L2, but the relay path always arrives aliased -> deploy the same bytecode+salt via CREATE2 directly on L2 so the deployed contract's address equals the expected (unaliased) owner address -> call vault.execute() from that contract on L2 directly, no bridge/relay needed."
+verification:
+  method: "On-chain action: CREATE2-deployed contract issued the vault's execute() drawing 5 ETH to the player address, vault balance went 5 ETH -> 0, and the challenge's GET /flag endpoint returned the flag."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/arbitrary-funds-sweep/writeup/writeup.md"
+pitfalls:
+  - "Waiting on or trying to fix the aliased cross-chain retryable-ticket relay path is a dead end here -- the aliasing offset is fundamental to the bridge and cannot be bypassed by retrying; the owner check must be satisfied directly on the target chain instead."
+failed_paths:
+  - "Relaying through Saylor.relay to L2 execute() always reverts 'not the owner' because the bridge-aliased caller address never matches the unaliased owner address recorded on the vault."
+tools:
+  - Solidity / EVM tooling (Foundry/Hardhat-style scripting implied)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/arbitrary-funds-sweep/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/arbitrary-funds-sweep/writeup/writeup.md"
+solver: ""
+time_heuristic: "When an L2 contract's owner check expects an L1 contract's address but the only path into L2 is via a bridge that aliases the sender address, check for a deterministic deployer (CREATE2/CREATE1 with known nonce) that lets you redeploy the SAME bytecode directly on L2 at the exact address the check expects, instead of fighting the aliasing in the relay path."
+last_verified: "2026-11-04"

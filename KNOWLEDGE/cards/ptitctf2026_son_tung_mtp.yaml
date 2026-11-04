@@ -20,7 +20,7 @@ prerequisites:
 exploitation_pattern: "WAV + attempt limit -> spectrogram 'try harder' is decoy -> identify cover song -> subtract -> hunt second layer"
 verification:
   method: "unsolved; spectrogram independently readable as decoy on original and on residual after Hãy Trao Cho Anh subtract"
-  evidence: "../CTFTimeWriteup/PTITCTF2026/Forensics/Sơn Tùng M-TP/solve/evidence/manifest.md"
+  evidence: "../ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Forensics/Sơn Tùng M-TP/solve/evidence/manifest.md"
 pitfalls:
   - "listening alone misses the ultrasonic message"
   - "deep LSB/carving is unnecessary after a localized spectral anomaly appears"
@@ -45,7 +45,7 @@ hexstrike:
   notes: "Local DSP was sufficient; no remote scanner or carving capability was needed."
 sources: []
 playbook: PLAYBOOKS/rf_multimode_audio_spectrogram.md
-writeup: "../CTFTimeWriteup/PTITCTF2026/Forensics/Sơn Tùng M-TP/writeup/writeup.md"
-solver: "../CTFTimeWriteup/PTITCTF2026/Forensics/Sơn Tùng M-TP/solve/solve.py"
+writeup: "../ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Forensics/Sơn Tùng M-TP/writeup/writeup.md"
+solver: "../ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Forensics/Sơn Tùng M-TP/solve/solve.py"
 time_heuristic: "For a clean 48/96 kHz WAV, overview the entire Nyquist band before deep bit-plane work; crop isolated high-frequency regions."
 last_verified: "2026-08-22"

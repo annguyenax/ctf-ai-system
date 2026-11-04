@@ -1,0 +1,62 @@
+{
+  "challenge_id": "fortidctf2026_hacker_cinema",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Hacker Cinema",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Static read of PHP source: nonce derivation, date functions, jackpot predicate.",
+      "result": "Nonce is deterministic HMAC over ticket fields incl. kiosk_partition_date(ts); message uses ticket_date_from_timestamp(ts) — two different date code paths; winner requires 256-bit preimage so forging is the only path.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Crypto/Hacker Cinema/files/handout.zip",
+      "notes": "MIN_SCREENING_TS=-70000000000 invites negative timestamps; Dockerfile pins php:8.4.16."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Compare the two date functions on day boundaries over the full ts range on PHP 8.4.24 (WSL).",
+      "result": "No divergence — quirk absent on 8.4.24.",
+      "evidence_path": "inline php -r scan",
+      "notes": "Killed; replaced by exact-version test."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Same scan on exact-version PHP 8.4.16 Windows binary.",
+      "result": "Divergence around year 0: kp-day 0000-01-29 spans [-62164800000, -62164627200) while td flips to 0000-01-30 at -62164713600.",
+      "evidence_path": "inline php -r scan (method in writeup 5.1)",
+      "notes": "Attack pair found: same nonce, different message."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2",
+      "action": "Buy seat A01 tickets at ts=-62164800000 and ts=-62164713600 on the remote instance; decode QRs.",
+      "result": "Both envelopes share identical r — nonce reuse confirmed live.",
+      "evidence_path": "solve/solve.py output",
+      "notes": "Remote runs 8.4.16-era behavior."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "Recover k and d; re-sign message 1 with (d,k).",
+      "result": "Re-signature reproduces (r, s1) exactly.",
+      "evidence_path": "solve/solve.py output",
+      "notes": "d=26e6cbedf60c78fd3996e9899e2febe4ff7a7eafbcf569c69eedc1fce77222d5 (per-instance)."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "CAPTURE",
+      "hypothesis_id": "H2",
+      "action": "Forge winner=true envelope with recovered key, render QR, POST /check; then submit flag via submit_flag.py.",
+      "result": "JACKPOT ACCEPTED with flag; platform accepted submission.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Crypto/Hacker Cinema/final_flag.txt",
+      "notes": "Flag: FortID{F0rg3_7h3_T1ck37_4nd_H4CK_TH3_PL4N3T!_4a87e16651}"
+    }
+  ]
+}

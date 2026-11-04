@@ -39,7 +39,7 @@ tools:
   - checksec
   - python socket
 playbook: PLAYBOOKS/rev_protobuf_wire_dwarf.md
-writeup: ../../CTFTimeWriteup/BushBash2026/rev/mystery server I/writeup.md
+writeup: ../../ctf-ai-system/OUTPUT/_archive/BushBash2026/rev/mystery server I/writeup.md
 related_series: "mystery server II likely via ReadMultipleMessages (field 5, unused by CLI)"
 time_heuristic: >
   Rust binary + custom TCP protocol -> check DWARF presence first (readelf

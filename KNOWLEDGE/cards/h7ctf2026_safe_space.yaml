@@ -1,0 +1,32 @@
+id: "h7ctf2026_safe_space"
+event: "H7CTF 2026 Quals"
+category: "pwn/shellcode-sandbox-single-syscall-blocklist-bypass"
+challenge_name: "Safe Space"
+status: "solved"
+flag: "H7CTF{e9c30ce9-8074-4d42-91b2-8aa446f3e3e2}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A shellcode-execution sandbox blocks only the execve syscall and allows everything else."
+key_idea: "When a shellcode sandbox blocklists only execve (or a small syscall set), the standard bypass is Open-Read-Write (ORW) shellcode: open(\"/flag\", O_RDONLY) -> read(fd, buf, N) -> write(STDOUT, buf, N) -- none of these syscalls are typically blocked, and this reads the flag without ever needing a shell. Push the target path string onto the stack and point rdi at it rather than needing a data section."
+prerequisites:
+  - "Basic x86-64 raw syscall shellcode writing (syscall numbers 2/0/1 for open/read/write)"
+exploitation_pattern: "craft ORW shellcode (push path bytes to stack, open, read into stack buffer, write to stdout, exit) -> send over the raw TCP connection -> shutdown(SHUT_WR) to signal EOF if the sandbox reads until EOF -> flag printed in the response."
+verification:
+  method: "Live replay; flag file contents were printed directly by the ORW shellcode's write() call."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Safe Space/writeup/writeup.md"
+pitfalls:
+  - "Confirm which syscalls are actually blocked (not just execve) before assuming the standard ORW sequence is unrestricted."
+failed_paths: []
+tools:
+  - "raw socket / Python"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Safe Space/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Safe Space/solve/solve.py"
+time_heuristic: "For a shellcode sandbox that blocks only execve (or a short syscall list), default to Open-Read-Write (ORW) shellcode on the flag file rather than trying to achieve a shell -- it sidesteps the blocklist entirely and is the fastest path to the flag."
+last_verified: "2026-11-04"

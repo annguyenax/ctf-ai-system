@@ -1,0 +1,36 @@
+id: rstconctf2026_life_savings
+event: RSTCONCTF2026
+category: forensics
+challenge_name: Life Savings
+status: solved
+flag: rstcon{ka$h_m3_outs1de-howbout_that}
+confidence: 1.0
+artifact_hashes:
+- a813e3c3acc619812de028a10eb9678343f6913cb91af450378a32ba1d7cbd6d
+signals:
+- PNG dimension recovery and CRC reconstruction
+key_idea: PNG dimension recovery and CRC reconstruction
+prerequisites:
+- Pillow
+exploitation_pattern: PNG dimension recovery and CRC reconstruction
+verification:
+  method: deterministic replay and retained portal response
+  evidence: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Life Savings/solve/evidence/manifest.md
+pitfalls:
+- Fixing only IHDR leaves 269 corrupt CRCs. The barcode decoder returned no result;
+  the readable VALIDATION text and challenge response provide the flag check.
+failed_paths: []
+tools:
+- Python
+- Pillow
+hexstrike:
+  used: false
+  useful: false
+  notes: Local tooling sufficient; health not queried.
+sources:
+- D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Life Savings/chalenge.md
+playbook: ''
+writeup: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Life Savings/writeup/writeup.md
+solver: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Life Savings/solve/solve.py
+time_heuristic: Shallow structure inspection before heavy tools
+last_verified: '2026-10-25'

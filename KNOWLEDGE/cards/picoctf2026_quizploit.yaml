@@ -1,0 +1,36 @@
+id: picoctf2026_quizploit
+event: picoCTF 2026
+category: pwn/automated-binary-analysis-quiz
+challenge_name: "Quizploit"
+status: solved
+flag: "picoCTF{my_bIn@4y_3xpl0it_fL@g_14e96da2}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Remote service asks a fixed sequence of 13 multiple-part questions about a provided ELF binary's properties (bitness, linking, stripped status, buffer size, read size, protections, vulnerable function address, etc.) rather than requiring a live exploit.
+key_idea: Not every "Binary Exploitation" challenge requires crafting a live exploit — some are knowledge-check quizzes about a binary's static properties. Answer each question with standard static analysis (`file`, `checksec`, `nm`/`readelf` for symbols and addresses, source/decompiled review for buffer sizes and the vulnerable call), then automate submission of the fixed answer sequence over the socket since the questions are asked in the same order every connection.
+prerequisites:
+  - Standard ELF static analysis tooling (file, checksec, nm, readelf) or a decompiler
+  - Simple socket automation to answer a fixed Q&A sequence
+exploitation_pattern: static-analyze the provided binary for each quiz fact (arch/linking/strip status/buffer+read sizes/protections/vulnerable function address) -> connect to remote quiz service -> send each answer in the fixed question order -> service validates and returns the flag on 13/13 correct.
+verification:
+  method: Live remote run returned "Correct flag!" / 13-13 confirmation from the service, matching the recorded flag exactly.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Pwn/Quizploit/writeup/writeup.md"
+pitfalls:
+  - Don't assume a "Binary Exploitation" category challenge needs a working exploit chain; read the prompt/interaction carefully first — it may be a pure static-analysis quiz with no actual memory-corruption step required.
+failed_paths: []
+tools:
+  - file, checksec, nm/readelf (or decompiler) for static ELF analysis
+  - Python 3 sockets
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Pwn/Quizploit/files/vuln.c"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Pwn/Quizploit/files/vuln"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Pwn/Quizploit/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Pwn/Quizploit/solve/solve.py"
+time_heuristic: Remote pwn-category service that interacts via a fixed sequence of multiple-choice/fill-in questions rather than taking raw input -> it's likely a static-analysis knowledge quiz; derive each answer from file/checksec/nm/readelf and script the fixed answer sequence over the socket.
+last_verified: "2026-11-04"

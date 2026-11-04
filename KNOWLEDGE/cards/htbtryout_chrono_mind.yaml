@@ -1,0 +1,39 @@
+id: htbtryout_chrono_mind
+event: HTB Try Out
+category: web/rag-prompt-injection-path-traversal-rce-chain
+challenge_name: "Chrono Mind"
+status: solved
+flag: "HTB{1nj3c73d_c0n73x7_c0p1l07_3x3cu73_c8d54761407a230c952d20dd2a655ff9}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "getRepository(topic) builds a file path as f'{knowledgePath}/{topic}{suffix}' with zero sanitization of topic, a classic path-traversal sink."
+  - "The ingested document becomes RAG context for a small instruct LLM that answers free-text questions grounded in that context."
+  - "A second endpoint executes LLM-completed code if the request supplies a secret copilot_key, which is itself regenerated randomly at each container start and lives only in a config file."
+key_idea: "Chain path traversal (topic='../config.py') to load the app's own config file (containing the per-run-random copilot_key secret) into the RAG knowledge base, then prompt-inject the small LLM through the normal chat endpoint to make it echo the secret back out of its retrieved context, then use the leaked key to submit a code-completion request whose fixed prefix invokes a setuid readflag binary."
+prerequisites:
+  - Unsanitized topic-to-path concatenation feeding a RAG document loader
+  - An LLM chat endpoint that will echo retrieved context verbatim/near-verbatim on request
+  - A secondary privileged action gated only by a secret that can end up inside the RAG context
+exploitation_pattern: "path traversal loads app secret into RAG knowledge base -> prompt injection extracts the secret from the model's context via the normal chat endpoint -> secret unlocks code-execution endpoint -> run setuid flag-reader"
+verification:
+  method: "Automated 3-step HTTP script performed the traversal ingest, extracted the key via the ask endpoint, then invoked the copilot RCE endpoint whose JSON result field contained the flag; raw evidence saved per step."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Chrono Mind/solve/evidence/04_flag.txt"
+pitfalls:
+  - "Never load unsanitized attacker-chosen paths into any context an LLM can read and later restate; a path-traversal bug becomes a secret-exfiltration primitive the moment the model can see the loaded file's contents."
+  - "A random-per-run secret is not safe if it is readable as a file by any process that itself has an LFI/traversal bug, even indirectly through a knowledge-base loader."
+  - "A code-completion feature gated by a secret, when combined with subprocess execution of its own output, is full RCE, not a limited 'copilot' feature."
+failed_paths: []
+tools:
+  - Python urllib
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Chrono Mind/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Chrono Mind/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Chrono Mind/solve/solve.py"
+time_heuristic: "When an app lets you load arbitrary paths into an LLM's retrieval context (RAG), treat that as a direct secret/file-exfiltration channel via prompt injection, independent of any separate path-traversal CVE classification."
+last_verified: "2026-11-04"

@@ -1,0 +1,41 @@
+id: hackluctf2026_linkedinspirator
+event: "Hack.lu CTF 2026"
+category: "crypto/cbc-padding-oracle+ecb-tag-forge"
+challenge_name: "LinkedInspirator"
+status: solved
+flag: "flag{nothing_good_in_life_comes_easy_2c831a6cb463f3e0407786947cd25ef7}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A silently-caught `ValueError` from `unpad()` on invalid PKCS#7 padding vs. a printed error on valid padding is a classic CBC padding oracle, giving full block decryption via ~16*256 queries per block."
+  - "The server checks an ECB-decrypted 'auth_tag' against `xor_blocks(plaintext)`, but there is no encryption oracle -- only decryption -- so the tag must be fixed first and the required plaintext constructed backward via CBC-R."
+  - "Latin-1 `.strip()` removes exactly 12 whitespace byte values, all of which share bit 0x40==0; since the required plaintext core's hex-digest-derived bytes also have bit 0x40 encoding hex-letter-vs-digit, you can brute-force a username whose SHA-256 hex digest makes `xor_blocks(core) XOR target` land entirely inside the whitespace lookup table, letting 4 whitespace-padding blocks absorb the XOR difference."
+key_idea: "Combine a CBC padding oracle (full block-decryption primitive) with CBC-R backward chaining to forge a multi-block plaintext that both matches a required textual template after `.strip()` and satisfies an ECB-decrypted XOR-tag check, by searching offline for a username whose SHA-256 digest makes the required XOR difference entirely expressible as latin-1 whitespace bytes."
+prerequisites:
+  - "CBC padding oracle mechanics"
+  - "CBC-R (backward/Vaudenay) forgery construction"
+  - "latin-1 .strip() whitespace byte-value awareness"
+exploitation_pattern: "padding-oracle block decryption -> recover ECB-tag's AES-ECB-decrypted value -> offline search for a username whose digest makes the needed XOR-blocks difference land in a precomputed whitespace-byte lookup table -> CBC-R backward-construct the full ciphertext -> pipeline the 256-candidate-per-byte oracle queries over one TLS connection to cut wall-clock time."
+verification:
+  method: "Remote: the forged token was accepted by a live instance ('Your thought leadership journey starts now.') and the follow-up endpoint returned the exact flag bytes from the target."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Crypto/LinkedInspirator/solve/solve_remote.py"
+pitfalls:
+  - "Only a decryption oracle is available (no direct encryption) -- a tag/MAC check against an ECB-decrypted value must be solved by fixing the ciphertext first and using CBC-R to build matching plaintext backward, not by trying to encrypt forward."
+  - "`.strip()` under latin-1 removes a specific 12-byte whitespace set; when you need several trailing blocks to vanish after strip while still contributing to an XOR/checksum, precompute a k-block whitespace-combination lookup table keyed by XOR value rather than searching byte-by-byte."
+  - "A padding-oracle attack with up to tens of thousands of queries at ~1s/request is impractical sequentially -- batch all 256 candidates for a byte into one pipelined burst over a single persistent connection and distinguish responses by substring, not by exact text match (to avoid false positives from similarly-worded messages)."
+failed_paths: []
+tools:
+  - "Python 3"
+  - "pycryptodome"
+  - "raw socket/SSL pipelining"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Crypto/LinkedInspirator/files"
+playbook: "crypto_cbc_bitflip.md"
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Crypto/LinkedInspirator/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Crypto/LinkedInspirator/solve/solve_remote.py"
+time_heuristic: "Padding-oracle + separate ECB-tag-check services with no encryption oracle: plan a CBC-R backward build from the start, and precompute any strip()-whitespace byte combinations needed to satisfy a parallel plaintext-template constraint."
+last_verified: "2026-11-04"

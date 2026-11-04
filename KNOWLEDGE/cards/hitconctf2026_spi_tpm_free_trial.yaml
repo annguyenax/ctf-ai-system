@@ -1,0 +1,42 @@
+id: hitconctf2026_spi_tpm_free_trial
+event: "HITCON CTF 2026"
+category: "rev+crypto/custom-cipher-cpa-oracle"
+challenge_name: "SPI TPM Free Trial"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "`get_flag` encrypts the flag once at boot under key-id 1 with a huge COST (also used as an internal round count) and caches the ciphertext; any client can later `encrypt 1 <small cost> <chosen hex>` using that exact key with no ACL on the key id -- a chosen-plaintext oracle under the flag's own key."
+  - "`decrypt` on the flag's own blob is separately blocked by cost-weighted budget math (COST*(ceil(len/4)+256) vastly exceeds the 1024 budget) and the cost field is cryptographically bound into the tag, so it can't be tampered down."
+  - "The home-grown cipher's high words (ct_word[m+5]...) are a 32-bit-block cipher chained through a public 6-round Feistel (F1) and a cost-round Feistel keyed by K0,K1 (F2); at COST=1 each chosen-plaintext query leaks exactly 16 bits of a correct, live-validated SMT model of K0,K1."
+key_idea: "Reduce the home-grown TPM cipher's key recovery to a 128-bit SMT problem over K0,K1 using a single-round (COST=1) chosen-plaintext oracle that leaks 16 bits per query, validated bit-exact against the real firmware via a dlopen black-box harness -- but both Z3 and bitwuzla (bitblast and local-search backends, 600-1200s) return `unknown`, indicating a genuine solver-performance wall rather than a modeling bug."
+prerequisites:
+  - "QEMU device-model plugin reverse engineering (host-side .so, not guest code)"
+  - "SplitMix64/xorshift-multiply mix function analysis"
+  - "SMT modeling of bitvector round functions"
+exploitation_pattern: "no-ACL key id -> same-key chosen-plaintext oracle at trivial cost -> per-query 16-bit leak of K0,K1 -> SMT/algebraic key recovery -> reconstruct/decrypt the flag's own cached ciphertext offline (no budget limit applies locally)."
+verification:
+  method: "No flag recovered; the cipher model and oracle were validated bit-exact against the live firmware via a custom dlopen harness, but key recovery itself did not complete within solver time limits."
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Reverse/SPI TPM Free Trial/notes/ANALYSIS.md"
+pitfalls:
+  - "A field that is both a service-level 'cost' and an internal cryptographic round count can make `decrypt` on a high-cost ciphertext infeasible under the service's own resource budget even with a full key break -- don't assume decrypt-the-real-blob is the intended final step; recompute offline using the public header fields instead."
+  - "When a from-scratch SMT encoding of a custom cipher 'should' work but both Z3 and bitwuzla return unknown even at small N, suspect an analytically invertible stage (odd-constant xorshift-multiply mixes are invertible mod 2^64) that would shrink the search before reaching for a different solver."
+failed_paths:
+  - "The supplied loader/libc runtime combination triggers unrelated faults locally; must dlopen the .so directly via a custom harness instead of running the service binary as-is."
+tools:
+  - "Ghidra headless (via WSL)"
+  - "Python+z3-solver"
+  - "bitwuzla 0.9.1"
+  - "custom C dlopen harness"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Reverse/SPI TPM Free Trial/files/spi-tpm-rev-e15a21887cc92581.tar.gz"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Reverse/SPI TPM Free Trial/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Reverse/SPI TPM Free Trial/solve/solve_z3.py"
+time_heuristic: "For a custom cipher with a chosen-plaintext oracle reduced to SMT, try an analytic pre-reduction of any invertible mixing stage before spending solver-hours on the raw bitvector encoding -- a genuine 'solver returns unknown' wall is a sign to simplify the formula, not switch solvers repeatedly."
+last_verified: "2026-11-04"

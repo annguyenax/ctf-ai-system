@@ -1,0 +1,39 @@
+id: csawctf2026quals_ghost_in_the_machine
+event: "CSAW CTF Qualifications 2026"
+category: "forensics/pcap-covert-timing-channel"
+challenge_name: "Ghost in the Machine"
+status: solved
+flag: "csaw{t1m1ng_1s_3v3ryth1ng_1n_th3_s1l3nt_ch4nn3l}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "pcap magic bytes corrupted (0xC4C3B2A1 instead of 0xD4C3B2A1); fixing byte 0 repairs the file."
+  - "504 UDP packets, same src/dst, identical 4-byte ASCII payload 'PING' on every packet -> payload itself carries no data."
+  - "Two distinct TTL values among otherwise-identical packets: TTL=64 beacon packets vs TTL=113 injected noise packets to be filtered out."
+  - "Inter-packet arrival delay between consecutive TTL=64 packets clusters into two bands (~50ms vs ~150ms) -> binary 0/1 encoding."
+  - "Beacon packet source ports encode 40000+ord(c) for repeating characters of a thematic word, which turns out to be the XOR key for the decoded bitstream."
+key_idea: "When every visible packet payload is byte-for-byte identical ('boring'), the exfiltration channel is the metadata, not the payload: filter packets by a side attribute (TTL here) to separate signal from injected noise, then decode the signal from inter-packet timing deltas as a two-level (short/long delay) binary channel."
+prerequisites:
+  - "pcap global header structure (to recognize/fix a corrupted magic byte)"
+  - "Basic packet timing/TTL analysis (scapy or manual struct parsing)"
+exploitation_pattern: "repair pcap magic byte -> parse packets manually with struct -> split by TTL into beacon vs noise -> compute inter-arrival deltas of beacon packets only -> threshold deltas into bits (short=0, long=1) -> pack 8 bits/byte MSB-first -> XOR with repeating key recovered from the beacon source-port pattern -> flag"
+verification:
+  method: "Deterministic decode; all recovered bytes have bit 7 clear confirming 7-bit ASCII structure, and XOR with the derived key yields a well-formed flag."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Ghost in the Machine/writeup/writeup.md"
+pitfalls:
+  - "Don't assume a corrupted pcap is unusable -- a single-byte magic-number fix (0xC4->0xD4) is often all that's needed."
+  - "A mix of two TTL values among otherwise-identical packets is a strong signal of injected noise packets that must be filtered out before timing analysis."
+failed_paths: []
+tools:
+  - "python3 (struct, manual pcap parsing)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Ghost in the Machine/files/capture.pcap"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Ghost in the Machine/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Ghost in the Machine/solve/solve3.py"
+time_heuristic: "All packet payloads identical in a pcap challenge: look at TTL/timing/port metadata for a covert channel instead of the payload bytes."
+last_verified: "2026-11-04"

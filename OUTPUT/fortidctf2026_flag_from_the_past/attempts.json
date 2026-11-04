@@ -1,0 +1,26 @@
+{
+  "challenge_id": "fortidctf2026_flag_from_the_past",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Flag from the Past",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "INTAKE",
+      "hypothesis_id": "H1",
+      "action": "Follow the prior-year clue to FortID's official public challenge archive.",
+      "result": "The current prompt has no attachment or instance; the official repository contains the 2025 OSINT Exam solution linked by OSINT Exam II.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/OSINT/Flag from the Past/solve/evidence/official_2025_flag_excerpt.txt",
+      "notes": "The answer is inferred to be the published 2025 FortID OSINT Exam flag from the challenge wording and direct prior-year linkage."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Run the local extraction script against the preserved official-source excerpt.",
+      "result": "Exactly one FortID-formatted flag is extracted. No scoreboard acceptance check was made.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/OSINT/Flag from the Past/solve/evidence/verification.txt",
+      "notes": "Source-based local verification; not submitted."
+    }
+  ]
+}

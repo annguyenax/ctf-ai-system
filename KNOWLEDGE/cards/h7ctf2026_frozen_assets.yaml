@@ -1,0 +1,36 @@
+id: "h7ctf2026_frozen_assets"
+event: "H7CTF 2026 Quals"
+category: "forensics/av-quarantine-vault-xor-plus-weak-aes-derivation"
+challenge_name: "Frozen Assets"
+status: "solved"
+flag: "H7CTF{750b6f18160c332f9f2b}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Disk image includes an Avast \"Virus Chest\" quarantine (index.xml + vault.db) that already quarantined the actual ransomware binary before it finished its run elsewhere on disk."
+  - "The ransomware calls CryptHashData with an empty-length buffer before CryptDeriveKey -- the AES key is therefore MD5(\"\") with a static IV, not a random per-run secret."
+key_idea: "Two chained forensic recoveries: (1) AV quarantine vaults are typically encrypted with a static key embedded in the AV vendor's own DLL (e.g. a named export/RVA inside aswntsqlite.dll XORed cyclically against vault.db) -- extract that key from the DLL's own binary and decrypt the vault to recover the quarantined malware sample itself as evidence; (2) when reversing that malware's crypto API usage, always check what CryptHashData/CryptDeriveKey is actually hashing -- an empty-string hash (CALG_MD5 of \"\") plus an all-zero IV is a very common \"looks random but isn't\" shortcut that collapses key recovery to zero effort."
+prerequisites:
+  - "PE parsing (pefile) to locate a hardcoded key at a known RVA inside a legitimate AV DLL"
+  - "Windows CryptoAPI call sequence reading (CryptAcquireContext/CryptHashData/CryptDeriveKey/CryptSetKeyParam)"
+exploitation_pattern: "pefile-extract the vault key from the AV DLL's .rdata at its documented RVA -> cyclic-XOR decrypt vault.db -> open as SQLite, pull the quarantined ransomware binary blob out of the stream table -> reverse its CryptoAPI calls -> notice CryptHashData hashes an empty buffer -> key = MD5(b\"\"), IV = 16 zero bytes -> AES-128-CBC decrypt every *.enc file on the target drive."
+verification:
+  method: "Deterministic decryption; recovered plaintext files (recovery codes, financial docs) parsed cleanly and contained the flag."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Frozen Assets/writeup/writeup.md"
+pitfalls:
+  - "Don't skip the quarantine vault as \"just AV noise\" -- it can contain the only intact copy of the malware sample needed for the real reversing step."
+failed_paths: []
+tools:
+  - "pefile"
+  - "sqlite3"
+  - "cryptography"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Frozen Assets/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Frozen Assets/solve/solve.py"
+time_heuristic: "On a disk image with an AV product installed, check its quarantine/vault store for the actual malware sample before trying to carve it from unallocated space; and when reversing any CryptDeriveKey-based key schedule, verify exactly what buffer CryptHashData hashed -- an empty-string hash is a frequent, trivially-exploitable weak-key shortcut."
+last_verified: "2026-11-04"

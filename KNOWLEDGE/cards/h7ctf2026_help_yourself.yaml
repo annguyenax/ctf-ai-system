@@ -1,0 +1,35 @@
+id: "h7ctf2026_help_yourself"
+event: "H7CTF 2026 Quals"
+category: "mobile/server-always-returns-privileged-field-client-hides-it"
+challenge_name: "Help Yourself"
+status: "solved"
+flag: "H7CTF{dee10102-2ba5-420f-b468-3afe03a8cd2f}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Decompiled Android APK shows device-auth enrollment accepts any self-chosen device_id (no real identity check) and returns a bearer token."
+  - "A sync endpoint's JSON response always includes an \"agent-only\"/internal object alongside the public data; the app's UI code simply never renders that field, giving a false impression it's server-side gated."
+key_idea: "Mobile \"authorization\" is often purely cosmetic -- the UI code chooses not to display a field, while the backend API response contains it regardless of role. Decompile the APK (androguard/jadx) to learn the exact auth handshake (headers, enrollment body) and endpoint paths, replay the handshake directly with plain HTTP calls, and read the RAW JSON response rather than anything the app's rendering logic would show -- the \"protected\" data is frequently sitting right there, ungated server-side."
+prerequisites:
+  - "androguard/jadx for decompiling classes.dex"
+  - "Any self-registerable device/session identity scheme"
+exploitation_pattern: "decompile APK -> find auth endpoint + required headers (e.g. X-Client header) + enrollment body shape -> POST with a freshly generated random device id -> GET the sync/data endpoint with the returned bearer token -> print full raw JSON -> privileged field is present unconditionally."
+verification:
+  method: "Live replay; raw JSON response from the sync endpoint contained the internal/agent-only object with the flag in its value field."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Mobile/Help Yourself/writeup/writeup.md"
+pitfalls:
+  - "Testing only through the app's own UI will never reveal server-side-unprotected fields the client simply chooses not to render; always replay the raw API."
+failed_paths: []
+tools:
+  - "androguard / jadx"
+  - "requests"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Mobile/Help Yourself/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Mobile/Help Yourself/solve/solve.py"
+time_heuristic: "For any mobile-app CTF challenge claiming a note/field is \"agent-only\"/hidden, decompile the client to learn its raw API handshake and read the full JSON response yourself -- client-side-only field hiding (no server-side authorization) is one of the most common mobile-API flaws, and the same pattern recurs across different apps in the same event (e.g. H7CTF2026 Onyx Locker)."
+last_verified: "2026-11-04"

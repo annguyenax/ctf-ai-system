@@ -1,0 +1,48 @@
+id: compfest18ctf2026_save_the_water
+event: "CTF COMPFEST 18 (2026)"
+category: "forensics/pcap-exfil-minidump-aes"
+challenge_name: "save the water"
+status: needs_verification
+flag: ""
+confidence: 0.3
+artifact_hashes:
+  - file: "files/public.7z"
+    sha256: "c027447dad0dcc9f2efd006313ecb50a00b182104ed7b82e50aa1a6544c1e6b4"
+signals:
+  - "ICMP echo-request payloads carry a 5-byte 'EXFIL' marker per packet; stripping it and joining in packet order reconstructs a 45,109,394-byte stream with MDMP (Windows MiniDump) magic."
+  - "The MiniDump's PEB reveals the running service: 'python cctv_service.py' at C:/Users/satria/Downloads/cctv_service.py."
+  - "HTTP response TCP segments must be reassembled by TCP sequence number, not capture order, to get a byte-correct /video.enc body."
+  - "Memory-dumped strings contain a literal 32-byte AES key text and a 16-byte IV, which AES-CBC + PKCS7-unpad /video.enc into a valid ZIP (video.mp4, HEVC/AAC, validated by ffprobe)."
+  - "A second artifact, /private.676767, is a WinZip AES archive (fastAI.zip) whose password is none of the obvious candidates (IV string, AES key text, or the literal filename-derived '676767')."
+key_idea: "Full exfil chain recovered deterministically (ICMP marker-stripped reassembly -> MiniDump parse -> PEB service identification -> sequence-aware HTTP reassembly -> AES key/IV extraction from process memory strings -> AES-CBC decrypt of /video.enc), but the terminal artifact (/private.676767 -> fastAI.zip) is still password-protected with no verified password found after scanning 140,740 printable strings extracted from the MiniDump. No flag bytes were found in any reconstructed artifact. The challenge intake table (chalenge.md) lists a flag 'COMPFEST18{16031115}' but the writeup explicitly disavows it as unverified and states it was removed from final_flag.txt — treat the chalenge.md flag field as an unconfirmed claim, not evidence."
+prerequisites:
+  - "dpkt or similar PCAP parsing library"
+  - "Python minidump package for MDMP parsing"
+  - "PyCryptodome for AES-CBC/PKCS7 and pyzipper for WinZip AES archives"
+exploitation_pattern: "ICMP covert channel marker stripped -> reassembled binary is a Windows MiniDump -> PEB/service metadata identifies the target process -> sequence-correct TCP/HTTP reassembly -> memory-string-derived AES key+IV decrypts one artifact -> a second, password-protected archive remains the final blocker."
+verification:
+  method: "No deterministic flag recovery; all reconstruction steps (hashes, MDMP parse, AES decrypt, ffprobe validation) are independently verifiable, but the terminal fastAI.zip password search exhausted 140,740 candidate strings with no match."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Forensics/save the water/solve/evidence/deep_analysis.md and solve/evidence/manifest.md"
+pitfalls:
+  - "Naive capture-order concatenation of HTTP response TCP segments produces a corrupted body; must reassemble by TCP sequence number."
+  - "The chalenge.md intake table's listed flag (COMPFEST18{16031115}) is an unverified claim contradicted by the writeup's own status; do not treat an intake-table flag field as ground truth without independent evidence."
+  - "Obvious password candidates derived from recovered strings (IV text, AES key text, filename-derived number) all failed against the final WinZip AES archive."
+failed_paths:
+  - "Brute-forcing/scanning 140,740 printable strings recovered from the MiniDump as the WinZip AES password for fastAI.zip — none validated (no HMAC match)."
+tools:
+  - "dpkt"
+  - "Python minidump package"
+  - "PyCryptodome"
+  - "pyzipper"
+  - "ffprobe"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Forensics/save the water/files/public.7z"
+playbook: "forensics_pcap.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Forensics/save the water/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Forensics/save the water/solve/reconstruct_and_decrypt.py"
+time_heuristic: "When a PCAP challenge hides a covert channel inside ICMP echo payloads, check for a fixed short marker string per packet before assuming the stream is raw data; and always reassemble HTTP/TCP bodies by sequence number rather than packet-arrival order before attempting decryption."
+last_verified: "2026-11-04"

@@ -23,7 +23,7 @@ prerequisites:
 exploitation_pattern: parse polys -> fix vinegar -> linear-in-oil -> vinegar brute + consistency filter -> recover signature -> sha256 -> AES decrypt
 verification:
   method: eval_public(sig)==target for all 9 polys + clean AES unpad to L3AK{} flag
-  evidence: ../CTFTimeWriteup/L3akCTF2026/Crypto/Immiscible/solve/evidence/manifest.md
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Crypto/Immiscible/solve/evidence/manifest.md
 pitfalls:
   - z3 and sympy groebner both TIME OUT (>2min) on the modular quadratic system
   - must recover the EXACT signature (hash-derived key), so uniqueness (M>N) matters
@@ -40,7 +40,7 @@ hexstrike:
   notes: pure math, vectorized locally
 sources: []
 playbook: PLAYBOOKS/crypto_oil_and_vinegar_invert.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Crypto/Immiscible/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Crypto/Immiscible/solve/solve.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Crypto/Immiscible/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Crypto/Immiscible/solve/solve.py
 time_heuristic: "MQ system missing oil*oil -> OV -> fix vinegar, linear oil; brute vinegar vectorized ~1min"
 last_verified: "2026-08-02"

@@ -1,0 +1,33 @@
+{
+  "challenge_id": "bytemectf2026_soul_harvester",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Inspect challenge metadata, source, binary metadata, and existing outputs",
+      "result": "Source and compiled ELF are present; no prior solver or flag existed",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Miscellaneous/SOUL STONE — THE SOUL HARVESTER/solve/evidence/recovery.json",
+      "notes": "The executable was not run because an isolated VM was not available."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "ANALYSIS",
+      "hypothesis_id": "H1",
+      "action": "Trace the seed, targeting selector, per-class handling, and Soul-fragment exception in C++ source",
+      "result": "Confirmed deterministic file classes and a separate XOR stream for final_fragment.enc",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Miscellaneous/SOUL STONE — THE SOUL HARVESTER/solve/evidence/recovery.json",
+      "notes": "No filesystem side effects from the sample were produced."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Replay the 64-bit mix/XOR transform and validate all four fragments and their flag-format assembly",
+      "result": "Recovered SOUL|02|harvester_; assembled OWASP{forensics_harvester_complete}; every plaintext fragment literal is present in both source and ELF",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Miscellaneous/SOUL STONE — THE SOUL HARVESTER/solve/evidence/recovery.json",
+      "notes": "Local deterministic reconstruction only. Portal submission and isolated runtime behavior remain unverified."
+    }
+  ]
+}

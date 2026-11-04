@@ -1,0 +1,26 @@
+{
+  "challenge_id": "fortidctf2026_baby_crypto",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Baby Crypto",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Inspect the source for AES mode, nonce construction, and chosen-input/export operations.",
+      "result": "AES-CTR uses plaintext[:8] as nonce; the flag and user-selected entries share one key in a vault instance.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Crypto/files/chall.py",
+      "notes": "The exploit requires flag ciphertext and a chosen-plaintext oracle from the same instance."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Inspect the pre-existing solver/flag artifacts and query platform status using status.py (read-only GET).",
+      "result": "Local flag matches the writeup and FortID format; platform reports Baby Crypto SOLVED.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Crypto/solve/evidence/verification.txt",
+      "notes": "Did not rerun the live exploit or submit. Raw live ciphertext exchange is not retained."
+    }
+  ]
+}

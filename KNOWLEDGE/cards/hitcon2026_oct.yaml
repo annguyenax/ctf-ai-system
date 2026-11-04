@@ -1,0 +1,46 @@
+id: hitcon2026_oct
+event: HITCONCTF2026
+category: crypto/octonion-lattice
+challenge_name: oct
+status: solved
+flag: "hitcon{oct0ctOctoc70c7Oc7onion_algebra_is_not_that_hard_isn't_it?}"
+confidence: 1.0
+artifact_hashes:
+  - "a3b7ecfda96b58c1347e3c05c5259de80b7b228e7d14c63a402f840e55f44aa6"
+  - "19519042b5bc5426188bc6af5b011cb76978363754a28da985d153ec69ce5fd6"
+signals:
+  - Eight-coordinate projective vector modulo 2^16384
+  - Hidden word contains every generator index and 174 structured six-element blocks
+  - Cipher key is SHA-256 of the hidden two-byte index sequence
+key_idea: "Recover the short projective octonion vector with modular LLL, linearize its norm using 36 quadratic coefficient monomials, then peel each non-associative block with Moufang identities."
+prerequisites:
+  - Python 3.13
+  - python-flint 0.9.0
+  - PyCryptodome
+exploitation_pattern: "Build the 8D modular lattice; derive a known norm divisor from all generator norms; LLL the 36D Gram congruence; recover the coefficient vector; peel 174 blocks; forward-replay and decrypt AES-CTR."
+verification:
+  method: "Full forward reconstruction of the public vector plus exact AES-CTR re-encryption"
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/oct/solve/evidence/verification.json; scoreboard attempt returned Cloudflare HTTP 403"
+pitfalls:
+  - "Octonion multiplication is non-associative; the generator loop order and parentheses must match the source exactly."
+  - "The known norm divisor is built with small-prime exponent margins; check the norm congruence before trusting the LLL row."
+  - "A successful offline solve does not imply the remote scoreboard recorded the submission."
+failed_paths:
+  - "Official submission helper received HTTP 403 from Cloudflare; scoreboard status remains unknown."
+tools:
+  - Python 3.13.1
+  - python-flint 0.9.0
+  - PyCryptodome
+hexstrike:
+  used: false
+  useful: false
+  notes: "Offline algebra and lattice reduction solved the challenge."
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/oct/challenge.md"
+  - "https://doc.sagemath.org/html/en/reference/algebras/sage/algebras/octonion_algebra.html"
+  - "https://python-flint.readthedocs.io/en/latest/fmpz_mat.html"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/oct/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/oct/solve/solve.py"
+time_heuristic: "Use the norm before attacking the hidden word: the 8D vector and 36D quadratic lift reveal the coefficient vector quickly; block structure plus Moufang identities then reduces the long word to 174 small candidate searches."
+last_verified: "2026-10-25"

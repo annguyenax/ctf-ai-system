@@ -1,0 +1,40 @@
+id: hackluctf2026_remote_dj
+event: "Hack.lu CTF 2026"
+category: "misc/network-safe-command-allowlist-bypass"
+challenge_name: "Remote DJ"
+status: paused
+flag: ""
+confidence: 0.4
+artifact_hashes: []
+signals:
+  - "cmus over a TCP/network connection sets `run_only_safe_commands=1`, blocking CMD_UNSAFE commands (shell, run, bind, source) -- but `set` and `pl-export` are NOT flagged CMD_UNSAFE and remain callable remotely."
+  - "`:set skip_track_info=true` makes cmus accept any `http://`-prefixed string as a track filename with zero validation (no decode/probe), letting an arbitrary string (including shell metacharacters) become a stored 'track'."
+  - "`:pl-export <path>` writes every track filename in the current playlist verbatim (newline-separated) to an arbitrary writable path, and `:set status_display_program=/bin/bash` causes cmus to `execvp('/bin/bash', ['/bin/bash','status',status_text,...])` on the next status change -- `bash <file>` executes a script in cwd without needing +x, so writing the payload to `./status` and then changing status runs it."
+key_idea: "A network-safety allowlist that blocks obviously dangerous commands (shell/run/bind/source) but forgets that `set <option>=<value>` plus a file-writing command (`pl-export`) can be combined to drop an arbitrary script file, and that an auxiliary 'run an external program on status change' feature (`status_display_program`) then executes it, reconstitutes full remote code execution from commands that were individually deemed 'safe' for network use."
+prerequisites:
+  - "cmus remote protocol/command set"
+  - "bash <file>-without-+x execution semantics"
+  - "fd-inheritance exfiltration (writing flag output to an inherited socket fd)"
+exploitation_pattern: "set skip_track_info=true -> add an http:// track whose string is a shell one-liner -> pl-export that playlist to ./status -> set status_display_program=/bin/bash -> trigger any status change (player-pause/play/stop) so bash ./status executes, running /readflag and writing its output to an inherited fd that round-trips back through the TLS connection."
+verification:
+  method: "No confirmed flag capture recorded in this pass; the exploit chain and mechanism (CMD_UNSAFE bypass via set+pl-export+status_display_program) were fully reverse engineered from source with a working solver, but final flag evidence is not present."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/Remote DJ/solve/solve.py"
+pitfalls:
+  - "Never read and write the same Python SSL socket from two threads concurrently against a line-based TCP protocol -- it corrupts the stream; use one connection, send-then-read, sequentially."
+  - "A silent/no-output response from a line-protocol service is not necessarily failure -- cmus's remote protocol replies to every command with a trailing newline but is otherwise quiet."
+  - "A spawned child process's file descriptors (including a non-O_CLOEXEC client socket inherited by the parent) can become an exfiltration channel independent of the challenge's visible I/O -- check fd 3+ for an inherited network socket before assuming you need a separate out-of-band channel."
+failed_paths:
+  - "/proc/<pid>/fd/<n> cannot be used to write to a socket target (returns ENXIO) -- the inherited fd number must be used directly via the shell's own fd redirection, not via its /proc path."
+tools:
+  - "Python 3 (socket, ssl)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/Remote DJ/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/Remote DJ/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/Remote DJ/solve/solve.py"
+time_heuristic: "For any 'safe commands only over network' allowlist (media players, REPLs, admin tools), check whether a config-set command plus a file-write command can be combined to drop an executable script, and whether any 'run external program on event' feature then executes it -- the combination often reconstitutes full RCE from individually-safe primitives."
+last_verified: "2026-11-04"

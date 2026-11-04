@@ -1,0 +1,10 @@
+{
+  "challenge_id": "securinetsquals2026_encrypt",
+  "flag_status": "verified",
+  "attempts": [
+    {"t": "2026-10-18T05:00:00Z", "phase": "HYPOTHESES", "hypothesis_id": "H1", "action": "model q1 as hash of inner .text plus anti-debug tweaks", "command_or_step": "header_decode over 128 tweak combinations", "result": "failed", "evidence_path": "raw/", "notes": "GetModuleHandle(NULL) is the stub; model wrong"},
+    {"t": "2026-10-18T06:00:00Z", "phase": "TEST", "hypothesis_id": "H2", "action": "capture real seed struct with Frida while driving the GUI", "command_or_step": "hook RtlAllocateHeap, read rsi", "result": "success", "evidence_path": "raw/", "notes": "q1 = 0; header decodes for live samples and cipher.txt"},
+    {"t": "2026-10-18T08:00:00Z", "phase": "EXPLOIT", "hypothesis_id": "H3", "action": "harvest key material by emulation and invert all stages", "command_or_step": "solve/solve.py", "result": "success", "evidence_path": "raw/", "notes": "w0 = 725 is the only valid decryption"},
+    {"t": "2026-10-18T08:30:00Z", "phase": "VERIFY", "hypothesis_id": "H3", "action": "re-encrypt recovered plaintext", "command_or_step": "harvest with real plaintext", "result": "success", "evidence_path": "raw/", "notes": "output equals cipher.txt"}
+  ]
+}

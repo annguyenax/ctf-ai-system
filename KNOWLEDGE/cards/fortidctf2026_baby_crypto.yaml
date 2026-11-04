@@ -1,0 +1,45 @@
+id: fortidctf2026_baby_crypto
+event: "FortID CTF 2026"
+category: "intro/crypto-aes-ctr"
+challenge_name: "Baby Crypto"
+status: solved
+flag: "FortID{St0p_B31ng_Cr3at1v3_With_N0nc3s_0r_You'll_R3gre7_17_55876fddf3}"
+confidence: 1.0
+artifact_hashes:
+  - "files/chall.py: 312C2DCE27157EEBCFFF119ACC4D6D5BADA2BFB02A2804A51FF42AAC03612DD6"
+  - "solve/solve.py: 246A2D10D03BE3E1C6F981D1AD178D0C93118874039A1FDC991AF7F69047E0CA"
+signals:
+  - "AES.MODE_CTR nonce is plaintext[:8]."
+  - "One process encrypts the flag and arbitrary user values under the same random key."
+key_idea: >
+  Reuse the flag's first-eight-byte nonce with chosen plaintext. Matching CTR
+  nonce and key reuse the keystream, allowing XOR-based plaintext recovery.
+prerequisites:
+  - "CTR mode keystream relation"
+  - "Chosen-plaintext oracle"
+exploitation_pattern: >
+  Export flag ciphertext -> guess byte 8 after FortID{ -> encrypt a chosen
+  plaintext with matching first eight bytes -> XOR to recover the flag.
+verification:
+  method: "Read-only platform status reported Baby Crypto SOLVED; local final_flag.txt matches the writeup and expected flag format."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Crypto/solve/evidence/verification.txt"
+pitfalls:
+  - "Both ciphertexts must use the same key and nonce."
+  - "A new instance may create a different random key."
+  - "Raw live ciphertext exchange was not retained in the workspace."
+  - "The current solver's TLS context differs from the writeup's note about disabling certificate verification; live replay was not tested."
+failed_paths: []
+tools:
+  - "Python socket and ssl"
+  - "PyCryptodome AES"
+hexstrike:
+  used: false
+  useful: false
+  notes: "A direct challenge instance connection is required; broad scanners are irrelevant."
+sources:
+  - "Supplied challenge artifact: CTFTimeWriteup/FortIDCTF2026/Intro/Baby Crypto/files/chall.py"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Crypto/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Crypto/solve/solve.py"
+time_heuristic: "First compare the nonce with plaintext-controlled bytes; CTR nonce reuse often gives a direct XOR recovery."
+last_verified: "2026-10-10"

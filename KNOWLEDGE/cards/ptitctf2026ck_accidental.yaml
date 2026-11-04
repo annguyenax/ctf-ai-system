@@ -1,0 +1,46 @@
+id: ptitctf2026ck_accidental
+event: PTITCTF2026-CK
+category: forensics/png-trailing-uuencode-osint
+challenge_name: Accidental
+status: needs_verification
+flag: ""
+confidence: 0.75
+artifact_hashes:
+  - "challenge.png sha256=b2e67532baef162b09ff7ff80b33284f0ba36964df0e00888cba8add119785c6"
+signals:
+  - "PNG unofficial zIPP chunk containing a stored ZIP named secret.txt"
+  - "ASCII after IEND: nice try... arrow then a uuencode alphabet line"
+  - "flavor text names CTF handle LuongVD"
+key_idea: "Treat a planted ZIP chunk as a decoy when trailing text says so; uuencode 6-bit from SPACE (no begin line) yields a WordPress media URL, then OSINT the named handle."
+prerequisites:
+  - PNG chunk parse
+  - classic uu 6-bit alphabet
+  - GitHub profile README socials
+exploitation_pattern: "Walk chunks to IEND, uu-decode leftover, fetch name-600x400.jpg as name.jpg, resolve LuongVD via GitHub→Facebook plus a published team roster."
+verification:
+  method: "Two independent public name sources; scoreboard wrap still required."
+  evidence: "OUTPUT/ptitctf2026ck_accidental/raw/identity.txt"
+pitfalls:
+  - "Submitting the zIPP secret.txt suffix as the flag"
+  - "Assuming the uu first character is a length byte (it is data; ':' is part of https)"
+  - "Spending time on LSB of the cover train photo"
+failed_paths:
+  - "RGB LSB / bit-planes of challenge.png"
+  - "GPS in 6.jpg MPO (version-only IFD)"
+tools:
+  - Python 3
+  - Pillow
+playbook: ""
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Forensics/Accidental/writeup/writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Forensics/Accidental/solve/extract_url.py
+time_heuristic: "Chunk+trailing first; OSINT the named handle after the URL, do not reverse-search the cover photo first."
+last_verified: "2026-09-13"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "https://infosec.ptit.edu.vn/wp-content/uploads/sites/20/2026/07/6-600x400.jpg"
+  - "https://github.com/luonginfosec/luonginfosec"
+  - "https://www.facebook.com/luongptit/"
+  - "https://infosec.ptit.edu.vn/2025/10/03/nang-ky-nang-thuc-hanh-cho-sinh-vien-an-toan-thong-tin-qua-cuoc-thi-ptit-ctf/"

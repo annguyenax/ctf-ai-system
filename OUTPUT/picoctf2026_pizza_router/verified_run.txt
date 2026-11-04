@@ -1,0 +1,8 @@
+# picoCTF2026 Pizza Router verified run
+Target: mysterious-sea.picoctf.net:64065
+Flag: flag{thirty_minutes_or_flag_free_64b39a05}
+
+Run 1: renderer=0x5face68b1260, hint=0x5facf5dc7b20, idx_bss=-32122711, win=0x5face68b1460
+Run 2: PIE base=0x5da156778000, heap_hint=0x5da1928aeb20, idx_bss=-125985623, win=0x5da15677a460
+
+Both runs ended with dispatch 17 invoking win() and printing the same flag.

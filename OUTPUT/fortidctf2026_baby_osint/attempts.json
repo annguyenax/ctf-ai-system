@@ -1,0 +1,53 @@
+{
+  "challenge_id": "fortidctf2026_baby_osint",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Baby OSINT",
+  "flag_status": "none",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Inspect the provided JPEG metadata before searching the scene.",
+      "result": "EXIF records capture time 2026-09-05 12:03:02, fixing the event date.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby OSINT/solve/evidence/verification.txt",
+      "notes": "The image itself has no GPS IFD values."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "OSINT",
+      "hypothesis_id": "H2",
+      "action": "Search for Zagreb events on 2026-09-05 and compare the official event title.",
+      "result": "Matched the march “Hodaj za Liku, hodaj za Hrvatsku”; the ZeGeVege festival was also active that date.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby OSINT/solve/evidence/verification.txt",
+      "notes": "Normalized names to lowercase and underscores."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "OSINT",
+      "hypothesis_id": "H3",
+      "action": "Read the Bajs dashboard's embedded weekdayDistribution values.",
+      "result": "Srijeda was highest at 17493.5 average rides; translated to Wednesday per the challenge format.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby OSINT/solve/evidence/verification.txt",
+      "notes": "The dashboard is dynamic; recorded values are pinned to the observation date."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H4",
+      "action": "Query historical bike counts for each station ID returned by the public station list across 2025-11-04 through 2026-10-10.",
+      "result": "The maximum was 269 at station 21228, Trg Kralja Tomislava, on 2026-09-05 12:15:39 +02:00.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby OSINT/solve/evidence/verification.txt",
+      "notes": "49 station IDs were returned by /api/stations. No scoreboard submission was made."
+    },
+    {
+      "t": "2026-10-11",
+      "phase": "VERIFY",
+      "hypothesis_id": "H5",
+      "action": "Reconcile claimed solve against archived submission log and current portal.",
+      "result": "Old exact candidate has badFlag; portal remains unsolved. Station list limit=250 reveals 219 entries versus about 50 previously queried.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby OSINT/solve/out.txt",
+      "notes": "Withdrew final flag; audit omitted station IDs without online flag brute force."
+    }
+  ]
+}

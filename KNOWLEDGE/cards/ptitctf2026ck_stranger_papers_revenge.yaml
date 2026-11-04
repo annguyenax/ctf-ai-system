@@ -1,0 +1,53 @@
+id: ptitctf2026ck_stranger_papers_revenge
+event: PTIT CTF 2026 (Chung ket / Jeopardy)
+category: crypto/acrostic + mod-wheel-base64
+challenge_name: Stranger Papers Revenge
+status: solved
+flag: "PTITCTF{UPSIDE}"
+confidence: 0.9               # acrostic is deterministic; only case (UPPER/lower) is uncertain
+artifact_hashes: []
+signals:
+  - "cover (1.jpg) has 6 instruction sentences; first letters spell U P S I D E"
+  - "Entry to the paper room requires the six-letter filing word"
+  - "2.jpg: correction wheel had sixty-seven teeth; filed by remainder after complete turns (mod 67)"
+  - "catalog = old Roman capitals + smaller shadows + ten digits + slash, cross, padding mark (A-Z a-z 0-9 / + =)"
+  - "ledgers 3..7.jpg hold 3-digit 'scars' (numbers) in a 16-col grid"
+  - "Thế giới ngược = The Upside Down => UPSIDE (+DOWN) confirms the acrostic"
+key_idea: >
+  The flag is an acrostic: the six cover sentences' first letters spell "UPSIDE",
+  which is exactly the "six-letter filing word" that gates the paper room. The rest
+  of the challenge (ledgers of 3-digit numbers) is a second layer: n mod 67 -> a
+  base64-ish catalog (A-Z a-z 0-9 / + =) -> keyed transposition with "UPSIDE" ->
+  base64-decode to the hidden Hawkins message. Flag = the filing word itself.
+prerequisites:
+  - acrostic detection
+  - base64 alphabet + modular wheel (mod 67)
+  - keyed columnar transposition
+exploitation_pattern: >
+  OCR cover -> first letter of each instruction sentence -> UPSIDE -> flag.
+  (Full decode: numbers -> (n+off)%67 -> drop >=65 (mold) -> catalog -> swap /,+ ->
+  base64 decode -> message.)
+verification:
+  method: deterministic acrostic replay (solve.py asserts filing_word == UPSIDE)
+  evidence: "solve/solve.py prints 'flag = PTITCTF{UPSIDE}'; 6 sentences' first letters U P S I D E"
+pitfalls:
+  - "Do not read the numbers first; the flag is on the COVER (acrostic), not in the ledgers."
+  - "Case is ambiguous: acrostic gives UPPER 'UPSIDE'; flag may be 'upside'."
+  - "The 67-tooth wheel vs 65-glyph catalog: the 2 spare teeth are the 'mold' values to drop."
+failed_paths:
+  - "Brute-forcing the number decode without the UPSIDE transposition (base64 stays garbage)."
+  - "Assuming the numbers directly encode the flag (they encode the story, not the flag)."
+tools:
+  - python
+  - tesseract (OCR cover + instructions)
+  - pycryptodome (n/a)
+hexstrike:
+  used: false
+  useful: false
+  notes: "Pure OCR + acrostic; no scanner needed."
+sources: []
+playbook: ""
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK\Crypto\Stranger Papers Revenge\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK\Crypto\Stranger Papers Revenge\solve\solve.py
+time_heuristic: "<10 min: OCR the cover and read first letters of the instruction block."
+last_verified: "2026-09-13"

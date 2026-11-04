@@ -25,7 +25,7 @@ prerequisites:
 exploitation_pattern: many projection slices -> sparse angular overview -> one-angle stack -> spacing calibration -> PCA deskew
 verification:
   method: deterministic archive-to-calibrated-PNG replay plus coherent decoded sentence
-  evidence: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/solve/evidence/manifest.md
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Forensics/You Scanned HOW_!_!/solve/evidence/manifest.md
 pitfalls:
   - dumping hundreds of table schemas into logs
   - reconstructing every slice before testing a projection stack
@@ -48,7 +48,7 @@ sources:
   - https://scikit-image.org/docs/stable/api/skimage.transform.html
   - https://numpy.org/doc/stable/reference/generated/numpy.linalg.eigh.html
 playbook: PLAYBOOKS/forensics_multislice_projection_stack.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Forensics/You Scanned HOW_!_!/solve/solve.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Forensics/You Scanned HOW_!_!/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Forensics/You Scanned HOW_!_!/solve/solve.py
 time_heuristic: "hundreds of equal-angle slices -> stack a sparse set of angles before full 3D reconstruction, ~10 min"
 last_verified: "2026-08-01"

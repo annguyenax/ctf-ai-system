@@ -1,0 +1,39 @@
+id: sunshinectf2026_intmod
+event: "SunshineCTF 2026"
+category: "rev/signal-handler-jit-vm-gf-vandermonde-invert"
+challenge_name: "IntMod"
+status: solved
+flag: "sun{I_L0v3_Int3rrupts&SelfMod!!!}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Input is padded (PKCS#7) and loaded as 5 64-bit registers, then run through 45 rounds that EACH consist of one custom-VM opcode AND one JIT snippet reached only via a deliberately-triggered CPU exception (ud2/SIGILL, div-by-zero/SIGFPE, int3/SIGTRAP) whose signal handler writes and executes a tiny machine-code stub on the fly."
+  - "Both the VM opcodes and the JIT snippets are restricted to a small set of clean, individually-invertible primitives (xor, rotate, modular add/sub, modular multiply by an odd constant, register swap) -- a strong signal the whole 45-round transform is a deliberately invertible bijection, not a one-way hash."
+  - "After the 45 rounds, the final stage evaluates a polynomial over GF(65521) at 40 known points and compares against 40 target residues -- a linear system (Vandermonde matrix) in the 40 unknown post-round state bytes, not a hash to brute-force."
+key_idea: "A verification routine split into (a) a small number of individually-invertible register operations driven by signal-handler-triggered JIT snippets, and (b) a final polynomial-evaluation check over a small prime field, should be attacked by solving backwards from both ends: recover the post-round byte state by solving the GF(p) Vandermonde linear system from the known evaluation points/targets, then invert each of the 45 rounds (xor/swap self-inverse, rotate reversed by direction, modular add inverted by subtraction, modular multiply inverted by modpow(-1, 2^64)) in reverse order to recover the original input bytes directly, with no brute force or SAT/SMT solving needed."
+prerequisites:
+  - "Dynamic hooking (LD_PRELOAD) to dump intermediate VM/JIT state transitions for reverse-engineering the exact operation sequence and constants"
+  - "Gaussian elimination over a prime field GF(p) to solve a Vandermonde system"
+  - "Modular inverse under 2^64 (pow(a, -1, 1<<64)) to invert modular multiplication steps"
+exploitation_pattern: "LD_PRELOAD-hook the VM/JIT entry points to dump the exact sequence of 45 (opcode, operands) and (JIT snippet id) pairs plus the 40 (x_k, y_k) GF(65521) evaluation pairs -> solve the 40x40 Vandermonde system over GF(65521) for the post-round 40-byte state -> pack into 5 64-bit registers -> replay all 45 rounds in REVERSE order, applying each operation's exact inverse (xor/swap unchanged, rotate reversed, add/sub flipped, multiply replaced by modular-inverse multiply) -> unpack back to 33-byte flag (dropping PKCS#7 padding)"
+verification:
+  method: "Deterministic backward simulation reproduces the exact flag from the solved post-round state."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/IntMod/writeup/writeup.md"
+pitfalls:
+  - "Signal-handler-dispatched JIT snippets are easy to miss in static disassembly since control flow literally leaves via a CPU exception (ud2/div-0/int3) rather than a call/jmp -- dynamic hooking/tracing of the signal handler is far more reliable than trying to follow this statically."
+  - "A final check that evaluates a polynomial at several points and compares to targets, over a small prime modulus, is a linear-algebra (Vandermonde) problem to solve directly, not a hash to attack via brute force."
+failed_paths: []
+tools:
+  - "LD_PRELOAD hook shared objects (C)"
+  - "python3 (manual GF(p) Gaussian elimination, modular inverse)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/IntMod/files/intmod"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/IntMod/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/IntMod/solve/solve.py"
+time_heuristic: "Verification routine combining signal-handler-dispatched JIT snippets with individually-invertible operations, ending in a small-prime polynomial-evaluation check: solve the final check as a Vandermonde linear system, then invert every round's operation in reverse order -- no brute force or solver needed."
+last_verified: "2026-11-04"

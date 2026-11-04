@@ -1,0 +1,41 @@
+id: securinetsquals2026_void
+event: "Securinets CTF Quals 2026"
+category: "pwn/seccomp-exit-only-sidechannel-exfil"
+challenge_name: "Void"
+status: paused
+flag: ""
+confidence: 0.35
+artifact_hashes: []
+signals:
+  - "The flag is read into a heap buffer BEFORE a restrictive seccomp-BPF filter is installed, so the bytes remain resident in process memory even though the attacker's own shellcode, once running, cannot make any syscall other than `exit` (seccomp filter: `nr==60 -> ALLOW, else -> KILL`)."
+  - "Immediately before executing attacker-supplied shellcode, a built-in stub zeroes EVERY general-purpose register (including rsp/rbp) and several xmm/ymm registers, specifically defeating 'read leftover register state' leaks and making any push/call/ret instruction immediately fault (since rsp==0)."
+  - "A partial PIE-base leak is printed (only the low 24 bits of a PIE function address via `and eax,0xffffff`), and the shellcode's own landing address is fixed/known (no PIE-base needed for control flow) -- the only remaining challenge is locating the HEAP-resident flag buffer and exfiltrating it using only the single surviving syscall, `exit(code)`."
+key_idea: "When a seccomp filter permits literally only `exit(code)` after secrets are already loaded into memory, the sole remaining channel is encoding information IN THE EXIT CODE (or in a crash/no-crash binary signal) itself -- shellcode must use RIP-relative addressing exclusively (since all registers including rsp/rbp are zeroed and rsp is unusable for push/call/ret), locate the flag bytes without any heap-base leak, and call `exit` with a code or trigger a crash pattern that leaks one bit/byte of secret data per execution, requiring many repeated connections (bounded by the jail's short per-session timeout) to exfiltrate the full flag."
+prerequisites:
+  - "seccomp-BPF filter decoding (classic BPF instruction format)"
+  - "RIP-relative-only shellcode construction (no usable stack)"
+  - "exit-code/crash side-channel exfiltration design"
+exploitation_pattern: "decode the seccomp filter to confirm ONLY exit(60) survives -> write RIP-relative-only shellcode (no stack-based call/ret) to locate the pre-loaded flag buffer in memory without any base-address leak -> design an exit-code or crash/no-crash side channel that reveals one bit or byte of the flag per execution -> repeat across many short (session-timeout-bounded) connections to exfiltrate the full 30-byte flag."
+verification:
+  method: "No exploit achieved yet; this documents the fully-decoded primitive and genre assessment (exit-code/crash side-channel, not a classic ORW/execve/SROP chain, since all of those syscalls are blocked) for a follow-up session."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/Void/notes/ANALYSIS.md"
+pitfalls:
+  - "A seccomp filter installed AFTER secrets are already read into memory does not prevent the secrets from being present -- it only prevents using normal syscalls (read/write/execve) to exfiltrate them; always check whether the filter installation happens before or after sensitive data acquisition."
+  - "Shellcode running after every register (including rsp/rbp) has been explicitly zeroed cannot use push/call/ret (rsp==0 faults immediately) -- it must rely entirely on RIP-relative addressing (`lea reg,[rip+disp]`), which is unaffected by the register reset since RIP itself is not zeroed."
+  - "Each TCP session in a `pwn.red/jail`-based deployment can have a VERY short hard timeout (observed: 7 seconds) -- any exfiltration strategy requiring many repeated connections must budget for per-connection overhead within that window."
+failed_paths:
+  - "Classic ORW/execve/SROP shellcode escape techniques are all unavailable: write/read/open/mmap/execve/rt_sigreturn (syscall 15) are all blocked by the filter, and re-mprotect to re-stage code is also blocked since mprotect itself is no longer permitted."
+tools:
+  - "manual BPF filter decoding"
+  - "readelf/objdump (static binary analysis)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/Void/files/togive.zip"
+playbook: "jail_boolean_oracle.md"
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/Void/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/Void/solve/solve.py"
+time_heuristic: "When a seccomp filter reduces the attacker to a single syscall (often `exit`) after secrets are already resident in memory, pivot immediately to an exit-code or crash/no-crash side-channel exfiltration design rather than searching for a syscall-smuggling bypass; confirm the filter's exact allowed syscall set first since that determines whether classic ORW/SROP techniques are even theoretically possible."
+last_verified: "2026-11-04"

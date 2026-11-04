@@ -1,0 +1,37 @@
+id: sunshinectf2026_code_breaker
+event: "SunshineCTF 2026"
+category: "pwn/custom-protocol-handshake-uaf-funcptr-overwrite"
+challenge_name: "Code Breaker"
+status: solved
+flag: "sun{cr4ck_tHe_ciPh3r_fr33_thE_heaP}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Service speaks a proprietary encrypted TCP protocol requiring a full handshake (nonce exchange, S-box-permutation key derivation, auth token) before any command works -- a reverse-engineering prerequisite layered in front of the actual pwn bug."
+  - "A 'copy' command duplicates a chunk pointer from one slot to another without any aliasing/ownership tracking, then 'free' on the original slot leaves the copied slot's pointer dangling -- the same copy-then-free UAF pattern as other challenges in this event."
+  - "An 'info' command leaks a function pointer at a fixed offset from the binary's load base, giving PIE defeat for free before any heap work is needed."
+key_idea: "Reversing a custom encrypted wire protocol is a necessary precondition, not the vulnerability itself; once the handshake/cipher is replicated client-side, the underlying bug is a familiar copy-then-free UAF plus safe-linking tcache poisoning aimed at a program-controlled global function pointer, which is then triggered through a dedicated 'execute string via function pointer' command."
+prerequisites:
+  - "Reversing a custom symmetric stream cipher + handshake protocol purely from a binary (S-box table extraction, key-schedule replication)"
+  - "Same UAF + safe-linking tcache-poison technique as Cache Money in this event"
+exploitation_pattern: "extract S-box table and key-derivation/stream-cipher logic from the binary -> replicate handshake client-side to establish an encrypted session -> leak PIE base via the info command -> allocate+copy+free two chunk pairs to set up a UAF read (leak safe-linking key) -> poison the freed chunk's fd to point at the binary's global function-pointer slot -> allocate twice to land a new chunk exactly there -> write system@plt into that function pointer -> call the 'execute string' command with a shell command, triggering (*func_ptr)(payload) == system(payload)"
+verification:
+  method: "Live run against the remote service printed the exact flag in the recorded transcript."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Code Breaker/writeup/writeup.md"
+pitfalls:
+  - "Do not skip protocol reverse-engineering to focus only on the memory-corruption bug; the service is unusable (and un-fuzzable black-box) until the handshake and per-packet encryption are correctly replicated."
+failed_paths: []
+tools:
+  - "python3 (manual protocol/cipher replication, socket)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Code Breaker/files/code_breaker"
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Code Breaker/files/libc.so.6"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Code Breaker/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Code Breaker/solve/solve_test.py"
+time_heuristic: "Pwn challenge wrapped in a custom encrypted protocol: budget time to fully reverse and replicate the handshake/cipher client-side first -- the underlying memory-corruption bug may be a familiar pattern (copy-then-free UAF, safe-linking poison to a function pointer) once the wire format is solved."
+last_verified: "2026-11-04"

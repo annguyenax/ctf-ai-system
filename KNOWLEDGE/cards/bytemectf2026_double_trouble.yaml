@@ -1,0 +1,36 @@
+id: bytemectf2026_double_trouble
+event: ByteMe CTF 2026
+category: crypto/rsa-shared-prime
+challenge_name: "Double Trouble"
+status: solved
+flag: "OWASP{soul_stone_claimed}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Two RSA key/ciphertext pairs (n1,e1,c1) and (n2,e2,c2) with e=65537, different n.
+  - gcd(n1, n2) is non-trivial, i.e. the two "independent" keys were generated with a shared prime.
+key_idea: When two RSA moduli are given together, always try gcd(n1, n2) first; a non-trivial result fully factors both moduli (p = gcd, q = n/p), after which both plaintexts are recovered with the standard private exponent. The final plaintext layer here was base64-of-ciphertext XORed with the second recovered message used as a short repeating key.
+prerequisites:
+  - Basic RSA math (CRT-free private exponent from p,q,e)
+  - Recognize chained encoding (base64 then XOR) in final plaintext
+exploitation_pattern: shared-prime RSA (gcd(n1,n2)=p) -> factor both moduli -> decrypt both ciphertexts -> base64-decode one -> XOR with the other as key -> flag.
+verification:
+  method: Deterministic local solver replay (solve/solve.py), printed flag matches recorded flag.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Double Trouble/solve/solve.py"
+pitfalls:
+  - Don't assume independence of multiple RSA keys given in one challenge; always gcd them first.
+  - The recovered plaintexts may themselves be further-encoded (base64, XOR) rather than the flag directly.
+failed_paths: []
+tools:
+  - Python 3 (math.gcd, pow)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Double Trouble/files/data.txt"
+playbook: crypto_rsa.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Double Trouble/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Double Trouble/solve/solve.py"
+time_heuristic: Multiple RSA moduli given together -> try gcd(n_i, n_j) across all pairs before anything else; shared-prime factoring is instant and common in "two keys, one mistake" themed challenges.
+last_verified: "2026-11-04"

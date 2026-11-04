@@ -1,0 +1,36 @@
+id: deadfacectf2026_signals_from_the_skull
+event: DeadfaceCTF2026
+category: rf/ble-fragment-reassembly
+challenge_name: "BrainScans / Signals from the Skull"
+status: solved
+flag: "deadface{un3ncrypt3d_b4bbl3_fr0m_th3_sku11}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - BLE capture mixes two characteristic handles; one (0x2a) is bulk vitals noise, the other (0x37) is a low-rate maintenance log leaking a few bytes per packet.
+  - Each fragment packet on the log handle carries an explicit `seq` field (0..23) plus a hex `payload`.
+  - Reassembled payload decodes as Base64 -> plaintext log containing the flag in a "note:" field.
+key_idea: When a sniffed capture has a low-traffic characteristic/handle distinct from the noisy bulk stream, filter to just that handle, sort fragments by their sequence field, concatenate hex payloads, then try Base64/plaintext decode on the joined bytes.
+prerequisites:
+  - Ability to connect a capture tool and read the full packet list via an API
+  - Recognizing a handle-filter + seq-sort pattern in a mixed capture
+exploitation_pattern: connect sniffer -> dump all captured frames -> filter by target handle -> sort by seq -> join hex payload bytes -> base64-decode -> read plaintext.
+verification:
+  method: Solver script filtered handle 0x37 by seq, joined hex, base64-decoded, and printed plaintext containing the flag; matches final_flag.txt.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Signals from the Skull/writeup/writeup.md"
+pitfalls:
+  - Do not assume packet capture order equals data order — always sort by the explicit sequence field before concatenating, not by arrival.
+failed_paths: []
+tools:
+  - Python base64
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Signals from the Skull/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Signals from the Skull/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Signals from the Skull/solve/solve.py"
+time_heuristic: In any multi-channel capture (BLE/RF/pcap) suspected of covert low-rate exfil, isolate the quiet channel/handle first, sort its fragments by an explicit sequence field, then decode the joined bytes.
+last_verified: "2026-11-04"

@@ -1,0 +1,35 @@
+id: csawctf2026quals_juggler
+event: "CSAW CTF Qualifications 2026"
+category: "web/php-type-juggling-mass-assignment"
+challenge_name: "Juggler"
+status: needs_verification
+flag: "csaw{tw0_f0r_0n3_2gc9w2hz}"
+confidence: 0.55
+artifact_hashes: []
+signals:
+  - "Challenge description explicitly hints at 'juggling' and 'mass assignment' -- PHP type juggling plus an endpoint that blindly assigns request fields onto a model/row."
+  - "A profile_update endpoint accepts a JSON body including a `role` field; sending role as the JSON boolean `true` (not the string 'admin') is the probed bypass."
+key_idea: "PHP endpoints that accept a JSON body and directly mass-assign fields onto a privileged column (role, is_admin, etc.) can sometimes be tricked by sending a non-string JSON type (boolean true) for that field, when the backend's comparison/assignment logic is not strict about type, rather than needing to guess a privileged string value."
+prerequisites:
+  - "PHP loose-comparison/type-juggling awareness (true == 'admin' style pitfalls)"
+  - "CSRF token handling across register/login/profile-update flow"
+exploitation_pattern: "register -> login -> fetch authenticated CSRF token from dashboard -> POST profile_update with JSON {role: true} instead of a role string -> GET /admin.php -> flag"
+verification:
+  method: "exploit.py implements the full register/login/mass-assign/admin-fetch chain, but no saved run output or writeup content in this challenge folder confirms the flag was actually produced by this exact script against a live instance."
+  evidence: ""
+pitfalls:
+  - "writeup.md for this challenge is an empty placeholder; do not treat an empty writeup plus a present final_flag.txt as proof the attached exploit script is what produced it."
+failed_paths: []
+tools:
+  - "python3 (requests)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/Juggler/files/juggler.tar.gz"
+playbook: null
+writeup: ""
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/Juggler/solve/exploit.py"
+time_heuristic: "Endpoint mass-assigns a JSON field onto a privileged column: try a non-string JSON type (boolean true) for that field before assuming you need to guess a privileged string value."
+last_verified: "2026-11-04"

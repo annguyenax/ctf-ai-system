@@ -1,0 +1,38 @@
+id: hackluctf2026_il2flag
+event: "Hack.lu CTF 2026"
+category: "rev/il2cpp-custom-metadata-dfa-trace"
+challenge_name: "IL2FLAG"
+status: solved
+flag: "flag{im_thinking_miku_miku_ooeeoo}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Standard IL2Cpp metadata dumpers fail because the author modified the string-literal representation: instead of the normal `Il2CppStringLiteral{length,dataIndex}` struct, the table is a plain array of uint32 slice offsets where length = offset[i+1]-offset[i]."
+  - "The flag check is a 34-state DFA where each state reads one input char, indexes a 256-entry jump table, and validates the branch by checking that the resolved string-literal token is exactly 10 ASCII alphanumeric bytes and matches length 10 -- invalid/dummy transitions point at non-ASCII or wrong-length strings."
+  - "The custom slicing scheme means off-the-shelf tools (Il2CppDumper) silently misparse string literals; you must hand-roll the offset-table parser against the modified metadata header."
+key_idea: "When a protected IL2Cpp binary breaks standard dumpers by modifying only the metadata's string-literal encoding, reverse that one specific structure change (offset-slice array vs length+index struct) rather than trying to patch/fight the dumper tool, then statically emulate the DFA state-by-state by trying all 256 jump targets per state and keeping the one whose resolved string-literal token passes the length/charset filter."
+prerequisites:
+  - "IL2Cpp metadata format (global-metadata.dat)"
+  - "x86-64 disassembly with Capstone"
+  - "PE parsing with pefile"
+exploitation_pattern: "locate MetadataCache::Initialize's string-literal-table access pattern -> derive the custom offset-slicing scheme by reading the disassembly -> statically emulate the 34-state DFA, testing each of 256 jump targets per state against the string-literal length==10/ASCII filter -> concatenate the recovered characters."
+verification:
+  method: "Automated static traversal script extracted the full flag deterministically in ~4 seconds by matching the DFA's own validity filter at every state."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/IL2FLAG/writeup/writeup.md"
+pitfalls: []
+failed_paths: []
+tools:
+  - "Capstone"
+  - "pefile"
+  - "Python 3"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/IL2FLAG/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/IL2FLAG/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/IL2FLAG/solve/solve.py"
+time_heuristic: "When a protected Unity/IL2Cpp binary breaks a standard metadata dumper, diff the custom metadata structure against the normal layout to find the ONE field encoding that changed, rather than assuming the whole format is bespoke."
+last_verified: "2026-11-04"

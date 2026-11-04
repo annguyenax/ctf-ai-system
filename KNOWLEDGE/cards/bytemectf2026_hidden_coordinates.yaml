@@ -1,0 +1,43 @@
+﻿id: bytemectf2026_hidden_coordinates
+event: ByteMe CTF 2026
+category: osint/photo-geolocation-time
+challenge_name: "The Hidden Coordinates"
+status: needs_verification
+flag: ""
+confidence: 0.35
+artifact_hashes:
+  - file: files/the_hidden_coordinates_labels_removed.png
+    sha256: f8e93340c1de8667cb468c19c12230e7b19632f9591dc299b44fc07d3de2c665
+signals:
+  - The challenge screenshot shows a night-time hillside city scene and a wristwatch.
+  - Visible format is City/State/Country__HH:MM, with time in 24-hour format.
+  - ExifTool found no GPS tags; local sign/watch crops are not legible enough for unique identification.
+key_idea: Separate location and time evidence; use public source tracing to identify the scene and corroborate the watch/time before constructing a flag.
+prerequisites:
+  - Photo metadata inspection
+  - Visual geolocation and time corroboration
+exploitation_pattern: photo metadata -> scene/sign identification -> independent time reading -> exact flag formatting.
+verification:
+  method: No flag verified; local metadata and visual triage only.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Hidden Coordinates/notes/SESSION.md"
+pitfalls:
+  - Do not guess a city from a generic hillside night scene.
+  - Do not infer an exact minute from an unreadable low-resolution watch face.
+  - Respect the explicitly requested in-app Browser; it was unavailable and no alternate web search was used.
+failed_paths:
+  - Supplied PNG contains no GPS tags.
+  - Local crops do not make the signage/watch legible.
+  - Browser bootstrap failed before source tracing.
+tools:
+  - ExifTool
+  - Local image viewer
+hexstrike:
+  used: false
+  useful: false
+  notes: Local metadata and visual inspection were sufficient to identify the current blocker.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Hidden Coordinates/files/the_hidden_coordinates_labels_removed.png"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Hidden Coordinates/writeup/writeup.md"
+solver: ""
+time_heuristic: For location/time photo flags, corroborate both the scene and clock from independent source clues instead of treating enhancement as proof.
+last_verified: "2026-10-09"

@@ -1,0 +1,45 @@
+id: compfest18ctf2026_phantom_ledger
+event: "CTF COMPFEST 18 (2026)"
+category: "blockchain/access-control-bypass"
+challenge_name: "Phantom Ledger"
+status: solved
+flag: "COMPFEST18{ph4nt0m_l3dg3r_cr0ss_funct10n_r33ntr4ncy_w1th_ecdsa_m4ll3ab1l1ty}"
+confidence: 0.9
+artifact_hashes:
+  - file: "files/PhantomVault.sol"
+    sha256: "fcb67a734647db73c27a39575f03b09b36930809717aa36457d4a0d5b17157b8"
+  - file: "files/Setup.sol"
+    sha256: "ff6a4c4d10ed12bedd5d3cef9cf6c096f9f007d3dddb03880647f4ea1a04d798"
+signals:
+  - "Setup deploys PhantomVault{value: msg.value}(_player, _player); the constructor is payable and credits balances[msg.sender], and msg.sender during that call is Setup, not the player."
+  - "transferCredit(from, to, amount) only requires msg.sender == from OR msg.sender == relayer — the relayer can move any account's internal credit balance."
+  - "Setup wired _player as both relayer and feeRecipient, so the player (as relayer) is authorized to call transferCredit on Setup's own stranded balance."
+key_idea: "The vault's funding ETH is credited internally to the deployer (Setup) rather than the player, because the constructor uses msg.sender for bookkeeping. A relayer-privileged function (transferCredit) lets any authorized relayer move another account's internal credit with no ownership check beyond 'from == self OR self == relayer'. Since Setup designated the player as relayer, the player moves Setup's stranded credit to itself, then withdraws normally."
+prerequisites:
+  - "Solidity meta-transaction/relayer pattern comprehension"
+  - "Read access to Setup.sol to see how balances are attributed at construction"
+  - "cast/RPC access to a live deployed instance to read vault(), relayer(), getBalance()"
+exploitation_pattern: "constructor credits deployer, not funder -> privileged relayer function allows moving *any* account's balance -> player is also the relayer -> move stranded credit to self -> plain withdraw."
+verification:
+  method: "Live on-chain replay: two player-signed transactions against the actual deployed instance; isSolved() read back true."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Blockchain/Phantom Ledger/solve/evidence/live_verification.txt shows vault_balance_after: 0 and isSolved: true for live RPC addresses."
+pitfalls:
+  - "The exploit does not actually use reentrancy or ECDSA signature malleability at all, despite the flag text naming both — the flag theme can be decorative/misleading relative to the real bug class; verify from source and live state, not from the flag string."
+  - "Required live values (SETUP, PLAYER, VAULT, AMOUNT, RELAYER) cannot be guessed from source alone; they must be read from the launched instance via vault(), relayer(), getBalance() before broadcasting."
+  - "transferCredit only moves internal credit, not ETH; withdraw only pays balances[msg.sender]; two separate externally-initiated transactions are required since neither function calls the other."
+failed_paths: []
+tools:
+  - "cast (Foundry)"
+  - "Python solve/verify_plan.py for offline hash/state verification"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Blockchain/Phantom Ledger/files/PhantomVault.sol"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Blockchain/Phantom Ledger/files/Setup.sol"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Blockchain/Phantom Ledger/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Blockchain/Phantom Ledger/solve/verify_plan.py"
+time_heuristic: "When a Setup/Vault pattern funds a vault in its constructor, check whose address is credited by internal bookkeeping (msg.sender during Setup's call is Setup itself, not the player) versus who holds privileged roles (relayer/owner) — a mismatch there is often the entire bug, with no reentrancy or cryptography needed."
+last_verified: "2026-11-04"

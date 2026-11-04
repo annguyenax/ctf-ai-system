@@ -1,0 +1,45 @@
+id: compfest18_burhanguild_loader_incident
+event: COMPFEST18CTF2026
+category: forensics
+challenge_name: "BurhanGuild Loader Incident"
+status: solved
+flag: "BGLPROOF{orion-lab__cap-A812__loader-4787__implant-BG-94C2A04EC6__build-542715c2e46252e4d790__config-360251a5def08d12cb71e72d5a1609b0d34c9dfc9520197ad8b0cc2cd7cfb76b__archive-dbe0c7b498ef15818b1428f497f3e76785e18afcecc24f519ec506d2485e1f6c__digest-fa25ea4c68bbc4884820bd75ac7ec8a02c28331bdee4f470732ff5f65fd986f2}"
+confidence: 1.0
+artifact_hashes:
+  - "attachment.zip: dbe0c7b498ef15818b1428f497f3e76785e18afcecc24f519ec506d2485e1f6c"
+  - "capture_A812.raw: 07ace96cfd89f07f68344d71f50dd72a24e85196aefbd5c81f59aa9701deca3b"
+signals:
+  - "BGMR v3 binary capture records containing process, heap, maps, network, and file tables"
+  - "YARA rule BurhanGuild_Memory_Loader matching ELF header, CFG3 tag, and memfd:libpam_bg.so"
+  - "Log4Shell CVE-2021-44228 JNDI string residue in Java heap"
+  - "PwnKit pkexec GCONV_PATH privilege escalation"
+  - "Kernel worker masquerade process [kworker/u8:7] loading memfd shared library"
+  - "Unallocated storage page sector carving recovering deleted /dev/shm/.bg-cache/ zip artifacts"
+key_idea: "Identify host orion-lab capture A812 from deleted page 05 case fragment metadata. Carve kind=9 shared object memfd:libpam_bg.so and reverse its KDF routine (0x1100) and XTEA block cipher (0x13e0) operating in CTR mode (0x1500). Decrypt the C2 configuration JSON using runtime mutex, heap beacon fragment, and build ID. Calculate closure contract proof token."
+prerequisites:
+  - Linux memory forensics & anonymous file descriptor analysis (memfd_create)
+  - ELF shared object reverse engineering & disassembly (x86_64, Capstone)
+  - Block cipher cryptanalysis (XTEA in Counter / CTR mode)
+  - Unallocated disk sector / page file carving
+exploitation_pattern: "triage BGMR captures -> identify orion-lab host -> carve ELF from record kind 9 -> reverse key schedule & XTEA-CTR routine -> decrypt embedded config JSON -> assemble closure contract proof token"
+verification:
+  method: "End-to-end Python solver and Unicorn x86_64 CPU emulation parity test. Exact matching of decrypted configuration JSON across all candidate captures."
+  evidence: "decrypted_config.json containing C2 morrow-gate.wreckit.invalid:8443, implant_id BG-94C2A04EC6, and verified SHA-256 digest."
+pitfalls:
+  - "Attempting to decrypt staging-node captures instead of the compromised gateway host orion-lab."
+  - "Missing that the first 4 bytes of arg2 are used as IV prefix while uint32 counter is placed at byte offset 7."
+failed_paths: []
+tools:
+  - "Python (elftools, capstone, unicorn)"
+  - "bgloader_hunt.py inspection helper"
+hexstrike:
+  used: false
+  useful: false
+  notes: "Not needed; localized Python script and emulator were sufficient."
+sources:
+  - "Challenge attachment: files/attachment.zip"
+playbook: ""
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Forensics/BurhanGuild Loader Incident/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Forensics/BurhanGuild Loader Incident/solve/solve.py"
+time_heuristic: "30-45 minutes total (reverse engineering custom KDF and XTEA-CTR mode)"
+last_verified: "2026-08-29"

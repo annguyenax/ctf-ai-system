@@ -21,7 +21,7 @@ prerequisites:
 exploitation_pattern: detect adjacent-key typos -> build QWERTY shift map (both shift layers) -> apply -> read plaintext + flag
 verification:
   method: single substitution decodes BOTH coherent English prose AND the flag consistently
-  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/me fr/solve/evidence/manifest.md
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/me fr/solve/evidence/manifest.md
 pitfalls:
   - wrong shift direction (left vs right hand)
   - forgetting number row + punctuation/shift layer (e.g. '|'->'}', '+'->'_')
@@ -35,7 +35,7 @@ hexstrike:
   notes: trivial offline substitution
 sources: []
 playbook: PLAYBOOKS/misc_keyboard_shift_cipher.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/me fr/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/me fr/solve/solve.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/me fr/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/me fr/solve/solve.py
 time_heuristic: "near-English with adjacent-key typos -> QWERTY shift ±1, ~3 min"
 last_verified: "2026-08-01"

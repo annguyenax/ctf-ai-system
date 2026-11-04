@@ -1,0 +1,35 @@
+id: sunshinectf2026_planetary_probe
+event: "SunshineCTF 2026"
+category: "web/boolean-blind-sqli-binary-search"
+challenge_name: "Planetary Probe"
+status: solved
+flag: "sun{bl1nd_psqli_2_rc3_p4Nd0FyZt8k2}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Endpoint returns only a binary 'signal detected'/'no signal' indicator with no verbose errors -- classic boolean-blind injection surface."
+  - "Appending `' AND 1=1 AND '1'='1` vs `' AND 1=2 AND '1'='1` to the query parameter flips the signal indicator, confirming unescaped string concatenation into a PostgreSQL query."
+  - "A table literally named `leak` (alongside the expected `planets` table and oddly-named decoys `pwn9182`, `zleak`) holds exactly one row containing the flag."
+key_idea: "A boolean-only (no error/time feedback) blind SQLi oracle is solved by binary-searching each character's ASCII value via `ASCII(SUBSTRING(expr FROM i FOR 1)) > mid` comparisons, first binary-searching the target string's LENGTH the same way; this reduces the full flag extraction to O(length * log(96)) requests and parallelizes trivially per-character since each character's search is independent."
+prerequisites:
+  - "PostgreSQL string functions (ASCII, SUBSTRING FROM/FOR) usable inside a boolean injection condition"
+  - "Binary-search character extraction technique for blind SQLi"
+exploitation_pattern: "confirm injectability via a true/false boolean pair -> enumerate pg_tables in the public schema to find non-standard table names -> binary-search the row count and each character's ASCII value of `(SELECT v FROM leak LIMIT 1)` -> parallelize across characters with a thread pool -> assemble the flag"
+verification:
+  method: "Live extraction against the remote service reproduced the exact flag, character by character."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/Planetary Probe/writeup/writeup.md"
+pitfalls:
+  - "Per-character binary search over the full printable ASCII range (32-126, ~7 requests/char) is fast but still benefits heavily from parallelizing across character positions with a thread pool, since each position's search is fully independent."
+failed_paths: []
+tools:
+  - "python3 (requests, concurrent.futures)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "web_sqli.md"
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/Planetary Probe/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/Planetary Probe/solve/inspect_tables.py"
+time_heuristic: "Boolean-only (true/false, no errors) blind SQLi oracle: binary-search length then each character's ASCII value via SUBSTRING/ASCII comparisons, and parallelize per-character extraction across a thread pool for speed."
+last_verified: "2026-11-04"

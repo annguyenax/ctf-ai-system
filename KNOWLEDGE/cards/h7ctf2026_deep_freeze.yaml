@@ -1,0 +1,36 @@
+id: "h7ctf2026_deep_freeze"
+event: "H7CTF 2026 Quals"
+category: "forensics/memory-strings-shortcut-ransomware"
+challenge_name: "Deep Freeze"
+status: "solved"
+flag: "H7CTF{bf3a8e98115450c654b4}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Prompt emphasizes the machine was frozen MID-ENCRYPTION (\"caught mid-reach, still holding what they grabbed\") rather than after the fact."
+  - "A large (17GB) raw Linux LiME memory image is provided alongside one locked (encrypted) file."
+key_idea: "Before doing the \"intended hard path\" (build a Volatility ISF, find the ransomware process, carve the AES key from its heap, test it against the ciphertext), always try the cheap shortcut first on a memory image: if the story says the process was caught mid-run, the decrypted plaintext (or the key material, or even the launch command line with secrets as env vars) is very likely still resident in RAM and recoverable with a plain `strings -n 6 memory.lime | grep <flag-prefix>` scan -- no symbol table, no Volatility plugin, no key recovery needed."
+prerequisites:
+  - "Knowledge of the flag format prefix to grep for"
+  - "A fast strings/grep pass over a multi-GB raw image"
+exploitation_pattern: "strings -n 6 memory.lime | grep -aE \"FLAG_PREFIX\\{\" -> cross-check multiple hits (decrypted content stream, stager command-line env var, hardcoded fallback/decoy) to pick the real flag over a decoy default value."
+verification:
+  method: "Flag found directly in the decrypted PDF content stream resident in memory, independently corroborated by the same value appearing in a FLAG=... environment variable on the ransomware's stager command line in the same image."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Deep Freeze/writeup/writeup.md"
+pitfalls:
+  - "Watch for decoy/fallback flag-shaped strings (e.g. a hardcoded default value in source code also resident in memory) and disambiguate using independent corroborating evidence before trusting a single strings hit."
+  - "Don't assume the \"arithmetic\"/crypto path is required just because ransomware + AES is mentioned; check memory for the plaintext/key first when the scenario says the process was caught live."
+failed_paths: []
+tools:
+  - "strings"
+  - "grep"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Deep Freeze/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Forensics/Deep Freeze/solve/solve.py"
+time_heuristic: "Any memory-forensics challenge whose flavor text stresses the process was caught \"mid-encryption\"/\"red-handed\"/\"live\" is telling you to grep raw strings over the image for the flag or key before building any Volatility profile -- try the cheap read before the arithmetic."
+last_verified: "2026-11-04"

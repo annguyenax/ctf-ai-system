@@ -1,0 +1,37 @@
+id: htbtryout_notademocraticelection
+event: HTB Try Out
+category: blockchain/abi-encodepacked-ambiguity
+challenge_name: "NotADemocraticElection"
+status: solved
+flag: "HTB{h4sh_c0ll1s10n_t0_br1ng_b4ck_d3m0cr4cy}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "getVoterSig() computes abi.encodePacked(_name, _surname) with no delimiter between the two dynamic strings."
+  - "uniqueVoters[_name][_surname] keys by the separate (name, surname) pair, while voters[voterSig] keys by the packed concatenation, so the two mappings can disagree about identity."
+  - "vote() has no per-voter-weight consumption/limit, so the same weighted sig can be voted again and again."
+key_idea: "abi.encodePacked on two dynamic strings is ambiguous: (\"SatoshiNakamoto\", \"\") packs to the same bytes as (\"Satoshi\", \"Nakamoto\"). Depositing under a (name, surname) split that collides with an already-funded voter's packed signature inherits that voter's full weight under the uniqueness-check mapping, and since vote() never decrements or caps a voter's usage, repeated calls multiply the inherited weight past the win threshold."
+prerequisites:
+  - "Solidity contract using abi.encodePacked on >=2 dynamic-length arguments as a mapping key or identity"
+  - A separate uniqueness check keyed by the un-packed arguments, letting the two representations diverge
+exploitation_pattern: "pick (name,surname) split that abi.encodePacked-collides with a known funded voter -> inherit their weight via the shared packed-key mapping -> repeat unlimited vote() calls (no consumption) to cross target threshold"
+verification:
+  method: "On-chain replay against the Anvil RPC instance: 1 collision deposit + 10 vote() calls flipped winner() to CIM and Setup.isSolved() returned true; tx hashes recorded."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/blockchain/NotADemocraticElection/solve/evidence/txs.json"
+pitfalls:
+  - "abi.encodePacked(string,string,...) (or any >=2 dynamic types) is never safe as a unique identifier/mapping key; use abi.encode (length-prefixed) or hash the individually length-prefixed fields instead."
+  - "Any action that reads a per-identity weight but doesn't consume/cap it per call is replayable without bound."
+failed_paths: []
+tools:
+  - web3.py
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/blockchain/NotADemocraticElection/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/blockchain/NotADemocraticElection/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/blockchain/NotADemocraticElection/solve/solve.py"
+time_heuristic: "Whenever a Solidity contract uses abi.encodePacked on two or more dynamic-length arguments to build an identity/key, look for a colliding split that borrows another account's already-established state."
+last_verified: "2026-11-04"

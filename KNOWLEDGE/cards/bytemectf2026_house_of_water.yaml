@@ -1,0 +1,49 @@
+id: bytemectf2026_house_of_water
+event: ByteMe CTF 2026
+category: pwn/heap-tcache-poison
+challenge_name: House of Water
+status: solved
+flag: "OWASP{drink_fr0m_th3_p0is0n3d_tc4ch3}"
+confidence: 1.0
+artifact_hashes:
+  - file: files/house-of-water.zip
+    sha256: 1AE32C7F496DD806BB29CCDAEA759FFAE4BB7D5A5EC2515866ABE8D30DAB6E16
+  - file: files/chal
+    sha256: 8F76B931273BFEE56D6C0027EE2B7E11EA98A09441B09FD5E249F46DB1B8715A
+signals:
+  - Freed slot pointers are retained and accepted by show/edit.
+  - Two adjacent freed 0x90 tcache chunks leak a safe-linking key and a protected next pointer.
+  - The hidden flag can be read through a poisoned tcache allocation.
+key_idea: Recover adjacent heap pointers with safe-linking, poison the tcache next pointer, then concatenate reads from the hidden heap page.
+prerequisites:
+  - x86-64 ELF triage
+  - glibc tcache safe-linking
+  - Heap-relative address reasoning
+exploitation_pattern: UAF show/edit -> safe-link key leak -> tcache next poisoning -> arbitrary heap read.
+verification:
+  method: Exact flag regex matched across concatenated bytes read from the scoped remote service; local marker also verified the primitive.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/House of Water/solve/evidence/recovery.json"
+pitfalls:
+  - The attached loader/libc pair is mismatched; do not assume its local behavior represents the service.
+  - Heap offsets differed between local and remote runs; use the leaked page and the observed service layout.
+  - A flag can cross adjacent show windows; retain and join raw bytes before matching.
+  - Remote extraction does not imply portal acceptance; no portal submission was made.
+failed_paths:
+  - A fixed p0-minus-0x780 offset caused the remote service to close.
+  - The page-base-plus-0x10 candidate contained zero bytes.
+tools:
+  - Python 3 standard library
+  - Kali WSL
+  - readelf
+  - objdump
+hexstrike:
+  used: false
+  useful: false
+  notes: ELF inspection and a bounded challenge-service interaction were sufficient.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/House of Water/files/house-of-water.zip"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/House of Water/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/House of Water/solve/solve.py"
+time_heuristic: When freed heap slots remain addressable, test safe-link leaks from adjacent chunks before searching for a hidden heap allocation; confirm all heap offsets against the actual service.
+last_verified: "2026-10-09"

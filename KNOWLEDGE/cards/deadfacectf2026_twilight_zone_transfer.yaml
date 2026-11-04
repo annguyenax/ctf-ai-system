@@ -1,0 +1,35 @@
+id: deadfacectf2026_twilight_zone_transfer
+event: DeadfaceCTF2026
+category: network/dns-axfr-zone-transfer
+challenge_name: "TrafficAnalysis / Twilight Zone Transfer"
+status: solved
+flag: "deadface{dns_zone_transfer}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - A DNS response packet contains an unusually high number of Answer resource records for a single query (14 RRs: NS, A, TXT) — far more than a normal lookup returns.
+  - This is the signature of a successful AXFR (full zone transfer) against a misconfigured authoritative DNS server that doesn't restrict transfers to authorized secondaries.
+  - A TXT record for a subdomain like `_flag.<zone>` directly carries the flag as its RDATA.
+key_idea: A DNS answer with many resource records for one query/zone is the fingerprint of an AXFR zone transfer; a misconfigured DNS server that allows AXFR from anyone leaks its entire zone file (NS/A/TXT/etc. for every subdomain) in one response — scan a captured AXFR response's records directly for a TXT record holding the flag.
+prerequisites:
+  - A pcap containing the DNS AXFR exchange (query type AXFR, multi-record response)
+exploitation_pattern: parse pcap with scapy -> find DNS packets where ancount is large relative to a normal query -> iterate answer records -> find the TXT record (type 16) whose RDATA contains the flag pattern.
+verification:
+  method: Iterating DNS answer records in the identified AXFR response frame found a TXT record whose RDATA was the literal flag string.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Twilight Zone Transfer/writeup/writeup.md"
+pitfalls:
+  - Must check the answer section's RR *type* (TXT=16) rather than assuming the flag is always in the first/largest record.
+failed_paths: []
+tools:
+  - Python scapy (DNS layer)
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Twilight Zone Transfer/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: forensics_pcap.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Twilight Zone Transfer/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Twilight Zone Transfer/solve/solve.py"
+time_heuristic: A DNS response carrying an unusually large number of answer records for one query is almost always a captured AXFR zone transfer — scan its records directly for TXT entries rather than treating it as a normal lookup.
+last_verified: "2026-11-04"

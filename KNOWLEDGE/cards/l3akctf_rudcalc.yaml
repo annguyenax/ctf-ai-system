@@ -27,7 +27,7 @@ prerequisites:
 exploitation_pattern: leak via len-corruption -> parse limbs for canary+ret -> scanf-null write canary+win -> quit -> win
 verification:
   method: end-to-end exploit vs official instance; win() prints flag; leak self-consistent (canary LSB 0, ret&0xfff==0xa9b)
-  evidence: ../CTFTimeWriteup/L3akCTF2026/pwn/Rudimentary Calculator/solve/evidence/manifest.md
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/pwn/Rudimentary Calculator/solve/evidence/manifest.md
 offsets:
   buf: "rbp-0x1190"
   len: "buf+0x1000 (rbp-0x190)"
@@ -51,7 +51,7 @@ hexstrike:
   notes: developed and run directly against the live instance (no local Kali needed)
 sources: []
 playbook: PLAYBOOKS/pwn_scanf_null_and_len_leak.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/pwn/Rudimentary Calculator/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/pwn/Rudimentary Calculator/solve/exploit.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/pwn/Rudimentary Calculator/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/pwn/Rudimentary Calculator/solve/exploit.py
 time_heuristic: "bignum-print-by-len + canary + scanf(%s) + win() -> leak via len, write via scanf-null"
 last_verified: "2026-08-02"

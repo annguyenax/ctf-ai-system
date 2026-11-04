@@ -1,0 +1,34 @@
+id: "h7ctf2026_parcel_bomb"
+event: "H7CTF 2026 Quals"
+category: "pwn/ret2libc-two-stage-leak-no-canary"
+challenge_name: "Parcel Bomb"
+status: "solved"
+flag: "H7CTF{3ec3660b-f8da-43e7-81ae-70e6c60b667d}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Non-PIE, NX, no stack canary, Partial RELRO binary with an unbounded read() into a small fixed stack buffer (classic ret2libc target); exact matching libc.so.6 shipped with the handout."
+key_idea: "With no PIE and no canary but NX enabled and no leaked libc base, a two-stage ret2plt/ret2libc works cleanly in one connection: stage 1 ROPs puts(GOT[some_libc_func]) then returns to main() to reset the program and accept a second payload; stage 2 computes libc base from the leaked function's known offset and ROPs pop_rdi;ret -> \"/bin/sh\" -> system(). The one easy-to-miss implementation detail: when reading back the leaked pointer's bytes from the socket, only strip the trailing newline -- if the leaked address's low byte happens to be a printable character like 0x20 (space), a naive `.strip()` call will also eat that leading byte and corrupt the computed libc base."
+prerequisites:
+  - "pwntools ELF()/ROP primitives (pop_rdi;ret and an extra ret for stack alignment before system() on x86-64)"
+  - "The exact matching libc for the remote service"
+exploitation_pattern: "stage1: pad-to-RIP-offset + pop_rdi,&GOT[leak_fn] + puts@plt + &main -> parse leaked bytes (strip only trailing \\n) -> libc.address = leak - libc.symbols[leak_fn] -> stage2: pad + ret(align) + pop_rdi,&\"/bin/sh\" + system -> interactive shell -> cat /flag."
+verification:
+  method: "Live exploit; shell access via system(\"/bin/sh\") allowed reading /flag directly from the remote host."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Parcel Bomb/writeup/writeup.md"
+pitfalls:
+  - "Stripping a leaked raw-bytes line with a generic .strip() can silently eat a leading byte that happens to be whitespace-like (e.g. 0x20), corrupting the recovered libc base -- strip only the trailing newline."
+  - "An extra \"ret\" gadget is often needed before calling system() on x86-64 for stack/movaps alignment."
+failed_paths: []
+tools:
+  - "pwntools"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: "pwn_stack_overflow.md"
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Parcel Bomb/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Parcel Bomb/solve/solve.py"
+time_heuristic: "For a classic no-canary/non-PIE/NX overflow with no leaked libc base, use a two-stage ret2plt (leak via puts(GOT[fn]), return to main) then ret2libc approach, and when parsing the leaked bytes back from a socket, strip only the trailing newline -- never a generic strip() that could eat a meaningful leading byte."
+last_verified: "2026-11-04"

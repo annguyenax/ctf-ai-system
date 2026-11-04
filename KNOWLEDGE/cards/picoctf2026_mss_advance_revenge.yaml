@@ -1,0 +1,39 @@
+id: picoctf2026_mss_advance_revenge
+event: picoCTF 2026
+category: crypto
+challenge_name: MSS_ADVANCE Revenge
+status: solved
+flag: "picoCTF{MSS_Advance_but_we_brought_it_back_and_made_it_harder!!!}"
+confidence: 1.0
+artifact_hashes:
+  - "chall.py sha256:2fa2596a22d064030ccb2f2ec2c35e90dc54560a6e25a0e93e86d0ab7cd7a7ce"
+  - "output.txt sha256:ddf8fe30802c0084c4e9bbc93fdf13e8776eef7aafa9f8bd7344d01fad759044"
+signals:
+  - degree-29 poly over 1024-bit prime
+  - 30 coeffs = SHA256 chain from 256-bit MASTER_KEY
+  - 20 evaluation points
+  - AES-CBC IV zero
+key_idea: Small-coefficient polynomial interpolation via LLL; sympy LLL is too slow — use flint.
+prerequisites: []
+exploitation_pattern: affine modular lattice (evals + small coeffs + 1) then hash-chain filter + AES
+verification:
+  method: rebuild 30 hash-chained coeffs, match all 20 (x,y), AES-CBC unpad contains picoCTF{
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026\\Crypto\\MSS_ADVANCE Revenge\\final_flag.txt"
+pitfalls:
+  - sympy Matrix.lll on 51x51 ~1536-bit integers hangs
+  - long_to_bytes is unpadded, not to_bytes(32)
+failed_paths:
+  - sympy LLL solver (hours)
+tools:
+  - python-flint
+  - pycryptodome
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "PLAYBOOKS/crypto_small_coeff_poly_lll.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026\\Crypto\\MSS_ADVANCE Revenge\\writeup\\writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026\\Crypto\\MSS_ADVANCE Revenge\\solve\\solve_flint.py"
+time_heuristic: flint LLL ~14s; sympy LLL not viable
+last_verified: "2026-08-28"

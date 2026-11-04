@@ -1,0 +1,43 @@
+id: fortidctf2026_baby_web
+event: "FortID CTF 2026"
+category: "intro/web-static-client-side"
+challenge_name: "Baby Web"
+status: solved
+flag: "FortID{w3b_15_n07_7h47_h4rd_45_y0u_7h1nk_17_15}"
+confidence: 1.0
+artifact_hashes:
+  - "files/index.html: 17BEBC20B8524EB1541415A5CDC1B51FE0E3F38C7E098015C628B211D6225B9A"
+  - "solve/solve.py: A0527BA810C7FBA5E0CF7A3004A98362FFDAEC972394F568C7724A67303C6BC9"
+signals:
+  - "Static HTML attachment with a button that moves on mouseenter."
+  - "Click handler contains three encoded string fragments and calls atob after reversing their concatenation."
+key_idea: >
+  The mouse-avoidance behavior is a distraction. Concatenate the fragments,
+  reverse the complete string, then Base64-decode it locally.
+prerequisites:
+  - "Basic JavaScript source inspection"
+  - "String reversal and Base64 decoding"
+exploitation_pattern: >
+  Inspect the click handler -> join fragments in order -> reverse the joined
+  string -> Base64-decode -> compare with the saved flag.
+verification:
+  method: "Python solver replay plus independent PowerShell/.NET decode; exact match with final_flag.txt and FortID{...} format. Read-only status check listed Baby Web as SOLVED."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Web/solve/evidence/verification.txt"
+pitfalls:
+  - "Do not waste time chasing the moving button when the complete click handler is available."
+  - "Reverse the joined string as a whole, not each fragment individually."
+failed_paths: []
+tools:
+  - "Python standard library"
+  - "PowerShell/.NET Convert.FromBase64String"
+hexstrike:
+  used: false
+  useful: false
+  notes: "No remote web service or missing tool capability; local source inspection was sufficient."
+sources:
+  - "Supplied challenge artifact: CTFTimeWriteup/FortIDCTF2026/Intro/Baby Web/files/index.html"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Web/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Web/solve/solve.py"
+time_heuristic: "Under 5 minutes: inspect client-side handlers before interacting with evasive UI."
+last_verified: "2026-10-10"

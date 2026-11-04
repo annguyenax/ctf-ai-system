@@ -1,0 +1,36 @@
+id: deadfacectf2026_second_shift
+event: DeadfaceCTF2026
+category: crypto/ctr-nonce-reuse
+challenge_name: "Crypto / Second Shift"
+status: solved
+flag: "deadface{ctr_nonce_reuse_breaks_confidentiality}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Three files given: known plaintext + its ciphertext, and a second ciphertext from the same relay worker/session.
+  - Forum chatter explicitly states the relay reuses the same nonce/counter state across packets.
+  - AES-CTR (and any stream cipher) ciphertext XORed with its own plaintext recovers the raw keystream.
+key_idea: AES-CTR is C = P XOR keystream(nonce,counter); if two messages reuse the same nonce/counter, recovering the keystream from one known-plaintext/ciphertext pair lets you decrypt any other ciphertext encrypted under that same keystream via XOR, with no key recovery needed.
+prerequisites:
+  - One known-plaintext/ciphertext pair from the vulnerable stream
+  - A second ciphertext suspected to share nonce/counter state
+exploitation_pattern: keystream = plaintext1 XOR ciphertext1 -> plaintext2 = ciphertext2 XOR keystream (byte-wise, equal-length prefix).
+verification:
+  method: Local script XORed the files and printed the recovered JSON tasking message containing the exact flag.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Crypto/Second Shift/writeup/writeup.md"
+pitfalls:
+  - Only the overlapping byte length (min of the two ciphertexts) can be recovered; longer plaintext2 needs a longer known-plaintext reference.
+failed_paths: []
+tools:
+  - Python (byte XOR)
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Crypto/Second Shift/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: crypto_xor_repeating.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Crypto/Second Shift/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Crypto/Second Shift/solve/solve.py"
+time_heuristic: Whenever a stream/CTR-mode cipher is suspected of nonce reuse and you have one known plaintext, always try the "recover keystream, XOR into the other ciphertext" attack before anything heavier.
+last_verified: "2026-11-04"

@@ -1,0 +1,38 @@
+id: hackluctf2026_doppelflip
+event: "Hack.lu CTF 2026"
+category: "pwn/double-fault-fd-redirect-via-proc-self-mem"
+challenge_name: "doppelflip"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A hardened container reads/prepares two files' bytes before writing either, then writes via direct syscalls to fd1 before fd2 in that fixed order -- the challenge dares a 'double flip', implying a single primitive applied twice (e.g. two faults in the same pass) is needed, not two independent single flips."
+  - "`fd1` lives in the challenge binary's own `.bss` at a known ELF-relative offset; the hypothesized primitive is to open `/proc/self/mem` and overwrite the GLOBAL variable holding `fd1`'s value via a first 'flip', redirecting which underlying file descriptor the second, already-prepared write targets."
+  - "Because the binary is PIE, the `.bss` offset alone is insufficient -- the runtime load base is ASLR-randomized and no leak primitive has been identified yet to compute the absolute address needed for the /proc/self/mem write."
+key_idea: "A primitive that can corrupt a file-descriptor-number variable via `/proc/self/mem` before a program's second, already-prepared write executes can redirect that write to an attacker-chosen descriptor -- but the primitive is gated entirely on recovering the PIE load base (to compute the absolute .bss address of the fd variable), which must come from a leak or a faithful local reproduction rather than guesswork."
+prerequisites:
+  - "/proc/self/mem as an arbitrary-address read/write primitive"
+  - "PIE base recovery"
+  - "exact Docker/Linux environment reproduction for ASLR-sensitive exploits"
+exploitation_pattern: "identify the two-file-write-order sequence as the target -> hypothesize overwriting the global fd1 variable via /proc/self/mem between flips -> blocked pending a PIE-base leak or faithful local (matching libc/kernel) reproduction to compute the absolute target address."
+verification:
+  method: "No exploit achieved; local build of the exact challenge source confirmed the .bss ELF-relative offset of fd1 (0x40ac) but the PIE load base remains unrecovered."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/doppelflip/notes/ANALYSIS.md"
+pitfalls:
+  - "When a challenge's own description implies a specific repeated primitive ('two flips', 'doppel-') rather than one-off exploitation, look for the exact sequencing/ordering dependency between the repeated applications (e.g. corrupting state used by a SECOND already-scheduled operation) rather than treating each application independently."
+failed_paths:
+  - "Docker Desktop's Linux engine was unavailable in this environment, preventing faithful local reproduction of the exact ASLR/libc behavior needed to validate the PIE-base-dependent write target."
+tools:
+  - "local C recompilation of the provided source (for offset confirmation only)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/doppelflip/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/doppelflip/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/doppelflip/solve/solve.py"
+time_heuristic: "For a 'two file descriptors written in a fixed order' primitive, check whether /proc/self/mem can corrupt the fd-number variable used by the SECOND write before it executes, redirecting it -- but budget time for PIE-base recovery first, since the write target's absolute address depends on it."
+last_verified: "2026-11-04"

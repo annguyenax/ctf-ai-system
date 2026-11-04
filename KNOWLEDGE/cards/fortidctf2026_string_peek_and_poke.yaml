@@ -1,0 +1,43 @@
+id: fortidctf2026_string_peek_and_poke
+event: FortID CTF 2026
+category: pwn/global-oob-index-arena-write-stdout-flush-leak
+challenge_name: "String Peek and Poke"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A fixed global array of 8 std::string objects is indexed with a signed int with NO bounds check on get/put, so any negative or >=8 index reaches arbitrary .bss/.data globals interpreted as a std::string object."
+  - "Writing an out-of-bounds note index that overlays a chunk's {fd,bk} tcache/largebin-freelist fields with a `put` value becomes an arbitrary-offset heap-metadata write primitive, usable without knowing any real address up front."
+  - "Setting stdout's internal _IO_FILE _flags/_IO_write_base fields via the same write primitive, then triggering a flush, dumps a chosen window of process memory out over the socket -- an info-leak primitive that doesn't crash the process."
+key_idea: "An unbounded array-of-std::string index is both an arbitrary out-of-bounds read (get) and write (put) of raw memory interpreted as string length+pointer fields; a verified (locally, non-fatal) two-stage technique uses one such write to corrupt a freed chunk's freelist {fd,bk} pointers into a controlled 'arena-write' primitive (an indirect memcpy to any heap-relative offset without knowing real addresses), and a second such write to set stdout's internal buffer-pointer fields so the next flush dumps a chosen memory window over the socket -- recovering both heap and libc base addresses with the process still alive and interactive. Stage 2 (using the leaked real addresses to forge an _IO_FILE-based exploit, e.g. targeting __environ or an FSOP, for RCE/flag read) is designed but unexecuted; no flag recovered, and a working remote 'landing scan' (locating the right OOB index reliably per-connection given ASLR gaps) is still needed."
+prerequisites:
+  - "Unbounded index on an array of non-trivial C++ objects (std::string) backed by fixed global memory, giving read/write of adjacent globals interpreted as that object's internal representation"
+  - Understanding of glibc tcache/largebin freelist layout (fd/bk, fd_nextsize) to turn a freed-chunk overlay into an indirect-write primitive
+  - Understanding of the _IO_FILE_plus structure (_flags, _IO_write_base/_IO_write_ptr, vtable) to turn stdout corruption into a controlled memory-dump-on-flush
+exploitation_pattern: "(partially verified, unsolved) OOB put/get on a fixed-size global std::string array -> overlay a large-bin freed chunk's {fd,bk} on-grid -> arena-write primitive (memcpy to arbitrary heap-relative offset without a known address) -> corrupt stdout's _IO_FILE fields to redirect the next flush's dump window -> leak heap base then libc base -> (planned, not done) use real addresses for a second arena-write targeting __environ/FSOP for a stack leak and ROP/flag read"
+verification:
+  method: "Local verification only (non-fatal, process stays alive): both the arena-write primitive and the stdout flush-dump leak of heap base and libc base were independently reproduced on two different glibc builds (system 2.43 and the handout's 2.39 via a compat loader). No remote instance or flag recovery was completed."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/String Peek and Poke/notes/v5_leak_2026-10-11.md"
+pitfalls:
+  - "An unbounded signed-int index into a fixed array of non-POD C++ objects (like std::string) is not just an OOB read/write of raw bytes -- it lets you overlay and corrupt internal object fields (data pointer, length) of whatever memory the index lands on, including glibc heap-metadata structures, turning it into much more powerful primitives than a simple buffer overflow."
+  - "When redirecting a stream's internal write-pointer fields to leak memory via flush, a wrong byte (e.g. not preserving certain _flags junk bits, or letting write_base cross a 2-byte boundary incorrectly) can silently set _IO_ERR_SEEN and kill output without crashing the process -- verify exact field semantics locally before relying on partial-byte overwrites remotely."
+  - "A primitive that works perfectly against one glibc build/version is not guaranteed to transfer; re-verify key offsets (main_arena, stdout internals, __environ) against the actual handout libc version, not just the local system one."
+failed_paths:
+  - "An earlier plan to free a marker chunk so its {fd,bk} would land directly inside the stdout flush window was proven impossible: that window is the zeroed tail of the very first heap chunk (a libstdc++ static-init allocation never reachable/freeable from the challenge)."
+  - "A naive refresh of the corrupted largebin head via another allocation crashed immediately because the allocator's own largebin-scan path dereferences the already-corrupted free-list metadata; a 'reservoir chunk' must be staged in unsorted bin before the corrupting write, not after."
+tools:
+  - setarch -R (disable ASLR for local verification)
+  - LD_PRELOAD with target libstdc++/libc builds
+  - Python exploit scripts driving an interactive process over pipes
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/String Peek and Poke/notes/v5_leak_2026-10-11.md"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/String Peek and Poke/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/String Peek and Poke/solve/v5_chain_p.py"
+time_heuristic: "When a challenge exposes unbounded get/put on a fixed array of C++ objects (std::string/vector/etc.), treat it as object-field corruption (data pointer + length), not raw-byte OOB; look for a way to overlay heap freelist metadata for an address-free arena-write primitive, and for a way to corrupt a stream's internal buffer pointers to leak memory via a normal flush."
+last_verified: "2026-11-04"

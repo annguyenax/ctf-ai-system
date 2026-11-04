@@ -1,0 +1,44 @@
+id: bytemectf2026_souls_weakness
+event: ByteMe CTF 2026
+category: pwn/ret2win
+challenge_name: Soul's Weakness
+status: solved
+flag: "OWASP{S0ul_St0ne_Buff3r_0v3rfl0w}"
+confidence: 1.0
+artifact_hashes:
+  - file: files/soul
+    sha256: 6dd5d884180c18c304fdd49d1fc77ee7d9f34f7934aea9fc19cde1f5fa9b795d
+signals:
+  - ELF64 x86-64 with `gets()` into a 32-byte frame buffer.
+  - Non-PIE and no stack canary; NX enabled.
+  - Hidden `soul_stone()` has a fixed address and prints the flag literal.
+key_idea: Overwrite saved RIP at offset 40 with `soul_stone()` at 0x4011b6.
+prerequisites:
+  - ELF header/symbol inspection
+  - x86-64 little-endian stack layout
+exploitation_pattern: gets overflow -> 40-byte padding -> fixed hidden flag-printing function.
+verification:
+  method: deterministic local Linux/WSL execution prints exact flag literal before the process faults on return
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Soul's Weakness/solve/evidence/recovery.json"
+pitfalls:
+  - Do not mistake a post-print crash for a failed flag extraction; the overwritten return address remains active.
+  - Windows console encoding can fail on control bytes echoed from the return address; capture output in Linux or escape bytes.
+failed_paths:
+  - checksec wrapper failed because pwnlib was unavailable; readelf, objdump, and strings were sufficient.
+  - One remote attempt could not be captured due to console encoding; no remote result is claimed.
+tools:
+  - Python 3 standard library
+  - readelf
+  - objdump
+  - strings
+hexstrike:
+  used: false
+  useful: false
+  notes: Local ELF analysis and execution were sufficient to verify the flag.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Soul's Weakness/files/soul"
+playbook: pwn_ret2win_gets
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Soul's Weakness/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Soul's Weakness/solve/solve.py"
+time_heuristic: When `gets()` and a hidden flag-print function coexist in a no-PIE binary, inspect symbols, compute saved-RIP offset, and verify locally before remote work.
+last_verified: "2026-10-09"

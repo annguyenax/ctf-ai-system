@@ -1,0 +1,26 @@
+{
+  "challenge_id": "fortidctf2026_eu_gift",
+  "event": "FortID CTF 2026",
+  "challenge_name": "EU Gift",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Read the blocked_countries field from the challenge ZIP with PyYAML safe_load and check the semantic type of the bare NO scalar.",
+      "result": "The list contains boolean False, not string NO; the string country code NO is not blocked by this membership check.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Misc/EU Gift/solve/verification.txt",
+      "notes": "Local parsing of the exact handout; no external call."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "Inspect the preserved JPEG returned by the protected challenge result route and compare it with final_flag.txt.",
+      "result": "The image visibly contains FortID{Erling_15_7h3_5olut10n_7o_Th3_Norw4y_Pr0bl3m}, matching final_flag.txt. Prior local notes record VERIFICATION_SUCCEEDED for a PID disclosing issuing_country=NO.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Misc/EU Gift/solve/verification.jpg",
+      "notes": "Verified from retained result evidence; not submitted to the platform."
+    }
+  ]
+}

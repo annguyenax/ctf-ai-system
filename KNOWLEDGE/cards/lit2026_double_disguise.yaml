@@ -34,7 +34,7 @@ hexstrike:
   notes: "Trivial offline crypto."
 sources: []
 playbook: ""
-writeup: D:\download\CTFTimeWriteup\LIT2026\crypto\double_disguise\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\crypto\double_disguise\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\crypto\double_disguise\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\crypto\double_disguise\solve\solve.py
 time_heuristic: "<5 min: base64 -> xor-with-known-prefix -> constant key."
 last_verified: "2026-08-03"

@@ -1,0 +1,37 @@
+id: deadfacectf2026_conduct_unbecoming
+event: DeadfaceCTF2026
+category: stego/printer-tracking-dots
+challenge_name: "Steganography / Conduct Unbecoming"
+status: solved
+flag: "deadface{NVU-PRINT-17}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Challenge asks for a hidden asset/tracking ID from a scanned printed document image, not an obviously-embedded-data file format.
+  - Real color laser printers embed faint yellow "Machine Identification Code" (MIC) tracking dots across printed pages; yellow ink absorbs blue light but not red/green, so yellow dots show as high R/G but low B relative to background.
+  - A regular dot grid appears in one corner of the image when the blue channel is isolated this way.
+key_idea: To recover printer tracking-dot steganography from a scanned/photographed document, compute a yellow-detector channel `((R+G)/2 - B)` across the image, locate the resulting dot grid's origin and row/column pixel spacing, then read each grid row as an 8-bit value (dot present/absent) to decode ASCII characters — a synchronization row of all-1 dots is common and should be skipped.
+prerequisites:
+  - High enough image resolution to resolve individual tracking dots (several megapixels)
+  - numpy/PIL for channel math and windowed thresholding
+exploitation_pattern: load image as numpy array -> diff = (R+G)/2 - B -> find bright cluster bounding box -> infer grid origin (y_base, x_base) and spacing (step_y, step_x) from the cluster -> for each row of dots, sample an 8-pixel window per column, threshold diff.max() against a cutoff -> assemble bits into bytes -> decode ASCII.
+verification:
+  method: Decoded 12 rows of 8-bit dot patterns produced a readable ASCII tracking ID string exactly matching the submitted flag body.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Steganography/Conduct Unbecoming/writeup/writeup.md"
+pitfalls:
+  - Grid origin and spacing are scan/print-specific calibration values — they must be measured per image (via visual inspection of the yellow-diff heatmap), not assumed.
+  - A fixed brightness threshold may need tuning; this writeup used a diff >= 7 cutoff found by inspection.
+failed_paths: []
+tools:
+  - Python numpy / PIL
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Steganography/Conduct Unbecoming/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Steganography/Conduct Unbecoming/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Steganography/Conduct Unbecoming/solve/solve.py"
+time_heuristic: For a scanned/printed document suspected of hidden tracking data, check for faint yellow printer tracking dots by isolating (R+G)/2 - B; locate the dot grid, calibrate its spacing from the image itself, then decode rows as 8-bit ASCII.
+last_verified: "2026-11-04"

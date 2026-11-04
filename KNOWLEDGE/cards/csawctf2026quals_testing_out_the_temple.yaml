@@ -1,0 +1,38 @@
+id: csawctf2026quals_testing_out_the_temple
+event: "CSAW CTF Qualifications 2026"
+category: "crypto/multi-stage-web-cipher-chain"
+challenge_name: "Testing out the Temple"
+status: needs_verification
+flag: "csaw{tH3_c0fF3r_w4s_n3v3r_th3_gU4rd1an}"
+confidence: 0.6
+artifact_hashes: []
+signals:
+  - "Server exposes 4 sequential 'artifact' stages (stone/frost/iron/vault), each unlocked by solving the previous stage's cipher to derive the next stage's key."
+  - "Stage 1 (stone) is a Vigenere/autokey cipher keyed by the literal string 'STONE'."
+  - "Stage 2/3 use a custom SHA256-counter stream cipher (hashlib.sha256(material + counter) as keystream blocks) keyed by the previously-recovered stage key."
+  - "Final vault stage is AES-GCM keyed by SHA256 of all three recovered stage keys concatenated, decrypting the flag directly."
+key_idea: "Multi-stage 'escape room' web challenges that gate each stage behind the previous stage's derived key should be solved by writing one solver script that chains all stages end to end (fetch artifact -> decrypt with known key -> extract next key -> POST answer -> repeat), since no stage is independently useful without the others."
+prerequisites:
+  - "Autokey/Vigenere decryption"
+  - "Custom stream cipher construction from a hash function (sha256(material||counter) keystream)"
+  - "AES-GCM decryption given key/nonce/aad"
+exploitation_pattern: "GET stone.json -> autokey-decrypt with key STONE -> extract digit-word suffix -> derive k1=GRANITE-<digits> -> POST /stone -> GET frost.bin -> sha256-counter-stream XOR keyed by k1 -> regex MARKER -> k2 -> POST /frost -> GET iron.json -> derive layered hash h2 from k1/k2 -> stream-XOR payload -> regex MARKER -> k3 -> POST /iron -> GET vault.json -> AES-GCM decrypt with sha256(k1|k2|k3) -> flag"
+verification:
+  method: "solve.py implements the full chain and prints each stage's recovered key and the final flag, but no saved execution transcript/log was found in this challenge folder confirming a live run against the actual server."
+  evidence: ""
+pitfalls:
+  - "Each stage's key-derivation detail (which hash/XOR construction, which fields get concatenated/reversed) must match the server's exact implementation; a solve script with no execution log is a plausible-looking hypothesis, not proof -- re-run against a live instance before trusting the result."
+failed_paths: []
+tools:
+  - "python3 (cryptography.hazmat AESGCM, hashlib, requests)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Testing out the Temple/files/taking_on_the_temple.zip"
+playbook: null
+writeup: ""
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Testing out the Temple/solve/solve.py"
+time_heuristic: "Multi-stage web challenge where each stage's key unlocks the next: write one chained solver script rather than solving stages piecemeal, but confirm with a saved live-run transcript before marking solved."
+last_verified: "2026-11-04"

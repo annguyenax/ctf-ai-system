@@ -1,0 +1,35 @@
+id: securinets2026_khloss_lmouhami
+event: Securinets CTF Friendly 2026
+category: misc/pdf-font-encoding-steganography
+challenge_name: "KHLOSS LMOUHAMI"
+status: solved
+flag: "Securinets{wow_y0u_c4n_t3ll_1d3nt1c4l_l3tt3rs_4p4rt}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Challenge description repeatedly hints that 'documents which appear alike shall be processed as equivalent' and that the rendered image and the PDF text look identical."
+  - "The PDF body font has an Encoding /Differences array remapping character codes 160-254 to render as the EXACT SAME GLYPHS as the normal ASCII codes 32-126 (space, A-Z, a-z, etc.)."
+key_idea: "A PDF font's /Differences array can make two different byte values render as visually identical glyphs; this is a 1-bit-per-character steganographic channel invisible to normal rendering. Extract the raw hex-string bytes from every Tj show-text operator for the body font in document order, and for each byte emit bit=1 if byte>=128 (the 'high' alias) else bit=0; grouping those bits MSB-first into bytes recovers a hidden payload that is NOT part of the rendered/visible text at all."
+prerequisites:
+  - "PDF internal structure: Font Encoding /Differences arrays and how they remap character codes to glyph names"
+  - "Parsing Tj/TJ text-showing operators to recover the raw per-glyph byte stream in document order"
+exploitation_pattern: "visually-identical-but-byte-distinct glyph encoding exists in a font's /Differences remap -> extract raw show-text bytes in order -> classify each byte by which of the two aliased ranges it falls in -> reassemble classification bits into a hidden byte stream -> decode as the flag (or a payload prefix leading to it)."
+verification:
+  method: "Deterministic extraction from the PDF's font Encoding table and Tj operators reproduces the flag exactly as a decoded byte sequence (prefixed with a short header tag in this instance)."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/KHLOSS LMOUHAMI/writeup/writeup.md"
+pitfalls:
+  - "Do not assume a PDF's visible/rendered text is the full data channel -- when a challenge stresses that two things 'look the same' or 'are processed as equivalent', check the font Encoding/Differences table for byte-level aliasing of visually identical glyphs."
+failed_paths: []
+tools:
+  - "PDF structure inspection (manual or pypdf/pdfminer-style parsing of the font dictionary and content stream)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/KHLOSS LMOUHAMI/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/KHLOSS LMOUHAMI/writeup/writeup.md"
+solver: ""
+time_heuristic: "For a PDF forensics/stego challenge that emphasizes two renderings 'looking the same', inspect the font's Encoding /Differences array for duplicate-glyph aliasing across two byte ranges before assuming the hidden data is in metadata, overlay bytes, or object streams."
+last_verified: "2026-11-04"

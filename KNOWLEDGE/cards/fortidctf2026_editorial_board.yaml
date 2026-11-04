@@ -1,0 +1,41 @@
+id: fortidctf2026_editorial_board
+event: FortID CTF 2026
+category: pwn/charset-restricted-shellcode
+challenge_name: "Editorial Board"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "Native 32-bit non-PIE binary copies an accepted article into a fixed 64KiB RWX mapping, then overflows a 601-byte stack buffer via rep movsb with no canary."
+  - "Allowed return bytes restricted to ASCII letters plus .,;:'-?! ; the word 'able' little-endian encodes an address inside the RWX mapping, giving a usable ret target."
+  - "A Python/LanguageTool gate requires 0 spelling findings, <=2.2 issues/100 words, score>=88, on top of the native structural checks (640-900 bytes, >=90 words, >=4 sentences)."
+key_idea: "The overflow and RWX-shellcode execution mechanics are confirmed locally (stubbed validator), but no article has been built that is simultaneously valid ASCII-letter-only x86 shellcode from the landing offset AND passes the real LanguageTool grammar/style gate; the shellcode's own arithmetic 'words' inflate measured grammar-issue density past the 2.2/100 threshold."
+prerequisites:
+  - 32-bit ASM opcode-to-ASCII-letter mapping (only 0x2D SUB and 0x21 AND fall in the allowed charset)
+  - Local LanguageTool (Java + language_tool_python) to iterate against the real grammar gate instead of blind remote submissions
+exploitation_pattern: "(unresolved) ascii-letter shellcode dwords via chained SUB/AND immediates -> RWX map ret target 'able' -> must also pass LanguageTool style/spelling gate"
+verification:
+  method: "No remote flag obtained; local replay reaches /bin/sh only when the Python/LanguageTool gate is stubbed out."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/Editorial Board/notes/analysis.md"
+pitfalls:
+  - "A charset-restricted shellcode payload can pass structural checks (length, word count, sentence count) yet still fail a real NLP grammar/spelling scorer because the shellcode's own synthetic 'words' and byte patterns (e.g. ModRM bytes landing on uppercase letters) register as grammar/spelling noise."
+  - "Do not assume a LanguageTool-gated validator is unreachable; it can be run locally (Java + language_tool_python) to calibrate exactly against the real remote scorer before spending remote attempts."
+failed_paths:
+  - "900-byte word-arithmetic shellcode article scored issues=3.49/100 (limit 2.2) and spelling=0.58/100 (limit 0.0) locally, confirming remote REJECT reason."
+  - "A normal 864-char natural-English article was ACCEPTED by the real remote validator, proving the validator path is reachable; the blocker is specifically combining shellcode bytes with passing prose."
+tools:
+  - Kali WSL
+  - Java 22 + language_tool_python (local LanguageTool)
+  - objdump/disassembly
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/Editorial Board/notes/languagetool_unblock_2026-10-11.md"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/Editorial Board/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/Editorial Board/solve/editorial_word_payload.py"
+time_heuristic: "When a pwn challenge gates shellcode through a natural-language quality scorer, build/run the real scorer locally first; iterating remotely against an NLP gate wastes attempts without feedback on which metric failed."
+last_verified: "2026-11-04"

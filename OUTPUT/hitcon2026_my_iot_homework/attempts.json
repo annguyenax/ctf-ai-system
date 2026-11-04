@@ -1,0 +1,43 @@
+{
+  "challenge_id": "hitcon2026_my_iot_homework",
+  "flag_status": "verified",
+  "flag_verification": "Read directly from live GPIO-backed GATT characteristic; exact bytes saved and hashed. Scoreboard acceptance unconfirmed because submit helper received Cloudflare HTTP 403.",
+  "attempts": [
+    {
+      "t": "2026-10-25T00:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Disassemble command_handler and invert its per-byte ROL/XOR equations.",
+      "result": "Derived accepted maintenance bytes 11 45 14 19 19 81 00; live write caused reset into DFU.",
+      "evidence_path": "D:/download/CTFTimeWriteup/HITCONCTF2026/Pwn/My IOT homework_new folder（1）_ver.114514(final）/solve/evidence/maintenance_derivation.md",
+      "notes": "All seven bytes independently satisfy the zero-accumulator check."
+    },
+    {
+      "t": "2026-10-25T00:00:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "Run compiled init and image validators locally with the generated image.",
+      "result": "Init prevalidation returned 0; post-validation returned 0 with CRC16 0x4b2c.",
+      "evidence_path": "D:/download/CTFTimeWriteup/HITCONCTF2026/Pwn/My IOT homework_new folder（1）_ver.114514(final）/solve/evidence/verification.json",
+      "notes": "Used a dummy marker in the local GATT emulation, not the challenge flag."
+    },
+    {
+      "t": "2026-10-25T00:00:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H3",
+      "action": "Upload Thumb application over Nordic DFU, activate, and read its GATT characteristic.",
+      "result": "DFU opcodes 1-4 succeeded; live GPIO-backed characteristic returned the exact flag.",
+      "evidence_path": "D:/download/ctf-ai-system/OUTPUT/hitcon2026_my_iot_homework/raw/live_dfu.txt",
+      "notes": "The service UUID is vendor 128-bit; host rejects malformed 16-bit UUID strings."
+    },
+    {
+      "t": "2026-10-25T00:00:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H4",
+      "action": "Submit recovered flag through the official HITCON helper.",
+      "result": "HTTP 403 Cloudflare challenge; scoreboard acceptance not confirmed.",
+      "evidence_path": "D:/download/CTFTimeWriteup/HITCONCTF2026/Pwn/My IOT homework_new folder（1）_ver.114514(final）/solve/evidence/submission_attempt.txt",
+      "notes": "The flag itself remains verified from the live target response."
+    }
+  ]
+}

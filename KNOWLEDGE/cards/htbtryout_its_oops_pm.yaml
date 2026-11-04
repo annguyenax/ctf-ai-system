@@ -1,0 +1,38 @@
+id: htbtryout_its_oops_pm
+event: HTB Try Out
+category: hardware/vhdl-backdoor-static-analysis
+challenge_name: "It's Oops PM"
+status: solved
+flag: "HTB{4_7yp1c41_53cu23_TPM_ch1p}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "backdoor.vhdl hardcodes a specific 16-bit comparison pattern that sets a control signal B when the input equals it exactly."
+  - "In a VHDL process, sequential signal assignments override earlier ones for the same signal (last assignment wins), silently breaking an otherwise-correct per-bit XOR cipher for 3 specific bit positions."
+  - "tpm.vhdl muxes raw Output = Key (not the encrypted value) whenever the backdoor condition fires."
+key_idea: "Statically read the VHDL sources to extract the exact backdoor trigger pattern and the key constant directly (no brute force of the 16-bit space needed); the backdoor MUX leaks the raw encryption key when fed that exact trigger value, since a correctly-reasoned simulation (respecting VHDL's sequential-override semantics) confirms the derived encrypt()/tpm() behavior against hand-computed values before touching the live remote service."
+prerequisites:
+  - Reading VHDL process blocks with attention to statement order (last write wins per signal in a process)
+  - Recognizing MUX-style conditional output assignment as a backdoor leaking internal state
+exploitation_pattern: "VHDL source audit finds trigger pattern + leaked key constant directly -> simulate locally to validate -> send literal trigger bits to the live service to receive the key/flag"
+verification:
+  method: "Offline Python simulation reproduced VHDL semantics (encrypt/tpm) and matched hand-derived sample values exactly; sending the trigger bit pattern to the live satellite service via raw socket returned the flag."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/hw/It's Oops PM/final_flag.txt"
+pitfalls:
+  - "When simulating VHDL in another language, respect that within one process, later signal assignments to the same signal override earlier ones in simulation order -- a naive left-to-right single-pass translation can silently compute the wrong encrypted value for the overridden bits."
+  - "The flag is produced only by the live remote service responding to the trigger, not recoverable purely offline, even though the backdoor logic itself is fully static-analyzable."
+failed_paths: []
+tools:
+  - Python VHDL-semantics simulator
+  - raw socket client
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/hw/It's Oops PM/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/hw/It's Oops PM/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/hw/It's Oops PM/solve/solve.py"
+time_heuristic: "When reverse-engineering hardware description language (VHDL/Verilog) logic, remember sequential-process semantics: the last assignment to a signal in a process wins, which can hide intentional backdoors in what otherwise looks like a correct per-bit transform."
+last_verified: "2026-11-04"

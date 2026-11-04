@@ -1,0 +1,34 @@
+id: "h7ctf2026_ghost_on_the_bus"
+event: "H7CTF 2026 Quals"
+category: "hardware/vcd-multi-bus-key-split-xor"
+challenge_name: "Ghost on the Bus"
+status: "solved"
+flag: "H7CTF{c942aa37-4af2-4d31-959c-f06950233bbd}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A VCD logic-analyzer capture records UART, I2C (SCL/SDA) and SPI (CLK/MOSI/MISO/CS) simultaneously during device boot."
+  - "UART bootloader output (plaintext debug log) explicitly describes the key assembly procedure (\"part A <- SPI flash READ ..., part B <- I2C EEPROM ..., key = part_A XOR part_B\")."
+key_idea: "Always decode the plaintext UART channel in a multi-bus VCD capture FIRST -- firmware debug/boot logs frequently narrate exactly how a secret is assembled from the other buses (which protocol, which address/command, how the halves combine), turning SPI/I2C waveform decoding from a guessing exercise into a scripted extraction: parse VCD value-change events per signal, decode each bus (SPI: sample MOSI/MISO on CLK edges while CS low; I2C: detect START/STOP via SDA transitions while SCL high, sample on SCL rising edges) and combine per the UART's own instructions."
+prerequisites:
+  - "VCD text format parsing (#<time> then <value><signal-id> lines)"
+  - "Standard SPI and I2C bit/byte framing rules"
+exploitation_pattern: "parse VCD events -> decode UART_TX at its baud rate for the narrated recipe -> decode SPI transaction (cmd 0x03 read, address, N response bytes) -> decode I2C transaction (device address, N response bytes) -> XOR (or otherwise combine per the recipe) the two halves -> flag."
+verification:
+  method: "Deterministic XOR combination of the two decoded byte sequences produced the flag directly in ASCII."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Ghost on the Bus/writeup/writeup.md"
+pitfalls:
+  - "Without first decoding the UART narration, it's easy to misassume the combination operation (concat vs XOR vs interleave); let the firmware's own debug output specify it."
+failed_paths: []
+tools:
+  - "Python VCD parsing"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Ghost on the Bus/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Ghost on the Bus/solve/solve.py"
+time_heuristic: "In any multi-signal VCD/logic-analyzer hardware challenge, decode the UART/serial console channel before the other buses -- boot/debug logs very often spell out exactly how a split secret across SPI/I2C/etc. should be combined."
+last_verified: "2026-11-04"

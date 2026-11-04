@@ -1,0 +1,38 @@
+id: picoctf2026_pizza_router
+event: picoCTF2026
+category: pwn/heap-oob-function-pointer
+challenge_name: Pizza Router
+status: solved
+flag: "flag{thirty_minutes_or_flag_free_64b39a05}"
+confidence: 1.0
+artifact: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Pwn/Pizza Router/files/router"
+signals:
+  - replay leaks renderer pointer at PIE+0x2260
+  - receipt leaks heap callback structure via hint
+  - reroute accepts signed heap_idx without bounds checking
+  - win() is present at PIE+0x2460
+  - city1 width is 16 and an order at (1,1) is sufficient
+key_idea: Calculate PIE from replay, calculate route_list from receipt hint+24, use the large negative OOB index to overwrite the global order x-coordinate so the order id becomes 17, then use heap_idx 131 to overwrite the upper half of the finish callback pointer with win's upper 32 bits and dispatch order 17.
+exploitation_pattern: leak PIE + leak heap -> signed OOB write to global state -> alter order lookup id -> partial callback pointer overwrite -> dispatch -> win
+verification:
+  method: "Two independent live runs against mysterious-sea.picoctf.net:64065"
+  run1: "renderer=0x5face68b1260, hint=0x5facf5dc7b20, idx_bss=-32122711, flag verified"
+  run2: "PIE base=0x5da156778000, heap hint=0x5da1928aeb20, idx_bss=-125985623, flag verified"
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Pwn/Pizza Router/writeup/writeup.md"
+pitfalls:
+  - The reroute write is partial (32-bit at offset +4), so use win upper half; do not send the full win address as new_cost.
+  - Stage 1 changes the order id lookup to 17; use id 17 for stage 2 and dispatch.
+  - Recalculate PIE and heap-derived indices for every process.
+tools:
+  - Python 3
+  - pwntools
+  - readelf/objdump
+hexstrike:
+  used: false
+  useful: false
+sources:
+  - "Local binary and maps in challenge files"
+  - "Live solver replay recorded in solve/solve.py and writeup"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Pwn/Pizza Router/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Pwn/Pizza Router/solve/solve.py"
+last_verified: "2026-08-28"

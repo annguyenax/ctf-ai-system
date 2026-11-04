@@ -1,0 +1,37 @@
+id: fortidctf2026_sticky_headers
+event: FortID CTF 2026
+category: web
+challenge_name: Sticky Headers
+status: solved
+flag: "FortID{1_C4NT_5H4K3_TH15_H34D3R_8aa9ae0bba}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "gateway terminates exactly one request per connection"
+  - "hint: older courier protocol / more than one encoding"
+  - "staff route 403 behind gateway ACL; preview renders a form field"
+  - "robots.txt names private form fields"
+key_idea: >-
+  Chunked TRAILER request smuggling: after the terminal 0\r\n chunk the gateway
+  swallows exactly 2 bytes then parses the remainder as a new request on the same
+  backend connection (prefix smuggled request with 2 junk bytes; end outer body
+  with 0\r\n\r\n; inner request uses Content-Length). Bypasses gateway ACL to
+  reach POST /staff/preview, whose message field is Jinja2 SSTI -> file read.
+prerequisites:
+  - "HTTP request smuggling (CL/TE, trailer desync)"
+  - "Jinja2 SSTI builtins chain"
+exploitation_pattern: "calibrate swallowed-byte offset with marker prefix, then smuggle the ACL-blocked method+path, then SSTI the preview field"
+verification:
+  method: "SSTI probe 7*7=49 + flag file read + platform accepted"
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Web/Sticky Headers/solve/solve.py"
+pitfalls:
+  - "smuggled request must carry a 2-byte junk prefix; outer chunked body must end 0\r\n\r\n"
+failed_paths: []
+tools: ["python sockets"]
+hexstrike: {used: false, useful: false, notes: ""}
+sources: ["challenge interaction only"]
+playbook: ""
+writeup: "CTFTimeWriteup/FortIDCTF2026/Web/Sticky Headers/solve/solve.py (chain documented in header)"
+solver: "CTFTimeWriteup/FortIDCTF2026/Web/Sticky Headers/solve/solve.py"
+time_heuristic: "45-90 min incl. offset calibration"
+last_verified: "2026-10-10"

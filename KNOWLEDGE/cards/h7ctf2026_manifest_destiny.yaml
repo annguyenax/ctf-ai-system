@@ -1,0 +1,33 @@
+id: "h7ctf2026_manifest_destiny"
+event: "H7CTF 2026 Quals"
+category: "pwn/format-string-arbitrary-write-no-binary"
+challenge_name: "Manifest Destiny"
+status: "solved"
+flag: "H7CTF{93ac90f5-2ab9-4e8a-8996-498cf1903c3f}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A menu option echoes user input directly as printf's format string (printf(user_input) with no format specifier of its own)."
+  - "No binary/handout was shipped; everything must be derived purely from the live service's own leaked output."
+key_idea: "When no binary is given for a format-string bug, bootstrap entirely from the live service: find the varargs offset of your own buffer by sending a probe like \"AAAAAAAA%N$p\" for increasing N until it echoes back your marker bytes as a pointer value, then use %<offset+1>$p leaks of adjacent stack slots to confirm non-PIE/PIE and recover code pointers (binary base), and if you need to read further memory, place a target address at a known vararg offset and use %<offset>$s to dereference-and-print it as a string (dumping .text byte-by-byte if needed to reverse logic with no local binary at all). Finally, use %<n>c%<offset>$hhn to write a single byte (or %hn/%n for wider writes) to any address you've placed in the vararg stream, e.g. to flip an in-memory \"admin\" gate variable to non-zero."
+prerequisites:
+  - "Careful accounting of how many bytes/args your payload itself consumes before the injected pointer value, so the %N$ offset lines up exactly"
+exploitation_pattern: "probe vararg offset with marker+%N$p -> leak adjacent stack pointers to confirm binary base / non-PIE -> optionally %s-leak arbitrary memory to reverse-engineer logic with no binary -> build \"%1c%K$hhn\" + padding-to-alignment + packed target address at vararg slot K -> send -> target global flips non-zero -> call the now-unlocked action for the flag."
+verification:
+  method: "Live replay; after the single-byte format-string write, the previously-gated \"view manifest\" action printed the flag."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Manifest Destiny/writeup/writeup.md"
+pitfalls:
+  - "Get the vararg offset exactly right first with a plain %N$p probe before attempting any %n write -- an off-by-one offset silently corrupts the wrong memory."
+failed_paths: []
+tools:
+  - "Python sockets"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Manifest Destiny/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Manifest Destiny/solve/solve.py"
+time_heuristic: "For a format-string pwn challenge with no binary provided, bootstrap purely from the live service: locate your buffer's vararg offset with a marker+%N$p probe, then use %s leaks for recon and %hhn/%hn writes for exploitation without ever needing a local copy of the binary."
+last_verified: "2026-11-04"

@@ -1,0 +1,34 @@
+id: rstconctf2026_hey_listen
+event: RSTCON CTF 2026
+category: osint/social-media-acrostic
+challenge_name: "Hey Listen"
+status: solved
+flag: "rstcon{RADIUM}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Challenge title is a Zelda/Navi reference pointing at "notifications"/announcements; prompt explicitly asks "Did you see that post about RSTCON having a CTF??"
+  - Event announcement post has an unusual line-break structure and ends with "Maybe look a little closer."
+key_idea: When a challenge has zero attached files and only a prompt pointing at a social-media post, find the org's official account (via public API, e.g. Bluesky `getAuthorFeed`) and read the announcement text literally line-by-line; a hint like "look a little closer" plus a multi-line post with one capitalized or isolated word per line signals an acrostic (first letter of each line spells the answer).
+prerequisites:
+  - Locating an org's official social account and its public read API
+  - Recognizing acrostic hints ("look closer", oddly short/terse lines)
+exploitation_pattern: find official social account -> fetch public post text via API -> read first letter of each line -> assemble word -> wrap in given flag format.
+verification:
+  method: Flag format and spelled-out word are given directly in the writeup's transcription of the live post; reproducible by re-fetching the same public post.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/OSINT/Hey Listen/writeup/writeup.md"
+pitfalls:
+  - No attached files means the entire signal is in the challenge description/title wording; don't treat a no-attachment OSINT challenge as unsolvable.
+failed_paths: []
+tools:
+  - Bluesky public API (app.bsky.feed.getAuthorFeed)
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/OSINT/Hey Listen/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/OSINT/Hey Listen/solve/solve.py"
+time_heuristic: No-attachment OSINT challenge whose title/prompt points at a specific social platform -> find the org's official account there and read multi-line posts literally for acrostics when a "look closer" style hint is present.
+last_verified: "2026-11-04"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""

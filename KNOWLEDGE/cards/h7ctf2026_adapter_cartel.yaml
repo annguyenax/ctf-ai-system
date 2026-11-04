@@ -1,0 +1,39 @@
+id: "h7ctf2026_adapter_cartel"
+event: "H7CTF 2026 Quals"
+category: "ai/supply-chain-lora-backdoor"
+challenge_name: "Adapter Cartel"
+status: "solved"
+flag: "H7CTF{0ddc42ef683b6bd1be9f}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "8 LoRA adapters for one base MoE model; only adapters 2,3,5,7 carry extra tensors targeting the same non-standard module (expert_router lora_A/lora_B)."
+  - "Each single adapter passes a merge-safety scan alone; the hint explicitly says \"no single adapter is malicious\" and \"choked on the router weights\" once merged."
+signals_continued: []
+key_idea: "A backdoor can be split across several LoRA adapters that are individually benign; only summing their delta weights (sum of B_i@A_i) on the shared target module reconstructs the payload. Identify adapters sharing an unusual target tensor name, sum their low-rank deltas, and decode the resulting matrix as bytes/ASCII."
+prerequisites:
+  - "safetensors tensor-name inspection across multiple adapter files"
+  - "basic LoRA math (delta = B @ A)"
+exploitation_pattern: "shared unusual target tensor across a subset of adapters -> sum delta weights for that subset -> non-zero integer entries decode directly as ASCII flag bytes."
+verification:
+  method: "Deterministic local computation; solver script reproduces the exact flag bytes from the provided adapter files."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/AI/Adapter Cartel/final_flag.txt"
+pitfalls:
+  - "Checking adapters individually never reveals the backdoor; only the merged/summed router delta does."
+  - "Only round non-zero matrix entries map to ASCII; zero entries are padding, not characters."
+failed_paths: []
+tools:
+  - "Python"
+  - "PyTorch"
+  - "safetensors"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/H7CTF2026/AI/Adapter Cartel/files/adapters"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/AI/Adapter Cartel/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/AI/Adapter Cartel/solve/solve.py"
+time_heuristic: "When a challenge gives many LoRA adapters for one model and hints at a \"composable\" or \"cartel\" backdoor, grep all adapters for a shared unusual target module name and sum their deltas before concluding nothing is malicious."
+last_verified: "2026-11-04"

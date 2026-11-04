@@ -1,0 +1,36 @@
+id: deadfacectf2026_you_wouldnt_git_it
+event: DeadfaceCTF2026
+category: stego/unicode-tag-block
+challenge_name: "OSINT / You Wouldn't Git It"
+status: solved
+flag: "deadface{13_h4ck3r5_walk3d_int0_a_bar_each_says_Ill_h4v3_a_r00t_b33r}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Prior challenge established the operator built a Unicode-hiding browser extension using several schemes including "Unicode Tag Block."
+  - A social-platform post/comment text, when fetched as raw Unicode, contains invisible characters in the range U+E0000-U+E007F (the Unicode Tag Block, originally for defunct language tags, now mostly used only for steganography).
+key_idea: The Unicode Tag Block (U+E0000-U+E007F) maps 1:1 onto ASCII (code point - 0xE0000 == ASCII code point) and renders as fully invisible in normal UI — when text is suspected to hide data via "tag characters" or an emoji-adjacent invisible-character scheme, filter the raw string for code points in that range and subtract 0xE0000 to recover ASCII directly.
+prerequisites:
+  - Raw/unescaped text content of the suspect post (HTML-rendered page text, not a screenshot)
+  - Prior knowledge that the hiding scheme is Unicode Tag Block (vs. variation selectors or zero-width chars, which use different ranges)
+exploitation_pattern: fetch page HTML -> get visible text node content -> filter chars where 0xE0001 <= ord(c) <= 0xE007F -> map chr(ord(c) - 0xE0000) -> join to ASCII flag string.
+verification:
+  method: Filtering and mapping the post's text directly yielded the readable flag string.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/You Wouldn't Git It/writeup/writeup.md"
+pitfalls:
+  - Different invisible-Unicode stego schemes (Tag Block vs. Variation Selectors vs. zero-width joiners) need different decode ranges/formulas — confirm which scheme is in play (often stated in a prior linked challenge) before assuming the Tag Block formula applies.
+failed_paths: []
+tools:
+  - Python (ord/chr filtering)
+  - BeautifulSoup
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/You Wouldn't Git It/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/You Wouldn't Git It/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/You Wouldn't Git It/solve/solve.py"
+time_heuristic: If a suspect text is known/hinted to hide data in invisible Unicode "tag" characters, filter raw text for code points U+E0001-E007F and subtract 0xE0000 to decode straight to ASCII.
+last_verified: "2026-11-04"

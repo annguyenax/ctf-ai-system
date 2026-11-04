@@ -1,0 +1,26 @@
+{
+  "challenge_id": "fortidctf2026_end_of_life",
+  "event": "FortID CTF 2026",
+  "challenge_name": "End of Life",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Compare DOS text-mode validation with the binary-mode reread and inspect the 16-bit stack layout",
+      "result": "Ctrl-Z ends the validation read; an unbounded scan later consumes the remaining bytes and reaches the saved near return address",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Pwn/End of Life/writeup/writeup.md",
+      "notes": "The DOS stack wraps at offset 0xffff; payload details are recorded in the writeup."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Run the payload against the authorized instance and submit the extracted flag",
+      "result": "OUTPUT.TXT returned the flag; FortID replied Flag correct! / Challenge solved!",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Pwn/End of Life/chalenge.md",
+      "notes": "The instance was stopped after acceptance; exact payload bytes were not retained."
+    }
+  ]
+}

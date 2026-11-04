@@ -1,0 +1,26 @@
+{
+  "challenge_id": "fortidctf2026_fortune_teller",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Fortune Teller",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Review the C source, existing solver, local flag, and current read-only platform status.",
+      "result": "The source has printf(question) and a blessing gate; the challenge was listed as SOLVED.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Pwn/Fortune Teller/",
+      "notes": "A solver already existed in the shared workspace."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Compare the local final flag with the writeup and FortID format, then record the scoreboard result.",
+      "result": "The values matched, and read-only status.py reported Fortune Teller SOLVED (8/37 event total).",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Pwn/Fortune Teller/solve/evidence/verification.txt",
+      "notes": "Did not replay the network exploit or write another flag file."
+    }
+  ]
+}

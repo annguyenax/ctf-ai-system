@@ -1,0 +1,46 @@
+id: l3akctf_subleq_scramble
+event: L3akCTF2026
+category: rev/esolang-vm-state-dump
+challenge_name: "Subleq Scramble"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "Attachment is a raw Subleq (single-instruction-set-architecture) program/memory dump, not a conventional binary."
+  - "Prompt describes the program as running thousands of iterations of an image encryption algorithm, then memdumping the entire VM state to the output file."
+  - "Flag format is a restricted character class: /L3AK{[A-Z0-9?'_,]+}/ (uppercase/digits/limited punctuation only)."
+key_idea: >
+  Treat the attachment as a Subleq program: each 16-bit cell triple is
+  `subleq a, b, c` meaning memory[b] -= memory[a], jump to c if the result is
+  <= 0 (continue otherwise); a==-1 reads stdin into memory[b], b==-1 writes
+  memory[a] to stdout, c==-1 halts. Parsing the file as little-endian 16-bit
+  signed shorts (`struct.unpack('<' + 'h'*n, data)`) recovers the instruction
+  stream, which is the starting point for building or adapting a Subleq
+  emulator to replay/reverse the encryption and recover pre-image state from
+  the dumped memory.
+prerequisites:
+  - Ability to write or reuse a Subleq emulator (standard + the stdin/stdout/halt extensions)
+  - Patience to identify, within the decoded instruction stream, the image-encryption routine that runs "thousands of iterations" before the state dump
+exploitation_pattern: >
+  Not completed in the available source: only the initial parse (file -> list
+  of signed 16-bit cells) and the raw instruction dump were captured before the
+  source text was cut off. The expected continuation is to either (a) write a
+  Subleq interpreter and run the program directly to see what it outputs, or
+  (b) statically identify the per-iteration transform in the decoded cells and
+  invert it against the final memdump to recover the pre-encryption image/flag.
+verification:
+  method: ""
+  evidence: ""
+pitfalls:
+  - "The worklist's recorded 'flag' value for this entry was actually the flag-format regex from the prompt, not a recovered flag -- do not mistake a format hint in challenge text for an extracted flag."
+failed_paths: []
+tools:
+  - Python struct module (for parsing the raw cell dump)
+sources:
+  - "https://theromanxpl0.it/posts/2026/08/l3akctf-2026-subleq-scramble/"
+playbook: "rev_esolang_orientation.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/L3akCTF2026/rev/Subleq Scramble/writeup/writeup.md"
+solver: ""
+time_heuristic: "Esolang challenges that dump full VM state after many iterations usually want you to run/invert the emulator rather than hand-trace cells; budget time for writing a correct interpreter (including the I/O extension opcodes) before attempting cryptanalysis of the per-iteration transform."
+last_verified: "2026-11-04"

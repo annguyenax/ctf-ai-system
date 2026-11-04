@@ -20,6 +20,6 @@ tools:
   - curl
   - python
 playbook: PLAYBOOKS/misc_css_media_query_extraction.md
-writeup: ../CTFTimeWriteup/BushBash2026/misc/Bliss I/writeup/writeup.md
-solver: ../CTFTimeWriteup/BushBash2026/misc/Bliss I/solve/solve.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/BushBash2026/misc/Bliss I/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/BushBash2026/misc/Bliss I/solve/solve.py
 time_heuristic: after two shallow image failures, inspect client routes and rare @media rules

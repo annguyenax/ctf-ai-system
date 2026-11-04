@@ -1,0 +1,12 @@
+{
+  "challenge_id": "hackluctf2026_lauschangriff",
+  "flag_status": "verified",
+  "flag": "flag{5429d271438bd9cd7be14be8d17507e2}",
+  "attempts": [
+    {"t":"2026-10-25T16:05:00+07:00","phase":"TRIAGE","hypothesis_id":"H0","action":"Inspect handout; look for offline pcap","command_or_step":"unzip listing + find *.pcap","result":"partial","evidence_path":"CTFTimeWriteup/HackluCTF2026/Crypto/Lauschangriff/files/public","notes":"Zip has only source + VM image, no pcap; flag is per-instance in captured TLS."},
+    {"t":"2026-10-25T16:12:00+07:00","phase":"HYPOTHESIS","hypothesis_id":"H1","action":"Verify weak 96-bit ARX PRNG is invertible from ServerHello.random","command_or_step":"python rng_selftest.py (z3)","result":"success","evidence_path":"CTFTimeWriteup/HackluCTF2026/Crypto/Lauschangriff/solve/rng_selftest.py","notes":"Z3 recovers a state reproducing subsequent stream bytes; 8 words non-unique -> need key_share disambiguation."},
+    {"t":"2026-10-25T16:20:00+07:00","phase":"TEST","hypothesis_id":"H2","action":"Determine negotiated group","command_or_step":"parse pcap ServerHello","result":"success","evidence_path":"raw/solver_stdout.txt","notes":"8/10 sessions X25519MLKEM768 (0x11ec), 2 plain X25519 probes. Prior plain-X25519 solver was wrong."},
+    {"t":"2026-10-25T16:40:00+07:00","phase":"EXPLOIT","hypothesis_id":"H2","action":"Recover X25519 scalar + ML-KEM Encaps coins via offset search; decrypt TLS 1.3","command_or_step":"python -P -E solve.py capture.pcap","result":"success","evidence_path":"raw/solver_stdout.txt","notes":"x_off=0 (X25519 pubkey match), m_off=32 (ML-KEM ciphertext match); shared=mlkem||x25519."},
+    {"t":"2026-10-25T16:48:00+07:00","phase":"VERIFY","hypothesis_id":"H2","action":"Cross-check flag across sessions and both directions","command_or_step":"python -E verify.py capture.pcap","result":"success","evidence_path":"raw/verify_stdout.txt","notes":"conn4 id:1 09:36:02 and conn9 id:2 09:36:47 (+45s) both decrypt flag in client POST body AND server 201 echo."}
+  ]
+}

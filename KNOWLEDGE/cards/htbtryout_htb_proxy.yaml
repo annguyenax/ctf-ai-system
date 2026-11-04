@@ -1,0 +1,41 @@
+id: htbtryout_htb_proxy
+event: HTB Try Out
+category: web/ssrf-hostname-bypass-request-smuggling-cmdi
+challenge_name: "HTB Proxy"
+status: solved
+flag: "HTB{r3inv3nting_th3_wh331_c4n_cr34t3_h34dach35_edcec11fd46a9fe5e9820f74ebb11c6a}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A custom Go HTTP proxy blocklists SSRF by string-matching the Host header against prefixes like localhost/127./10./172./192., checked on the hostname string, not the resolved IP."
+  - "A custom HTTP parser does `strings.Split(request, \"\\r\\n\\r\\n\")` and validates only bodySplit[1] against Content-Length, silently ignoring/forwarding any later split segments to the backend -- a request-smuggling-style parser confusion."
+  - "A backend microservice shells out with exec(`ip address flush dev ${interface}`) after a validateInput() that blocks spaces but not ${IFS} or semicolons placed in a later smuggled request."
+key_idea: "Bypass the hostname-prefix SSRF blocklist using a wildcard DNS service (sslip.io) to reach the internal IP under a hostname that doesn't start with any blocked prefix string; then exploit the proxy's naive \\r\\n\\r\\n-split request parser by sending two HTTP requests in one buffer -- the first request's body satisfies the Content-Length check, and the second, unvalidated request (sitting in a later split segment) is smuggled straight through to the backend, where it reaches a command-injection sink using ${IFS} instead of spaces and a semicolon placed outside the first validated request's content."
+prerequisites:
+  - SSRF filter based on string-matching the unresolved hostname rather than the resolved IP (bypassable via a wildcard-DNS-to-IP rebinding service)
+  - A naive multi-request-per-buffer HTTP parser that validates only the first split segment
+  - "A backend shell-exec sink with a space-based filter that doesn't block ${IFS} or injected control characters"
+exploitation_pattern: "hostname-string SSRF blocklist bypassed via wildcard-DNS IP-encoding domain -> smuggle a second HTTP request past a split(\\r\\n\\r\\n)-based parser that only validates the first segment -> backend command injection via ${IFS} (no spaces) writes the flag over a served static file -> read it back over plain HTTP"
+verification:
+  method: "Raw-socket exploit script performed the leak, host pivot, and smuggled command injection against the live instance, then a separate GET / independently confirmed the flag now served as the overwritten static file."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/HTB Proxy/final_flag.txt"
+pitfalls:
+  - "SSRF blocklists keyed on the literal hostname string (not the resolved IP) can be bypassed with any service that maps an arbitrary IP into a hostname that doesn't match the blocked prefixes (e.g. '10-244-40-122.sslip.io' for IP 10.244.40.122)."
+  - "An HTTP proxy/parser that splits a buffer on \\r\\n\\r\\n and validates only the first resulting segment against Content-Length will silently forward any additional smuggled request sitting in later segments -- a classic request-smuggling bug in home-grown parsers."
+  - "Command-injection filters that block literal spaces are bypassed trivially with ${IFS}."
+failed_paths:
+  - "Hitting the raw internal IP directly for SSRF failed (blocked by the '10.' literal prefix blocklist)."
+  - "Percent-encoding the backend path to dodge a case-insensitive route-name blocklist failed because the backend framework (Express) doesn't decode percent-encoding before routing, yielding a 404."
+tools:
+  - Python raw socket HTTP client
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/HTB Proxy/writeup/writeup.md"
+playbook: web_ssrf.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/HTB Proxy/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/HTB Proxy/solve/solve.py"
+time_heuristic: "When an SSRF blocklist matches hostname-string prefixes, try a wildcard-DNS IP-encoding domain to bypass it; when a custom HTTP proxy/parser splits a buffer on the header/body delimiter and only validates the first segment, try smuggling a second request in later segments."
+last_verified: "2026-11-04"

@@ -9,7 +9,7 @@ verification: Extracted and found flag LITCTF{h4MM1nG-3Rr0r_C0rR3cT10N!}
 tools:
   - Python
 hexstrike_usefulness: None needed
-writeup: D:\download\CTFTimeWriteup\LIT2026\misc\space_radiation\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\misc\space_radiation\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\misc\space_radiation\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\misc\space_radiation\solve\solve.py
 time_heuristic: 10 minutes
 last_verified: 2026-08-03

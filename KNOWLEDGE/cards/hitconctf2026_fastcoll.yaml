@@ -1,0 +1,36 @@
+id: hitconctf2026_fastcoll
+event: "HITCON CTF 2026"
+category: "crypto/xxh3-128-seed-independent-collision"
+challenge_name: "FastColl"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "Web service accepts an uploaded WASM module that imports env.xx_hash(ptr,len,out); the judge hashes messages of 256..1024 bytes with XXH3-128 under a secret 64-bit seed that increments per call (seed C+i), and the flag is returned only if two distinct messages produce the same full 128-bit digest on two different calls."
+  - "Birthday search (2^64) is infeasible and the seed is unknown, so a structured seed-independent differential in the XXH3 long-input path (more than 240 bytes, stripe accumulator loop) is required."
+key_idea: "Best hypothesis only (unsolved): a published 576-byte XXH3-128 weak-key multicollision family (16 messages from four independent two-word toggles) collides under ONE seed, but the judge increments the seed per call, so it is not directly a solution. Need a differential where H_s(A) equals H_{s+1}(B) or a truly seed-independent construction."
+prerequisites:
+  - "XXH3 long-path internals (stripe accumulate, scramble, merge)"
+  - "differential cryptanalysis of ARX/multiply hashes"
+exploitation_pattern: "Reconstruct the known toggle family, verify with the xxhash library at the witness seed (all 16 digests equal) and at the next seed (16 distinct digests), then search for a cross-seed differential. No working exploit yet."
+verification:
+  method: "Local check with python xxhash: 16 family members share one digest at the witness seed, and have no cross-seed match at seed+1. No flag obtained."
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/FastColl/solve/evidence/cross_seed_test.txt"
+pitfalls:
+  - "A same-seed multicollision is not a solution when the judge increments the seed per call; test cross-seed behaviour before building on a known family."
+failed_paths:
+  - "Submitting the 16-message same-seed family as a solver: ruled out by the per-call seed increment (no cross-seed match at the next seed)."
+tools:
+  - "python xxhash library"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/FastColl/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/FastColl/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/FastColl/solve/solve.py"
+time_heuristic: "Check whether the judge's seed model (fixed vs incrementing) invalidates a known same-seed collision family before investing in it; next step is a differential matching H_s(A) to H_{s+1}(B)."
+last_verified: "2026-11-04"

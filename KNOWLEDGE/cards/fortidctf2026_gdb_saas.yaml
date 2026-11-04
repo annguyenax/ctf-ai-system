@@ -1,0 +1,39 @@
+id: fortidctf2026_gdb_saas
+event: FortID CTF 2026
+category: pwn/debugger-source-path-file-read
+challenge_name: "GDB SaaS"
+status: solved
+flag: "FortID{N0_5h3ll_n33d3D_jU57_m41N_b27e8ce95b}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Service runs `gdb -ex \"disassemble {function_name}\" -ex quit <uploaded_elf>` in a temp dir that also contains flag.txt."
+  - "BAD_CHARS blacklist blocks shell metacharacters and quotes but omits '/' and space, so function_name can carry GDB command flags."
+  - "GDB's `disassemble /s` mixed-source mode opens the DWARF-referenced source file by name and prints its lines verbatim."
+key_idea: "Craft a minimal ELF whose DWARF line-table names its 'source file' as flag.txt (which sits in the same temp directory as the uploaded binary), then pass function_name = \"/s main\" so the server's gdb invocation becomes `disassemble /s main`, which makes GDB open and print flag.txt as if it were source code."
+prerequisites:
+  - "Control over an uploaded ELF's DWARF debug_line source-file name"
+  - A command-filter that blocks shell metacharacters but not legitimate tool flags/spaces
+exploitation_pattern: "co-located secret file + attacker-controlled DWARF source-file path + debugger mixed-source disassembly flag = arbitrary same-directory file read"
+verification:
+  method: "Remote TLS session: server echoed the GDB `disassemble /s` output containing flag.txt's literal content."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/GDB SaaS/final_flag.txt"
+pitfalls:
+  - "A character blacklist aimed at shell injection can still leave a debugger's own flags ('/', space) open, letting the attacker pivot the vulnerability into the analysis tool itself rather than the shell."
+  - "DWARF source-file paths are attacker-controlled when the attacker supplies the whole ELF; any tool that resolves and opens that path from the binary's working directory is a file-read primitive."
+failed_paths: []
+tools:
+  - gdb
+  - handcrafted ELF with DWARF line info
+  - Python socket/ssl
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/GDB SaaS/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/GDB SaaS/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Pwn/GDB SaaS/solve/solve.py"
+time_heuristic: "When a service runs an analysis tool (debugger/disassembler) on an attacker-uploaded binary alongside a secret file in the same directory, check whether the tool's own flags can be smuggled through a blacklist meant only for shell metacharacters."
+last_verified: "2026-11-04"

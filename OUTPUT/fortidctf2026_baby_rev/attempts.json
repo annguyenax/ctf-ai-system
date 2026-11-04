@@ -1,0 +1,26 @@
+{
+  "challenge_id": "fortidctf2026_baby_rev",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Baby Rev",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Inspect the supplied pyc as data and identify embedded constraints without executing it.",
+      "result": "The artifact contains a reversed T9 tone string and a SHA-256 digest; candidate word sequence is constrained by both.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Rev/files/chall.pyc",
+      "notes": "Static bytecode artifact; no remote instance is listed."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Run solve/verify.py to check T9, digest, candidate length, and embedded constants.",
+      "result": "T9 matched; SHA-256 matched; candidate length was 81; both constants were found in chall.pyc.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Rev/solve/evidence/verification.txt",
+      "notes": "Local verification only. The bytecode was not run and scoreboard acceptance was not checked."
+    }
+  ]
+}

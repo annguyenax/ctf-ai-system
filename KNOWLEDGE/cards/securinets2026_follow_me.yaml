@@ -1,0 +1,34 @@
+id: securinets2026_follow_me
+event: Securinets CTF Friendly 2026
+category: misc/tarfile-symlink-extraction
+challenge_name: "Follow Me"
+status: solved
+flag: "Securinets{f0ll0w_th3_l1nk_n0t_th3_n4m3}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Service base64-decodes a client-supplied tar archive requiring exactly one member named report.txt, extracts it with archive.extractall(folder, filter='fully_trusted'), then reads and prints report.txt from the extraction folder."
+  - "Python's tarfile extraction filter 'fully_trusted' (as opposed to 'data' or 'tar') performs no sanitization of symlinks, device files, or path traversal."
+key_idea: "Craft a tar archive whose single member 'report.txt' is a symlink (tarfile.SYMTYPE) pointing at an absolute path outside the extraction folder (/flag.txt); because the server extracts with filter='fully_trusted', the symlink is created as-is, and the server's own 'read report.txt' step follows the link and prints the target file's contents."
+prerequisites:
+  - "Python tarfile module: TarInfo member types (SYMTYPE) and the extraction filter parameter semantics (fully_trusted vs. data vs. tar, per PEP 706)"
+exploitation_pattern: "server extracts an attacker-supplied archive with an unsafe/legacy extraction filter and then reads back a fixed member name -> make that member a symlink to an arbitrary absolute path -> server's read-back step transparently follows the link and discloses the target file."
+verification:
+  method: "Base64-encoded crafted tar sent to the live nc service; server response was the flag content."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/Follow Me/writeup/writeup.md"
+pitfalls:
+  - "filter='fully_trusted' on tarfile.extractall() disables ALL of Python's built-in archive-extraction safety checks (symlinks, path traversal, device nodes); never use it on attacker-supplied archives -- use 'data' (the safe default added in PEP 706) unless you control the archive source completely."
+failed_paths: []
+tools:
+  - "Python tarfile module"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/Follow Me/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/Follow Me/writeup/writeup.md"
+solver: ""
+time_heuristic: "Whenever a service extracts an attacker-supplied tar/zip archive and then reads back a file by a fixed/expected name, check the extraction filter/mode for symlink handling -- a permissive filter turns 'upload one file' into 'read any file the server process can access'."
+last_verified: "2026-11-04"

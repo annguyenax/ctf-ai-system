@@ -1,0 +1,26 @@
+{
+  "challenge_id": "fortidctf2026_ultimative_php",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Ultimative PHP",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Review the source, existing exploit evidence, and read-only platform status.",
+      "result": "The source contains four chained verification flaws; the prior response shows the flag and successful submission; status lists SOLVED.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Web/Ultimative PHP/",
+      "notes": "The live solver was not rerun in this verification pass."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Cross-check the stored response flag against final_flag.txt and inspect the four checks in source.",
+      "result": "The candidate matches the target response and final flag; source confirms each bypass in the exploit chain.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Web/Ultimative PHP/solve/evidence/verification.txt",
+      "notes": "Platform acceptance was already recorded; this pass made no request to the target."
+    }
+  ]
+}

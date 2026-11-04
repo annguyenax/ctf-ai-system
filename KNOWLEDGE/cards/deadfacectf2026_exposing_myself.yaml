@@ -1,0 +1,34 @@
+id: deadfacectf2026_exposing_myself
+event: DeadfaceCTF2026
+category: osint/tls-cert-subject-leak
+challenge_name: "OSINT / Exposing Myself Through Bad OPSEC"
+status: solved
+flag: "deadface{c@tch_m3_if_y0u_c@n}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Target runs a self-hosted HTTPS service on a non-standard port discovered in a prior OSINT step.
+  - The server's self-signed/custom TLS certificate's Subject fields (O=, OU=) contain operator-chosen free text rather than a real org name.
+key_idea: A self-signed or custom TLS certificate's Subject (and Issuer) fields are attacker/operator-controlled free text — when a target's bad OPSEC involves running their own TLS service, always pull and inspect the raw certificate DER/text for planted strings, not just the page content behind it.
+prerequisites:
+  - Target host:port already identified (often from a prior challenge/OSINT pivot)
+exploitation_pattern: open a TLS socket to host:port with cert verification disabled -> getpeercert(binary_form=True) -> regex scan the DER bytes (or parse ASN.1 Subject fields) for the flag pattern.
+verification:
+  method: Regex scan over the raw certificate DER bytes found the flag string embedded in a Subject O= field.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/Exposing Myself Through Bad OPSEC/writeup/writeup.md"
+pitfalls:
+  - Must disable hostname/cert verification to connect to a self-signed cert at all.
+failed_paths: []
+tools:
+  - Python ssl/socket
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/Exposing Myself Through Bad OPSEC/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: recon_external_search.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/Exposing Myself Through Bad OPSEC/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/Exposing Myself Through Bad OPSEC/solve/solve.py"
+time_heuristic: When a target exposes a self-hosted TLS service, check the certificate's Subject/Issuer text fields for leaked/planted data before analyzing the application behind it.
+last_verified: "2026-11-04"

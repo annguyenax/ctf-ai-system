@@ -1,0 +1,35 @@
+{
+  "challenge_id": "fortidctf2026_tangled",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Tangled",
+  "flag_status": "none",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Replay the existing solver that parses both Factorio blueprint strings, forms entity and tile masks, XORs them, then decodes the QR with ZXing-C++.",
+      "result": "The solver decoded the QR clue _5p49hett1_tr41n5_8ec0m3_ and printed a flag-shaped wrapper. This verifies only the QR payload, not a valid challenge flag.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Misc/Tangled/solve/verification.txt",
+      "notes": "Local deterministic replay; no network access. Portal evidence later rejected this wrapper."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "Rebuild the 25x25 matrix and decode it using OpenCV QRCodeDetector, independently of ZXing-C++.",
+      "result": "OpenCV detected one QR and returned the exact same payload. Decoder agreement verifies the clue extraction only.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Misc/Tangled/solve/verification.txt",
+      "notes": "No final flag established by this check."
+    },
+    {
+      "t": "2026-10-11",
+      "phase": "VERIFY",
+      "hypothesis_id": "H3",
+      "action": "Review the recorded portal outcomes for the literal QR wrapper and title-based phrase completion.",
+      "result": "Both candidates were rejected by the portal; no flag is verified.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Misc/Tangled/solve/submission_result.md",
+      "notes": "These were earlier user-authorized submissions. No new submission was made during this turn."
+    }
+  ]
+}

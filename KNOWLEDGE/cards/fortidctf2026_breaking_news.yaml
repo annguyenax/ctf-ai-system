@@ -1,0 +1,42 @@
+id: fortidctf2026_breaking_news
+event: FortID CTF 2026
+category: osint/multi-hop-social-git-stego-chain
+challenge_name: "Breaking News"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A newspaper-cover image names a suspect and a social platform (Bluesky); the suspect's public Bluesky account posts a pastebin-style paste ID pointing to a password-protected archive."
+  - "The archive's git repository has exactly one tracked file (README.md) built up over 480 commits, where the commit dates themselves (not file content) encode a hidden message when rendered as a GitHub-style contribution calendar."
+  - "The 480 unique commit dates span multiple years and must be rendered as ONE continuous 7-row Sunday-first grid across the whole span (not reset per calendar year) for the hidden pixel-art text to read correctly."
+key_idea: "A git repository's commit-date history, independent of any file content, can itself be the covert channel: rendering all commit dates as a single continuous (not per-year-reset) GitHub contribution-style calendar grid reveals pixel-art text. This recovered a plausible passphrase ('The secret key is: 14m7h30neWh0Kn0ckzzz'), but it is only a candidate until an actual encrypted artifact (.enc file) referenced by a matching public tool (an 'image-encryptor' repo with AES-GCM) is located and successfully decrypted with AEAD tag verification -- a semantically-plausible guess ('curiosity' from a quoted Hacker Manifesto line) was explicitly identified and rejected as unverified."
+prerequisites:
+  - Willingness to treat git metadata (commit dates/counts), not just tracked file content, as a data-hiding channel
+  - "Recognizing GitHub's contribution-calendar pixel-art convention (7 rows, Sunday-first, continuous across years) as a message-encoding scheme"
+exploitation_pattern: "newspaper image -> named suspect's social account -> paste ID -> password-protected archive -> git repo with single-file, many-commit history -> render ALL commit dates as one continuous weekly-grid calendar -> read pixel-art-encoded passphrase -> (pending) locate and AEAD-verify-decrypt a referenced .enc artifact with it"
+verification:
+  method: "No flag recovered; the calendar-grid passphrase extraction is reproducible (evidence image saved) but has not been confirmed against any decryption target with AEAD tag verification."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/OSINT/Breaking News/notes/analysis.md"
+pitfalls:
+  - "Do not treat a semantically-plausible quote-derived guess (e.g. a word pulled from a quoted manifesto in the recovered README) as a verified flag; require either a decryption success with integrity verification or an accepted platform submission."
+  - "When a git repo's history looks unusually granular (hundreds of commits for trivial incremental text changes), check whether the commit dates/count themselves encode a message via a calendar-style rendering, not just the file diffs."
+  - "Rendering a multi-year commit-date calendar must NOT reset the weekly grid at each year boundary if the hidden message spans year boundaries, or the image decodes as noise."
+failed_paths:
+  - "Treated the Hacker-Manifesto-quoted word 'curiosity' as a candidate flag body (FortID{curiosity}) based on thematic fit alone; explicitly flagged as unverified and never submitted."
+  - "Searched the newspaper PNG for trailing bytes or an IMGCRYPT container marker and ran a bounded 1-bit LSB steganography probe; found nothing, though this was not an exhaustive steganographic search."
+tools:
+  - git log metadata parsing
+  - Python image rendering of commit-date calendar
+  - Jina reader for paste content
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/OSINT/Breaking News/notes/analysis.md"
+playbook: recon_external_search.md
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/OSINT/Breaking News/writeup/writeup.md"
+solver: ""
+time_heuristic: "In OSINT chains that lead to a git repository, check whether the commit-date history itself (rendered as a GitHub-style contribution calendar) encodes a hidden message, independent of the tracked file content; render it as one continuous grid, never resetting per calendar year."
+last_verified: "2026-11-04"

@@ -1,0 +1,33 @@
+{
+  "challenge_id": "rstconctf2026_modbus_mastermind",
+  "flag_status": "none",
+  "attempts": [
+    {
+      "t": "2026-10-25",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Read mirror 1 holding registers and compare status before/after reversible write",
+      "result": "Registers 0-2 read ARMED!, 9-12 read MIND, 100=1; toggling 100 did not change surrounding map.",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\RSTCONCTF2026\\Misc\\Modbus Mastermind\\solve\\evidence\\server_probe.json",
+      "notes": "FC01/02/04 unsupported; no flag found."
+    },
+    {
+      "t": "2026-10-25",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Read mirror 2 holding register ranges and interpret repeated block",
+      "result": "Observed repeated bitwise-complement pattern and 04D2/600D/04D2; meaning unconfirmed.",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\RSTCONCTF2026\\Misc\\Modbus Mastermind\\solve\\evidence\\mirror2_probe.json",
+      "notes": "One test write to register100 was restored to original 0x4110."
+    },
+    {
+      "t": "2026-10-25",
+      "phase": "SUBMIT",
+      "hypothesis_id": "H1",
+      "action": "Submit candidate rstcon{armed_mind}",
+      "result": "INCORRECT: incorrect - Incorrect",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\RSTCONCTF2026\\Misc\\Modbus Mastermind\\solve\\evidence\\submission_test.txt",
+      "notes": "Candidate rejected; do not reuse."
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+id: dctf2026quals_power_with_errors
+event: DefCamp CTF 2026 Quals
+category: crypto/matrix-power-key-recovery
+challenge_name: "power-with-errors"
+status: solved
+flag: "CTF{7ff8b019311e3394808f55ebaa1e9c7cef048a6c8681074d0cda751a85dbe9df}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Each testcase publishes U_i = A^(e_i) + K_i for 3 random exponents e_i of the SAME secret matrix A, where K_i is a 10x10 byte matrix (the XOR key reshaped)."
+  - "Powers of the same matrix A commute: [A^e1, A^e2] = 0, which is a public, checkable linear identity once K_i is subtracted out."
+key_idea: "Exploit that distinct integer powers of one matrix commute. Writing U_i = M_i + K_i, the commutator [U1-K1, U2-K2]=0 expands to a linear equation in the unknown key bytes plus one small nonlinear cross term [K1,K2] bounded by ~2^19; treat it as a near-linear (BDD/LWE-style) system and recover K1, K2 via lattice reduction (LLL), then recover K3 by a plain linear solve against the now-known M1 (using the centralizer dimension to bound the residual affine family) and a small CVP over the remaining low-dimensional space."
+prerequisites:
+  - "Matrix algebra over a prime field (commutators, centralizers)"
+  - "Lattice basis reduction (LLL) / bounded-distance decoding and CVP"
+  - "Recognizing BDD/LWE structure in a non-standard crypto scheme"
+exploitation_pattern: "same-base matrix powers published with additive key noise -> use commutativity to build a linear system in the unknown keys with one small nonlinear term -> LLL-solve as BDD -> recover first two keys exactly -> use the now-known clear matrix to linearly solve for remaining keys via centralizer dimension + small CVP -> XOR-recover the flag from all 15 keys across testcases."
+verification:
+  method: "Solver script derivation reproduces the exact flag hex string shown in the writeup."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Crypto/power-with-errors/writeup/writeup.md"
+pitfalls:
+  - "The only nonlinear term in the commutator expansion is the cross-product of the two unknown key matrices; bound it (bytes in [0,255]) and treat the whole system as a tiny-error linear system rather than fully nonlinear."
+  - "After recovering the first matrix exactly, the remaining unknown's solution space is NOT a point -- it's an affine family of dimension equal to the centralizer of the recovered matrix (dimension 10 here); a naive single linear solve under-determines it and still needs a small CVP."
+failed_paths: []
+tools:
+  - SageMath (matrix ops over GF(p), LLL)
+  - Python (fpylll or similar lattice library)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Crypto/power-with-errors/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Crypto/power-with-errors/writeup/writeup.md"
+solver: ""
+time_heuristic: "When a scheme publishes several samples that are claimed powers/products of the SAME secret object plus additive noise, check whether the samples commute (or otherwise satisfy a public algebraic identity) -- that identity often linearizes the noise-recovery problem into an LLL/BDD instance."
+last_verified: "2026-11-04"

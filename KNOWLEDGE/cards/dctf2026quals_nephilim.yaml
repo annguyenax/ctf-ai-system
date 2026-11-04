@@ -1,0 +1,40 @@
+id: dctf2026quals_nephilim
+event: DefCamp CTF 2026 Quals
+category: pwn/kernel-uaf-rcu-callback
+challenge_name: "nephilim / nephilim REVENGE"
+status: solved
+flag: "CTF{27b4e49556e5770960207de9e65725b3e400de76aa1e48d1b2bea697da3eacac}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "nkrcu_remove() unlinks a kmalloc-128 descriptor from a list and defers the free via call_rcu()/kfree, but never clears the pointer held in a separate nk_snaps[] tracking array."
+  - "A periodic timer callback (nk_mon_cb, every ~5s) dereferences that still-tracked descriptor and performs an indirect call fn = desc->ops[0]; fn(desc) with desc in rdi -- a live indirect-call-through-freed-memory primitive."
+  - "An info() leak path exposes _printk (for KASLR) and a stack-pivot gadget (nkrcu_pivot: mov rsp,[rdi]; ret) once the freed slot is reclaimed with attacker data."
+key_idea: "Reclaim the freed kmalloc-128 descriptor (via a controlled spray, stopping at the first contiguous reusable run so the reclaim lands on the live cpu slab) with a crafted fake descriptor whose ops[0] is the stack-pivot gadget and whose first field is a fake rsp; the periodic monitor callback then calls through the stale nk_snaps[] pointer with rdi=the reclaimed memory, pivoting the stack into an attacker-built kROP chain (filp_open + kernel_read + msleep, kept inside executable .text, not NX .rodata) that opens and reads /flag into process-visible descriptors recovered by a subsequent info() leak."
+prerequisites:
+  - "Linux kernel UAF exploitation (RCU-deferred free vs. stale external pointer arrays)"
+  - "Kernel ROP / stack pivot technique via an indirect-call primitive invoked from a timer/periodic callback"
+  - "KASLR defeat via a kernel symbol leak (_printk) and gadget-offset arithmetic"
+exploitation_pattern: "free a kmalloc-sized object but leave a stale pointer to it in an unrelated tracking array -> periodic/async code later calls an attacker-controlled function pointer through that stale pointer -> spray to reclaim the exact freed slot on the live slab -> plant fake vtable + pivot target -> kROP (filp_open/kernel_read/msleep, in .text only) -> read flag into reachable descriptors -> leak via existing info() primitive."
+verification:
+  method: "LIVE exploitation against the remote service (nc HOST PORT); info() on three live descriptors returned the /flag contents matching the recorded flag. A distinct 'fake' local-dummy flag string confirms the chain also runs correctly against the local/offline binary before remote use."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Pwn/nephilim/writeup/writeup.md"
+pitfalls:
+  - "ROPgadget hits that land in .rodata (not .text) are unusable under NX; verify every gadget address falls inside the executable text segment before building the chain."
+  - "A UAF introduced by a custom RCU wrapper is not caught just by auditing the free function itself -- check every OTHER data structure (here, a separate snapshot/tracking array) that might still hold a pointer to the object after it's freed."
+  - "When reclaiming a freed slot via heap spray, stop at the first usable contiguous allocation run to guarantee landing on the same (live) cpu slab rather than a freshly refilled one."
+failed_paths: []
+tools:
+  - pwntools
+  - ROPgadget / objdump (gadget hunting in kernel .text)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Pwn/nephilim/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Pwn/nephilim/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Pwn/nephilim/solve/exploit.py"
+time_heuristic: "When a kernel module frees an object inside a custom remove/delete routine, audit every OTHER array/list/cache that might retain a raw pointer to that object, especially anything touched by a periodic timer or async callback that performs an indirect call -- that is the UAF-to-RIP primitive, not necessarily the free site itself."
+last_verified: "2026-11-04"

@@ -1,0 +1,39 @@
+id: htbtryout_flagcasino
+event: HTB Try Out
+category: rev/predictable-glibc-rand-ground-truth-table
+challenge_name: "FlagCasino"
+status: solved
+flag: "HTB{r4nd_1s_v3ry_pr3d1ct4bl3}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "For each of 29 rounds, the binary does srand(single_input_byte); then compares rand() against a fixed per-round constant from a hardcoded array."
+  - "srand() takes only a single byte of input, so the entire per-round seed space is 256 values, trivially brute-forceable."
+  - "The binary is unstripped with intact symbol names (main, check, banner), so objdump alone (no decompiler) is sufficient to read the logic."
+key_idea: "Rather than reimplementing glibc's rand() algorithm by hand (error-prone: discard counts, pointer wraparound, etc.), measure the ground-truth seed->rand() mapping by compiling and running a tiny C program against the real glibc for all 256 possible seed bytes, then invert that table against the binary's 29 hardcoded target values to recover each flag character deterministically."
+prerequisites:
+  - Unstripped binary with readable constant-comparison logic (pyelftools/objdump sufficient)
+  - Access to compile and run a tiny C program against the real matching glibc
+exploitation_pattern: "extract 29 hardcoded rand()-check constants from .data -> build seed(0..255)->rand() ground-truth table from real glibc -> invert table per position, filtering to printable ASCII -> concatenate recovered bytes"
+verification:
+  method: "Reconstructed flag string replayed deterministically against the ground-truth table (srand(char); rand()==check[i] for all 29 positions) and separately verified by running the actual binary logic natively on real glibc; both passed."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/rev/FlagCasino/final_flag.txt"
+pitfalls:
+  - "Don't hand-reimplement glibc's rand()/srand() internals from memory; subtle details (309-value discard on seed, additive-feedback generator state, pointer wraparound) are easy to get wrong. Measure the real library's output directly instead."
+  - "A single-byte seed (srand(char)) collapses the keyspace to 256 values regardless of how 'random' rand() otherwise looks -- this is the actual vulnerability, not the PRNG algorithm itself."
+failed_paths: []
+tools:
+  - objdump
+  - pyelftools
+  - small C program compiled against real glibc
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/rev/FlagCasino/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/rev/FlagCasino/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/rev/FlagCasino/solve/solve.py"
+time_heuristic: "When a binary calls srand() with a narrow-range value (e.g. a single input byte) and checks rand() against constants, measure the real libc's seed->output mapping directly (compile+run) rather than reimplementing the PRNG; then invert the table."
+last_verified: "2026-11-04"

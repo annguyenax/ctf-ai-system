@@ -1,0 +1,36 @@
+id: rstconctf2026_new_money
+event: RSTCON CTF 2026
+category: rev/lcg-simulation-seeded-crypto
+challenge_name: "New Money"
+status: solved
+flag: "rstcon{th3_wh33ls_w3r3_n3v3r_r4nd0m}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Photo contains a QR code leading to a web page hosting a "slot machine" game with visible client-side JavaScript.
+  - The JS implements a Linear Congruential Generator (LCG) with fixed A, C, M, SEED constants and a weighted symbol POOL, and ties a "jackpot" outcome's final internal state to an AES-GCM key via SHA256(str(state)).
+key_idea: When a client-side "random" game exposes its full PRNG parameters (A/C/M/seed) and a symbol pool in readable JS, the "randomness" is fully simulable offline. Replay the LCG exactly as the page does, spin-by-spin, until the target winning condition (three matching symbols) occurs; the resulting internal state is the key material for decrypting an embedded ciphertext (here AES-GCM with key = SHA256(state-as-string)).
+prerequisites:
+  - QR code decoding from an image (OpenCV QRCodeDetector)
+  - Replicating a client-side LCG exactly (same update order/modulus) to keep state in sync with the real page
+  - AES-GCM decryption given key/iv/ciphertext extracted from page source
+exploitation_pattern: decode QR -> fetch page -> extract LCG constants, symbol pool, and AES-GCM iv/ciphertext from inline script -> simulate LCG spin-by-spin until the winning condition is hit -> derive AES key as SHA256(state) -> AES-GCM decrypt -> flag.
+verification:
+  method: Deterministic local solver replay; decrypted plaintext matches recorded flag.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Reverse/New_Money/solve/solve.py"
+pitfalls:
+  - Exact replication of the LCG's per-symbol update order matters (e.g. updating state once per wheel/symbol vs once per spin) — an off-by-one in update cadence desyncs the simulated state from the real page's.
+failed_paths: []
+tools:
+  - OpenCV (QRCodeDetector)
+  - Python 3 (hashlib, cryptography AESGCM)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: crypto_lcg_recover.md
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Reverse/New_Money/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Reverse/New_Money/solve/solve.py"
+time_heuristic: Client-side "slot machine"/gambling game with fully readable JS and a seeded LCG -> simulate the exact PRNG offline to brute-force the winning spin, then treat that winning internal state as derived key material for any attached ciphertext.
+last_verified: "2026-11-04"

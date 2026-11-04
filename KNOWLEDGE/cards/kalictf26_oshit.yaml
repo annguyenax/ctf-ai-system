@@ -1,0 +1,40 @@
+id: kalictf26_oshit
+event: KaliCTF2026
+category: osint/corporate-subdomain-recon
+challenge_name: "OSHIT"
+status: solved
+flag: "KaliTeam{MAZEN_DARWISH_104728_OPS_C-12_SAHAB_INDUSTRIAL_ESTATE}"
+confidence: 0.85
+artifact_hashes: []
+signals:
+  - "Single image (invoice) names a company, a project code and a signatory's initials; main company domain is Cloudflare-gated."
+  - "Subdomain enumeration on the company's root domain reveals multiple purpose-specific hosts (ops., tenders., media.) that the main site hides."
+  - "A tenders subdomain exposes robots.txt with Disallow entries that point straight at the interesting paths."
+key_idea: Treat an invoice/document image as a seed for corporate OSINT -- run subdomain enumeration on the named domain, read robots.txt on any discovered subdomain for disallowed-but-reachable paths, then cross-reference the documents found there (award notice, supplier registration, delivery photos) to fill every field the flag format demands.
+prerequisites:
+  - Subdomain enumeration tooling (e.g. subfinder) against a target domain named in challenge material
+  - Reading robots.txt as a map of "hidden" paths rather than a block list
+exploitation_pattern: >
+  invoice image -> company domain + project code + signatory initials ->
+  subfinder on root domain -> per-subdomain robots.txt -> Disallow paths opened
+  directly -> award/registration PDFs give contact name + registration number ->
+  project photo set gives warehouse bay + area signage -> assemble flag fields.
+verification:
+  method: Each flag field traced to a specific named source document/image in the writeup's field table; flag text captured verbatim in solve/FLAG.txt.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026/osint/OSHIT/solve/FLAG.txt"
+pitfalls:
+  - Two warehouse-bay candidates appeared across two project photos (C-1 vs C-12); the final handover photo's bay number was the one the flag wanted, not the earlier in-progress photo.
+failed_paths: []
+tools:
+  - subfinder (subdomain enumeration)
+  - robots.txt inspection
+sources:
+  - "https://ops.asterion.kali-team.online/"
+  - "https://tenders.asterion.kali-team.online/archive/"
+  - "https://tenders.asterion.kali-team.online/vendor-docs/"
+  - "https://media.asterion.kali-team.online/projects/nq-441/"
+playbook: "recon_external_search.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026/osint/OSHIT/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026/osint/OSHIT/solve/solve.py"
+time_heuristic: "A company-themed OSINT prompt with a gated main site usually hides the real content on enumerable subdomains; check robots.txt on each one before trying anything harder."
+last_verified: "2026-11-04"

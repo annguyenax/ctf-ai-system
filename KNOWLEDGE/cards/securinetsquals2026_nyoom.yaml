@@ -1,0 +1,56 @@
+id: securinetsquals2026_nyoom
+event: Securinets CTF Quals 2026
+category: web/esi-csp-nonce-disk-cache
+challenge_name: nyoom
+status: solved
+flag: "Securinets{68b8f90ea6be091c5a7f4c6092fd6140}"
+confidence: 1.0
+artifact_hashes:
+  - "nyoom_src.zip sha256 20abd79293b09f254940643954e28baea213ff1a1f741afd46d14fcf0fbe49de"
+signals:
+  - Varnish ESI only when bereq.url matches ^/preview
+  - GET /fragments/session-info is 403 at esi_level 0
+  - stored dashboard bio inserted via innerHTML
+  - meta CSP script-src nonce only, no default-src
+  - Puppeteer bot visits http://edge:8080 and the flag is the admin session cookie
+key_idea: Leak the meta CSP nonce with script[nonce*=] CSS, keep that document in the disk cache, overwrite /profile via a second dashboard URL, then history.go(-2) so a srcdoc iframe runs with the original nonce and POSTs /preview. Varnish ESI includes the admin session into data-session.
+prerequisites:
+  - public HTTP/1.1 callback (gzip CSS, Content-Length, keep-alive)
+  - attacker account whose bio the bot will render
+  - report URL http://edge:8080/dashboard?u=USER (hostnames app and bot are blocklisted)
+exploitation_pattern: CSS trigram leak -> Hamiltonian nonce reconstruct -> bio swap to srcdoc iframe + 2s refresh to /orch -> 10s refresh to /dashboard?u=USER&r=1 recaches /profile -> history.go(-2) restores the cached nonce -> same-origin POST /preview ESI -> Image exfil
+verification:
+  method: "GET /me with Cookie session=<flag> on the live instance"
+  evidence: "returned {\"username\":\"admin\",\"role\":\"administrator\"}; preview data-session matched the same value; nonce cd31facf3f72c806017151658bafe771"
+pitfalls:
+  - Compose-file session cookie is a decoy. Do not submit it.
+  - The preview body contains an HTML comment pointing at an out-of-scope host. Ignore it.
+  - Unique-end trigram merge returns empty when the nonce's final digram is also a prefix. Use a Hamiltonian overlap path.
+  - A nonce that repeats a trigram cannot be rebuilt. Retry the visit.
+  - CSS custom properties cannot start with a digit. Prefix them (--tABC) and use one layered background.
+  - HTTP/1.0 closes the public tunnel per trigram and misses the ~20s warm bot window.
+  - localhost.run hostnames rotate. Restart the callback with the new base and store the leak bio again.
+  - A plain history.back from /settings/saved does not refresh the profile cache. The extra dashboard URL does.
+  - /orch must history.go(-2) only on the first hit.
+  - Raw double quotes inside srcdoc truncate the iframe. Encode them as \\x22 in the script source.
+  - Do not put base href on the attacker origin. fetch('/preview') would lose the admin cookie.
+failed_paths:
+  - absolute ESI src as SSRF (backend fetches it as a path)
+  - img/script exfil from the text/plain preview document
+  - attr() URL leaks on Chrome 131
+  - reporting the public instancer host (cookie domain is edge)
+tools:
+  - python http.server
+  - curl
+  - local docker compose of nyoom_src
+hexstrike:
+  used: false
+  useful: false
+  notes: "Source and a single bot visit were enough."
+sources:
+  - "https://jorianwoltjer.com/blog/p/research/nonce-csp-bypass-using-disk-cache"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Web/nyoom/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Web/nyoom/solve/solve.py"
+time_heuristic: "One warm bot visit. Leak must finish in about 10s (HTTP/1.1 + gzip) so the 10s recache refresh and 2s orch refresh land before the bot closes."
+last_verified: "2026-10-18"

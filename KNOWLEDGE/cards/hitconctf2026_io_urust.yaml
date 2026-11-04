@@ -1,0 +1,39 @@
+id: hitconctf2026_io_urust
+event: "HITCON CTF 2026"
+category: "pwn/rust-io_uring-fs-model-permission-race"
+challenge_name: "io_urust"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "An async Rust model of io_uring: root creates /flag.txt, writes the flag, then closes+unlinks it after a short delay; a regular UID reads commands and can hold path/buffer allocations across awaits."
+  - "`create_file`/`create_symlink` treat any failed symlink resolution as 'absent' and then `HashMap::insert` at that path, so a dangling symlink can be silently overwritten -- but this doesn't expose the root inode because `unlink` separately checks ownership/`public_write` and `open` resolves symlinks before enforcing target-inode permissions."
+  - "`FileHandle::read` has a possible offset+len overflow/panic, and `FileHandle::Drop` can leak reference counts when `try_lock` fails -- plausible but unconfirmed async-lifetime bug classes."
+key_idea: "The straightforward symlink-then-unlink trick to clobber root's private flag path is blocked because permission checks are enforced at both unlink (ownership/public_write) and open (post-symlink-resolution), so the real bug is likely a narrower async raw-pointer/refcount lifetime issue around Drop/try_lock that needs local reproduction, not remote guessing (remote PoW difficulty 30000 made iteration expensive and the socket reset before full completion was observed)."
+prerequisites:
+  - "Rust async runtime mental model (futures held across awaits)"
+  - "io_uring semantics"
+  - "Unix permission check ordering (unlink vs open+resolve)"
+exploitation_pattern: "race/permission-check-ordering hypothesis on a Rust-reimplemented fs model -> ruled out simple symlink/unlink TOCTOU -> pivot to Drop/refcount lifetime bugs under async cancellation, requiring local reproduction over a PoW-gated remote."
+verification:
+  method: "No exploit confirmed; local gmpy2-based PoW solver completed in ~22s but the remote connection reset before any shell completion was observed."
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/io_urust/notes/ANALYSIS.md"
+pitfalls:
+  - "Before assuming a dangling-symlink write primitive breaks a permission model, trace EVERY check along the full syscall path (both at the write call and at any later open/unlink), not just the first one encountered -- this challenge checks permissions redundantly at both ends."
+  - "A PoW-gated remote target with real difficulty (e.g. 30000) makes blind remote iteration expensive; get a full local exploit working first and budget solver time for the PoW separately."
+failed_paths:
+  - "symlink+unlink against root's private flag inode: blocked because unlink enforces ownership/public_write and open resolves the symlink before checking the target inode's permissions."
+tools:
+  - "gmpy2 (PoW solving)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/io_urust/files/io-urust-95ce59996ff46684.tar.gz"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/io_urust/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Misc/io_urust/solve/solve.py"
+time_heuristic: "When a reimplemented filesystem model exposes a symlink-write primitive, check permission enforcement at every syscall boundary (write-time AND open/unlink-time) before concluding it bypasses access control."
+last_verified: "2026-11-04"

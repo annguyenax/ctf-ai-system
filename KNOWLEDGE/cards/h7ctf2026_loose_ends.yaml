@@ -1,0 +1,35 @@
+id: "h7ctf2026_loose_ends"
+event: "H7CTF 2026 Quals"
+category: "pwn/uaf-dangling-pointer-tcache-poison-got-overwrite-glibc239"
+challenge_name: "Loose Ends"
+status: "solved"
+flag: "H7CTF{f8f81f1f-64c1-451f-9251-c4ffdefb0eac}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A \"delete\" menu option frees a heap chunk but never NULLs the stored pointer (classic dangling-pointer UAF), on a non-PIE, Partial RELRO (writable GOT) binary with glibc 2.39."
+  - "There is an uncalled win function reachable only by hijacking control flow (no function pointers in the vulnerable struct itself)."
+key_idea: "On recent glibc (>=2.39) tcache poisoning via a UAF must account for safe-linking (the fd pointer is XORed with chunk_mem>>12): leak the EXACT key for the specific chunk you intend to poison (not an assumed one) with a clean single free, because two \"identical\" setup chunks can straddle a 0x1000 page boundary and use different keys. Also, tcache_get() zeroes the chunk's key field (at offset mem+8) when a tcache-served chunk is returned to the user -- if you redirect malloc to return a GOT slot, this zeroes the 8 bytes immediately after that slot too, so pick a target GOT entry (e.g. exit@GOT) whose neighbouring +8 bytes are harmless to zero, and write exactly 8 bytes so the read() doesn't spill into adjacent FILE* structures (stdout/stdin) in the GOT/.data region."
+prerequisites:
+  - "glibc 2.39 safe-linking understanding (key = chunk_mem >> 12)"
+  - "Partial RELRO / writable GOT binary (non-PIE preferred for absolute GOT addresses)"
+exploitation_pattern: "free+leak a chunk to recover its exact safe-link key -> free+edit to build a tcache poison chain targeting a GOT slot with a harmless +8 neighbour (e.g. exit@GOT) -> allocate twice to pop the poisoned entry, writing exactly 8 bytes = win_function_address -> trigger the program's existing call-through-that-GOT-slot (e.g. by closing stdin so fgets returns NULL and the menu calls exit()) -> win function executes and reads/prints the flag file."
+verification:
+  method: "Live exploit chain against the remote service reproduced the flag via the hijacked exit@GOT call."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Loose Ends/writeup/writeup.md"
+pitfalls:
+  - "Using a generic/wrong safe-linking key (assuming all setup chunks share one key) produces \"malloc(): unaligned tcache chunk detected\" -- always leak the specific target chunk's own key."
+  - "Overwriting a GOT slot whose +8 neighbour is a live FILE* pointer (e.g. free@GOT, whose neighbour is puts@GOT) crashes the program on the very next use of that neighbour, before your trigger fires."
+failed_paths: []
+tools:
+  - "pwntools"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: "pwn_stack_overflow.md"
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Loose Ends/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/Loose Ends/solve/solve.py"
+time_heuristic: "For a UAF/dangling-pointer heap challenge on glibc >=2.39 with a writable GOT (Partial RELRO, non-PIE), plan tcache poisoning around two specific glibc-2.39 gotchas before writing any exploit code: leak the exact safe-linking key per target chunk (don't assume one), and choose a GOT overwrite target whose +8-byte neighbour being zeroed by tcache_get() won't crash the program before your trigger."
+last_verified: "2026-11-04"

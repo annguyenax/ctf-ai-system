@@ -1,0 +1,38 @@
+id: htbtryout_hidden_path
+event: HTB Try Out
+category: web/invisible-unicode-identifier-rce
+challenge_name: "Hidden Path"
+status: solved
+flag: "HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_21415c87faa75cdd4afe9fd95c26b6c0}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A U+3164 HANGUL FILLER character (invisible when rendered) is embedded twice in the source: once in a destructuring assignment and once as an extra array element after a trailing comma."
+  - "The invisible character is a legal JavaScript identifier, so it silently increases a hardcoded commands array's length from 6 to 7 while looking visually identical to a 6-element array."
+  - "A bounds check (choice < commands.length) is written against the array's actual (now 7) length, not the developer's intended 6, admitting an extra attacker-controlled command slot."
+key_idea: "An invisible Unicode character used as a valid JS property/variable name can silently add a hidden element to an array literal and a hidden destructured property to an incoming request body; combined, the 'extra' array slot becomes attacker-controlled shell-exec input that a naive bounds check (against the array's real length) will happily allow."
+prerequisites:
+  - Source hexdump/byte-level inspection (the bug is invisible in a normal text view)
+  - Knowledge that many invisible/zero-width Unicode code points are valid JS identifier characters
+exploitation_pattern: "hexdump reveals invisible-but-valid-identifier Unicode char used twice (destructure + trailing array element) -> send the invisible char as a body field name with attacker command -> bounds check on real (inflated) array length admits it -> exec() runs it"
+verification:
+  method: "Two independent live HTTP responses to the crafted POST each returned the flag directly from the server's exec() stdout."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Hidden Path/final_flag.txt"
+pitfalls:
+  - "Visual code review is not enough for this bug class; hexdump/byte-diff source files when something looks subtly 'off' (e.g. a seemingly-meaningless trailing comma) and no normal explanation fits."
+  - "Bounds checks against array.length are only as safe as the array's actual declared contents, which can be invisibly inflated by Unicode identifiers in source."
+failed_paths: []
+tools:
+  - Python urllib.parse (URL-encoding the Unicode field name)
+  - hexdump
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Hidden Path/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Hidden Path/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/misc/Hidden Path/solve/solve.py"
+time_heuristic: "When source code behavior doesn't match what's visibly written (especially around array lengths/trailing commas), hexdump the file for invisible Unicode characters being used as valid identifiers."
+last_verified: "2026-11-04"

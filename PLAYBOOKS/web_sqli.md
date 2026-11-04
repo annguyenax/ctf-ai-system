@@ -25,6 +25,7 @@
 - WAF: comment variants, case mix, JSON SQLi, second-order.  
 - No error: switch boolean/time.  
 - Read-only: file read functions if enabled (DB-specific).
+- PostgreSQL stacked + superuser: skip catalogs. `CREATE TEMP TABLE` is **not** `CREATE TABLE`. Phrase filters on `COPY ` / `FROM PROGRAM` die to `COPY/**/` and `FROM/**/PROGRAM`. End the payload with `SELECT` so the HTTP handler returns command output. Confirm column names with `row_to_json(t)` before COPY into an existing table (`cards/ptitctf2026ck_megalovania.yaml`).
 
 ## Time-saving
 

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "static-slot-index",
+    "status": "positive",
+    "observation": "DWARF maps the supplied binary's 0x44cf1 instruction to redis-cli.c:5848; its indexed byte store has no bound check.",
+    "evidence": "D:/download/CTFTimeWriteup/COMPFEST18CTF2026/Pwn/redis-cli 0-day/solve/evidence/slot_index_oob_proof.txt",
+    "impact": "Confirms a server-controlled CLUSTER NODES slot index can write outside node->slots.",
+    "next_action": "Run the local RESP2 harness with the supplied ELF in a glibc Linux environment."
+  },
+  {
+    "id": "local-model",
+    "status": "positive",
+    "observation": "The model accepted the constructed myself-node line with slot 16384 and identified it as out of bounds.",
+    "evidence": "solve/local_poc.py --model output in slot_index_oob_proof.txt",
+    "impact": "Validates the minimal malformed logical condition and documents the exact payload field.",
+    "next_action": "Observe the supplied binary under debugger/sanitizer-compatible environment."
+  },
+  {
+    "id": "remote-wrapper-presence",
+    "status": "blocked",
+    "observation": "One no-input connection to 34.2.22.80:30068 returned CTFd access token:.",
+    "evidence": "terminal output, 2026-08-29 session",
+    "impact": "The endpoint is token-gated; wrapper behavior could not be tested without credentials.",
+    "next_action": "Obtain authorized event token, then use one controlled responder and one candidate run."
+  }
+]

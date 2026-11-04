@@ -1,0 +1,36 @@
+id: htbtryout_labyrinth
+event: HTB Try Out
+category: pwn/ret2win-stack-alignment
+challenge_name: "Labyrinth"
+status: solved
+flag: "HTB{3sc4p3_fr0m_4b0v3}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "No-PIE, no-canary binary with a fixed-address win function (escape_plan) and an fgets() overflow past a 48-byte stack buffer."
+  - "escape_plan() internally calls a variadic function (fprintf); the binary was compiled assuming it is entered via call (rsp%16==8), not via a direct ret-based jump (rsp%16==0)."
+  - "Jumping directly to escape_plan() via a ROP-style ret crashes inside the variadic call due to stack misalignment, even though the target address and offset are otherwise correct."
+key_idea: "When redirecting execution into a win()-style function via a stack-smash ret (not a real call instruction), the function's own internal calls to variadic libc functions (printf family) can crash from SysV ABI 16-byte stack alignment mismatch; insert one extra plain `ret` gadget before the target address to absorb 8 bytes and restore the alignment the compiler assumed."
+prerequisites:
+  - No-PIE binary so target function and gadget addresses are static
+  - A win function that itself calls a variadic libc function
+exploitation_pattern: "overflow buffer -> extra `ret` gadget (alignment fixup) -> win-function address; the padding is purely an ABI-alignment fix, not a functional gadget"
+verification:
+  method: "Remote exploit script sent the alignment-fixed payload and the server printed the flag from escape_plan()'s open(flag.txt)."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/pwn/Labyrinth/final_flag.txt"
+pitfalls:
+  - "ret2win payloads that crash with no obvious reason despite a correct offset and correct target address should be checked for 16-byte stack-alignment mismatch, especially if the target function calls any variadic libc function (printf/fprintf/scanf family)."
+failed_paths: []
+tools:
+  - pwntools
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/pwn/Labyrinth/writeup/writeup.md"
+playbook: pwn_stack_overflow.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/pwn/Labyrinth/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/pwn/Labyrinth/solve/solve.py"
+time_heuristic: "If a ret2win payload crashes despite a verified correct return-address offset and target, suspect SysV 16-byte stack misalignment when the target function calls a variadic libc function; fix by inserting one extra `ret` gadget."
+last_verified: "2026-11-04"

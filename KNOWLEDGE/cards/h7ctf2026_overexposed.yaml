@@ -1,0 +1,35 @@
+id: "h7ctf2026_overexposed"
+event: "H7CTF 2026 Quals"
+category: "misc/png-ancillary-chunk-plus-hidden-zip-local-headers"
+challenge_name: "Overexposed"
+status: "solved"
+flag: "H7CTF{06da61b5c60e087c87c9}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A PNG has a zTXt (compressed text) ancillary chunk hiding part of the flag."
+  - "Trailing bytes after IEND contain a ZIP archive whose own central directory lists only one innocuous file, while the raw bytes contain additional PK\\x03\\x04 local file header signatures for files the directory hides."
+  - "A readme inside the ZIP explicitly hints: \"the directory is not the archive... read the raw local headers.\""
+key_idea: "Don't rely on a ZIP library's normal listing (which reads the central directory) when a challenge hints the directory is incomplete/lies -- scan the raw bytes for every PK\\x03\\x04 local file header signature directly, parse each header's filename/compressed-size fields, and inflate (zlib raw DEFLATE, wbits=-15) each entry's data regardless of whether the central directory mentions it. Combine with other steganographic chunks (PNG zTXt/tEXt) found by walking the chunk list manually."
+prerequisites:
+  - "PNG chunk structure walking (length/type/data/crc)"
+  - "Manual ZIP local file header parsing independent of the central directory"
+exploitation_pattern: "walk PNG chunks for zTXt -> zlib-decompress to get part1 -> scan trailing bytes for all PK\\x03\\x04 occurrences -> parse each local header's filename + sizes -> zlib.decompress(data, -15) for entries not in the central directory (part2, part3) -> concatenate parts in order -> flag."
+verification:
+  method: "Deterministic extraction of three parts whose concatenation formed a well-formed flag string."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Overexposed/writeup/writeup.md"
+pitfalls:
+  - "A normal zipfile.ZipFile listing will only show files present in the central directory -- always raw-scan for PK\\x03\\x04 signatures when a challenge hints at hidden archive members."
+failed_paths: []
+tools:
+  - "Python zlib/struct"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Overexposed/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Overexposed/solve/solve.py"
+time_heuristic: "When a \"steganography\" image challenge's embedded archive readme hints the directory lies, raw-scan the file for every PK\\x03\\x04 local header instead of trusting the ZIP library's file listing, and check PNG ancillary chunks (zTXt/tEXt) as a separate flag-fragment source."
+last_verified: "2026-11-04"

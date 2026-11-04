@@ -1,0 +1,36 @@
+id: sunshinectf2026_you_cut_me_off
+event: "SunshineCTF 2026"
+category: "forensics/png-ihdr-height-truncation-repair"
+challenge_name: "you cut me off"
+status: solved
+flag: "sun{totallyoriginalchallengeidea}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "PNG opens and renders fine, but appears visually cut off at the bottom (matching the prompt's joke about being interrupted mid-sentence)."
+  - "The decompressed IDAT stream's total byte length, divided by the per-row byte stride (1 filter byte + width*bytes-per-pixel), gives a real pixel height LARGER than the IHDR chunk's declared height."
+  - "The IHDR chunk's CRC was recomputed/updated to match the smaller, tampered height value, so naive CRC validation alone won't flag the mismatch -- only the IDAT-length-vs-declared-height arithmetic reveals it."
+key_idea: "If a PNG visually looks truncated/cut off but is not corrupt (opens fine, valid CRCs), check whether the decompressed IDAT payload's byte length is consistent with the declared IHDR height; a deliberately-shrunk height field (with a correspondingly recomputed CRC) hides extra rendered rows of image data that a normal viewer will never show, and can be restored by patching IHDR's height back to the value implied by the IDAT length and fixing its CRC."
+prerequisites:
+  - "PNG chunk structure (IHDR fields, CRC32 recomputation)"
+  - "zlib inflate of the IDAT stream and per-scanline byte-stride arithmetic for the color type in use"
+exploitation_pattern: "zlib.decompress(IDAT) -> compute real_height = len(decompressed) // (1 + width*bytes_per_pixel) -> compare to IHDR's declared height -> if real_height is larger, patch IHDR's height field to real_height -> recompute and patch the IHDR chunk's CRC32 -> re-render -> hidden bottom rows become visible"
+verification:
+  method: "Deterministic repair; the restored image's newly-visible bottom rows contain the flag as plain text."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/you cut me off/writeup/writeup.md"
+pitfalls:
+  - "A PNG that opens without error and has a valid-looking CRC is not proof the IHDR dimensions are untampered -- the CRC was deliberately recomputed to match the shrunk height; check IDAT-length-vs-height arithmetic directly instead of trusting chunk validity."
+failed_paths: []
+tools:
+  - "python3 (zlib, struct)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/you cut me off/files/hereyougo.png"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/you cut me off/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/you cut me off/solve/solve.py"
+time_heuristic: "A PNG that renders fine but looks visually cut off: compare the decompressed IDAT byte length against the IHDR-declared height/width/color-type stride; a mismatch (with a correctly-recomputed CRC) means the height field itself was shrunk to hide extra rows."
+last_verified: "2026-11-04"

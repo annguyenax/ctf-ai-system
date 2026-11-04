@@ -1,0 +1,39 @@
+id: csawctf2026quals_hemispheres
+event: "CSAW CTF Qualifications 2026"
+category: "forensics/png-polyglot-lsb-password"
+challenge_name: "Hemispheres"
+status: solved
+flag: "csaw{0n3_f1l3_tw0_truth5_p0lygl0t_m4g1c}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "File renders as a perfectly normal PNG; standard tools report nothing unusual."
+  - "Trailing bytes immediately after the real IEND chunk begin with PK\x03\x04 (a ZIP local file header) -- a PNG/ZIP polyglot."
+  - "The ZIP entry is password-protected (encryption bit set in its local file header)."
+  - "Row y=0 of the image has exactly 100 pixels whose Blue channel value is 29 instead of the background 28 -- i.e. LSB of Blue is set on a subset of row-0 pixels, encoding a hidden bitstream."
+key_idea: "A 'perfectly ordinary' image can be a polyglot: scan past the real IEND chunk for a second embedded archive, and check a single image row's color-channel LSBs for a hidden password/key needed to unlock that archive, rather than looking for stego spread across the whole image."
+prerequisites:
+  - "PNG chunk structure (locating true IEND vs any trailing data)"
+  - "LSB steganography extraction from a single channel/row"
+  - "Password-protected ZIP extraction"
+exploitation_pattern: "rfind(b'IEND') in raw bytes -> bytes after it = embedded ZIP -> extract LSB of Blue channel from row 0 -> pack bits MSB-first into bytes, trim to last set bit -> decode ASCII password -> zipfile.read(pwd=password) -> flag.txt"
+verification:
+  method: "Deterministic extraction; the recovered password decrypts the embedded flag.txt successfully."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Hemispheres/writeup/writeup.md"
+pitfalls:
+  - "Don't stop at the first (fake/truncated) IEND reported by a lenient PNG parser; use rfind to locate the true chunk boundary and inspect everything after it."
+  - "Hidden LSB data may be confined to a single row/channel rather than spread across the whole image -- check row 0 (or other 'header-like' rows) first."
+failed_paths: []
+tools:
+  - "python3 (PIL/numpy, zipfile)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Hemispheres/files/the_signal.png"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Hemispheres/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Forensics/Hemispheres/solve/solve.py"
+time_heuristic: "An image that 'looks perfectly normal': check for trailing-archive polyglot after the real end-of-file chunk, and scan a single row/channel's LSBs for a password before assuming the image itself has no stego."
+last_verified: "2026-11-04"

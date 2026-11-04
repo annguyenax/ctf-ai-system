@@ -1,0 +1,38 @@
+id: fortidctf2026_do_you_know_lika
+event: FortID CTF 2026
+category: web/prototype-pollution-handlebars-ast-rce
+challenge_name: "Do You Know Lika?"
+status: solved
+flag: "FortID{L1K4_41R_1S_50_FR35H_Y0U_C4N_T45T3_TH3_P0LLUT10N_67cca90a75}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "containsBlockedKey() blocks only the literal key '__proto__', missing the equally dangerous 'constructor.prototype' path for prototype pollution."
+  - "A helper allowlist object (writableProperties) is a plain object, so it inherits polluted Object.prototype properties and treats a polluted key as allowed."
+  - "Handlebars {{> @partial-block}} invoked twice inside a partial lets the second invocation fall back to compiling an attacker-supplied AST when @partial-block itself was overwritten (CVE-2026-33938 class bug)."
+key_idea: "Chain three independent gaps: pollute Object.prototype via constructor.prototype (bypassing a __proto__-only blocklist), use that pollution to make a helper's property allowlist accept a forbidden key, then use the now-permitted helper to overwrite the @partial-block AST reference with a crafted PathExpression whose 'depth' field is actually attacker JS source, which the Handlebars compiler evaluates as an IIFE and executes server-side."
+prerequisites:
+  - Node.js Handlebars app with blocklist-only (not allowlist) key filtering
+  - A helper that mutates template-engine internal AST/data objects based on an attribute the attacker can rename via pollution
+exploitation_pattern: "constructor.prototype pollution bypassing __proto__-only filter -> inherited allowlist bypass -> overwrite @partial-block with malicious PathExpression AST -> template compiler executes attacker JS"
+verification:
+  method: "Direct HTTP POST to the preview API returned JSON containing the flag read from the worker's local flag.txt."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Do You Know Lika/final_flag.txt"
+pitfalls:
+  - "Prototype-pollution blocklists that check only '__proto__' miss 'constructor.prototype', a functionally identical bypass."
+  - "Any plain JS object used as a security allowlist (e.g. writableProperties = {a:true,...}) is itself vulnerable to prototype pollution unless created with Object.create(null) or checked via hasOwnProperty."
+failed_paths: []
+tools:
+  - Python urllib
+  - Handlebars/Node.js internals knowledge
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Do You Know Lika/writeup/writeup.md"
+playbook: web_ssti.md
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Do You Know Lika/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Do You Know Lika/solve/solve.py"
+time_heuristic: "When a prototype-pollution filter exists, always test constructor.prototype in addition to __proto__; when a template helper allowlist is a bare JS object, assume it inherits from Object.prototype and is pollutable."
+last_verified: "2026-11-04"

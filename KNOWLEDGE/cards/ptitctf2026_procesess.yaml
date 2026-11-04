@@ -1,0 +1,40 @@
+id: ptitctf2026_procesess
+event: "PTIT CTF 2026"
+category: "reverse/dead-code-cipher-recovery"
+challenge_name: "P(roc)E(ss)"
+status: solved
+flag: "PTITCTF2026{50m371m35_1nf0rm4710n_1n_42ce4d87b74}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "The MinGW x64 binary prints an obviously fake flag (PTITCTF{75c7be...}) and, only when a process named 4mCnFu.exe is running, performs a tiny 3-byte code injection (xor eax,eax; ret) and prints an unrelated hint string -- a decoy/misdirection path."
+  - "The real flag is encrypted by an ARX stream cipher located at a fixed address that is referenced only from .data[0] and is never actually called from any live code path (dead code reachable only by following the data pointer, not by execution tracing)."
+  - "The cipher key is derived from the detected process name itself: tolower(strip('.exe', '4mCnFu.exe')) = '4mcnfu', and the nonce argument had to be found by brute-scanning small integer values until the decrypted output was printable text."
+key_idea: "The flag-bearing cipher function is never called by any executed code path -- it is reachable only via a function-pointer stored in .data and must be identified by following data/relocation references rather than execution tracing, then driven directly (e.g. with angr or manual emulation) using key/salt/nonce material recovered from other decoy strings in the binary (the detected process name, lowercased and stripped of '.exe', is the actual cipher key)."
+prerequisites:
+  - "angr (or equivalent symbolic/concrete execution harness) to invoke an isolated function directly rather than running the whole binary"
+  - "Manual ARX (add-rotate-xor) stream-cipher reverse engineering from disassembly"
+  - "FNV-1a64 and splitmix64 recognition for key-schedule derivation"
+exploitation_pattern: "visible fake flag + decoy injection branch -> true flag cipher function only referenced via a data pointer, never called -> recover key material (process-name string transform) from other code paths -> brute-scan the unknown nonce parameter for a value that yields printable plaintext -> drive the isolated cipher function directly via angr to confirm."
+verification:
+  method: "Deterministic decode of the ciphertext bytes with the derived key/salt/nonce reproduces readable leetspeak plaintext, independently cross-checked by running the actual disassembled cipher function under angr (solve/verify_decoder.py)."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Reverse/P(roc)E(ss)/solve/decode_final.py and solve/verify_decoder.py"
+pitfalls:
+  - "A reversing target may contain multiple decoy/dead-end paths (a hard-coded fake flag string, a seemingly meaningful anti-debug-style injection triggered by a specific process name) that consume analysis time without being the actual objective."
+  - "A cipher function unreachable from any traced execution path is easy to miss with pure dynamic tracing -- static data/pointer-reference scanning is required to find it."
+  - "An unknown cipher parameter (here the nonce) with no other recoverable source may need to be found by brute-scanning a small plausible range and checking plaintext printability, not analytically."
+failed_paths: []
+tools:
+  - "angr"
+  - "Manual x64 disassembly reading"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Reverse/P(roc)E(ss)/files/"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Reverse/P(roc)E(ss)/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Reverse/P(roc)E(ss)/solve/decode_final.py"
+time_heuristic: "In a reversing challenge with an obviously fake printed flag, search for cipher/validation functions referenced only via data pointers or relocations (never directly called) -- these are prime candidates for the real flag logic, and running them in isolation with angr avoids needing to satisfy the (possibly unreachable or decoy) runtime trigger conditions."
+last_verified: "2026-11-04"

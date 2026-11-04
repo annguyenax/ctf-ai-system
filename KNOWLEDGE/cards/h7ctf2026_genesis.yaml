@@ -1,0 +1,36 @@
+id: "h7ctf2026_genesis"
+event: "H7CTF 2026 Quals"
+category: "web3/erc4626-share-inflation-donation-sync"
+challenge_name: "Genesis"
+status: "solved"
+flag: "H7CTF{5c0379d1-484e-46bb-a318-fadba0af4b37}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "An ERC4626-style vault tracks assets with an INTERNAL storage counter rather than token.balanceOf(address(this)), but also exposes a sync() function that copies the real token balance into that internal counter."
+  - "deposit() computes shares via the naive unprotected formula assets*totalSupply/totalAssets with no require(shares > 0) guard and no virtual-offset protection (no OpenZeppelin-style decimals offset)."
+key_idea: "The classic first-depositor/share-inflation attack on a vault normally requires the vault to read its real token balance directly; if it instead uses internal accounting specifically to resist a raw donation, check for any public function (often named sync(), skim(), or similar DEX-style helper) that lets you force the internal counter to match an inflated real balance. Front-run the victim's large deposit by minting 1 share cheaply, donating a large raw token transfer to the vault, calling sync() to inflate totalAssets, then letting the victim's deposit round down to 0 shares under the now-inflated share price -- you keep 100% of the pooled assets (yours + the victim's) for your single share."
+prerequisites:
+  - "Direct contract calls (web3.py/eth_abi) against a chain with ERC20 approve/transfer and vault deposit/sync functions"
+  - "Understanding ERC4626 share-price math and its first-depositor inflation weakness"
+exploitation_pattern: "approve vault for your token -> deposit(1) to mint 1 share (totalSupply=1, totalAssets=1) -> token.transfer(vault, large_amount) raw donation -> vault.sync() sets totalAssets = real balance (huge) -> trigger/await the victim's large deposit, whose shares = assets*1/huge rounds to 0 -> victim holds 0 shares for their stake; you hold the only share, now worth the entire pooled total."
+verification:
+  method: "Live on-chain replay; after the sequence, the victim's vault share balance was 0 and the Setup contract's isSolved() check returned true, releasing the flag."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Web3/Genesis/writeup/writeup.md"
+pitfalls:
+  - "A naive raw-token donation alone does nothing if the vault reads totalAssets from internal storage rather than balanceOf(this) -- you must find and call its sync()-equivalent function first."
+failed_paths: []
+tools:
+  - "web3.py"
+  - "eth_abi"
+  - "pyevmasm (for disassembling unverified Setup/vault bytecode)"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Web3/Genesis/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Web3/Genesis/solve/solve.py"
+time_heuristic: "For an ERC4626-style vault that seems immune to the standard first-depositor donation attack because it uses internal asset accounting, specifically look for a sync()/skim()-style function that lets a raw token donation be absorbed into that internal counter -- it reopens the classic share-inflation attack even against \"hardened\" internal accounting."
+last_verified: "2026-11-04"

@@ -1,0 +1,39 @@
+id: securinetsquals2026_crust
+event: "Securinets CTF Quals 2026"
+category: "pwn/rust-traitobject-shadow-registry-uaf"
+challenge_name: "crust"
+status: solved
+flag: "Securinets{us3_4ft3r_fr33_1n_th3_shad0w_r3g1stry_vtabl3_c0nfus10n_0s9n9jsh7csf}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A Rust `dyn Node` trait-object menu binary frees a slot's backing memory on `f)ree` and NULLs the slot-table entry, but a SEPARATE 'shadow registry' (populated by `r)egister`) still keeps its own copy of the freed node's raw pointer AND its concrete-type vtable, independent of the slot table."
+  - "All three concrete node types (`DataNode`, `SentryNode`, `ExecNode`) are allocated with the identical fixed size (`alloc(0x90)`), so freeing an `ExecNode` and immediately creating a `SentryNode` reliably reuses the exact same heap chunk (tcache LIFO, same size class)."
+  - "`ExecNode::activate` checks only that a hardcoded magic field equals a constant and then unconditionally `call`s whatever pointer sits at offset 0 of the node -- no validation that the pointer is one of the type's own legitimate handler functions."
+key_idea: "When a menu-driven heap challenge has a trait-object dispatch where `activate`/similar performs an unchecked indirect call through a type-confused vtable slot, and a SEPARATE bookkeeping structure (a 'shadow registry', cache, or similar) retains a stale pointer+type-tag pair after the underlying object is freed, reclaim the freed chunk with a same-size, attacker-controlled-content type (here `SentryNode`'s 32-byte key buffer) to overwrite the dead object's function-pointer and magic fields directly, then trigger the stale alias's execution path to get an arbitrary call."
+prerequisites:
+  - "Rust trait-object (dyn Trait) vtable layout"
+  - "tcache LIFO same-size-class chunk reuse"
+  - "heap UAF-via-dangling-alias reasoning"
+exploitation_pattern: "create an ExecNode (magic pre-armed) -> register it, caching the shadow record (pointer+ExecNode-vtable) -> free the ExecNode (slot table nulled, shadow record untouched) -> create a SentryNode (reuses the freed chunk) whose attacker-controlled key bytes overwrite the dead ExecNode's fn_ptr and magic fields with the win-function address and the required magic constant -> activate via the stale shadow record, which dispatches through the cached ExecNode vtable onto the now-SentryNode-owned memory, calling the forged function pointer."
+verification:
+  method: "Platform-verified: the exploit was run against the live remote instance (pwn.securinets.tn:1002) and the server returned the actual flag."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/crust/writeup/writeup.md"
+pitfalls:
+  - "Freeing an object through its 'normal' interface (nulling a slot table) does not guarantee every other data structure that cached a reference to it (a registry, cache, or index) was also invalidated -- audit every place a raw pointer+type-tag pair could be cached independently of the primary ownership table."
+  - "Activating through the stale alias WITHOUT first reclaiming the freed chunk fails the magic check against leftover tcache fd/key bytes ('bad config', a free-chunk's own linked-list metadata) -- this failure is itself a signal that a dangling-pointer activation path exists and is reachable, just not yet armed."
+failed_paths:
+  - "A DataNode-reuse + generic `w`rite command path should theoretically also work to set fn_ptr/magic, but in practice the `w` command invalidated the shadow record's nonce ('wrong nonce'); the SentryNode-key path avoided `w` entirely and worked on the first attempt (root cause of the nonce invalidation not investigated further since an alternative worked)."
+tools:
+  - "pwntools"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/crust/files"
+playbook: "pwn_auth_hash.md"
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/crust/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/crust/solve/exploit.py"
+time_heuristic: "In a Rust (or any language) trait-object/dispatch-table heap challenge, specifically audit any SEPARATE cache/registry/index structure for stale pointer+type-tag pairs after an object is freed through its primary interface -- same-size-class reuse by an attacker-controlled type is the classic way to weaponize that staleness into a type-confused indirect call."
+last_verified: "2026-11-04"

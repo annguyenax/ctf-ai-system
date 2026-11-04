@@ -1,0 +1,36 @@
+id: deadfacectf2026_no_holding_back
+event: DeadfaceCTF2026
+category: web/idor-bola-fuzzing
+challenge_name: "DeMonneSlayer / No Holding Back"
+status: solved
+flag: "deadface{IDOR_u_2_f1nD_m0r3_Fl4gz}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Mobile app's API requires an internal header token + User-Agent (recovered from APK reverse engineering in a prior challenge) but authorization is by a valid session token of *any* user, not by resource ownership.
+  - Endpoints like `/api/accounts/<account_id>/statements` take a numeric, low-cardinality account_id with no ownership check against the logged-in user.
+  - A low-privilege, independently-leaked credential (found via OSINT on a separate forum/social platform) is enough to obtain a valid session and then pivot into IDOR.
+key_idea: Once authenticated as *any* user (even a leaked low-value credential), test object-reference endpoints by varying the ID parameter across a plausible numeric range near known values; a BOLA/IDOR vulnerability returns other users' or system/internal records without any ownership check.
+prerequisites:
+  - A valid session/auth token (from any account, however obtained)
+  - A resource endpoint parameterized by a guessable/sequential ID
+exploitation_pattern: login with leaked creds -> obtain bearer token + required internal headers -> iterate account_id over a candidate range -> call ownership-scoped endpoint for each ID -> flag/sensitive data appears in an ID that does not belong to the logged-in user.
+verification:
+  method: Script logged in, then fuzzed account_id starting at 1000; account_id=1007 returned an internal-audit statement record containing the exact flag string, matching final_flag.txt.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneSlayer/No Holding Back/writeup/writeup.md"
+pitfalls:
+  - Required internal headers (token, specific User-Agent) from a separate reverse-engineering step are necessary just to get the request accepted at all, before IDOR can even be tested.
+failed_paths: []
+tools:
+  - Python requests
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneSlayer/No Holding Back/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneSlayer/No Holding Back/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/DeMonneSlayer/No Holding Back/solve/solve.py"
+time_heuristic: Once you have any authenticated session against an API, always test whether resource-ID parameters are ownership-checked before assuming you're limited to your own account's data — sequential ID fuzzing is cheap and often exposes BOLA/IDOR.
+last_verified: "2026-11-04"

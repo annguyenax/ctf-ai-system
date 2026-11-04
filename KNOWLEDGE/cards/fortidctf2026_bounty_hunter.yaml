@@ -1,0 +1,44 @@
+id: fortidctf2026_bounty_hunter
+event: "FortID CTF 2026"
+category: "crypto/recursive-proof-soundness"
+challenge_name: "Bounty Hunter"
+status: solved
+flag: "FortID{BU6_B0uN7Y_H0UN73R5_Sh0u1D_B3_4bl3_70_5P07_Un50Und_Pr00FZZ}"
+confidence: 1.0
+artifact_hashes:
+  - "files/verifier.py: 2A64DB6E12C17D03F7113DDB9E0DA50495BF8A0CEE1D05E4A474F393FA3AF08B"
+  - "solve/solve.py: FF826E6DE648342BA9AE3801BBA655E634A78BAB8D477D6C0B671C550F1F27E6"
+signals:
+  - "Verifier accepts prover-supplied next_coeffs and next commitments."
+  - "No constraint proves the next polynomial is the fold of the current polynomial."
+key_idea: >
+  Commitment consistency does not establish transition consistency. Forge the
+  intermediate low-degree polynomials to satisfy the checked evaluations.
+prerequisites:
+  - "Finite-field polynomial evaluation"
+  - "Polynomial interpolation"
+  - "Recursive folding verifier"
+exploitation_pattern: >
+  Reconstruct challenge points -> choose intermediate fold claims -> solve for
+  the unchecked paired evaluation -> interpolate and commit next polynomials ->
+  claim payout_authorized(report_id)=1.
+verification:
+  method: "Read-only platform status reports Bounty Hunter SOLVED; local final_flag matches the writeup and FortID format."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Crypto/Bounty Hunter/solve/evidence/verification.txt"
+pitfalls:
+  - "A commitment to prover-selected state does not prove a correct fold transition."
+  - "The current run did not retain or replay the live proof."
+failed_paths: []
+tools:
+  - "Python standard library"
+hexstrike:
+  used: false
+  useful: false
+  notes: "A targeted proof construction is sufficient; network scanners are irrelevant."
+sources:
+  - "Supplied challenge verifier: CTFTimeWriteup/FortIDCTF2026/Crypto/Bounty Hunter/files/verifier.py"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/Bounty Hunter/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/Bounty Hunter/solve/solve.py"
+time_heuristic: "Inspect every recursive transition; compare commitment checks with the actual fold equation."
+last_verified: "2026-10-10"

@@ -1,0 +1,35 @@
+id: htbtryout_dont_panic
+event: HTB Try Out
+category: rev/per-character-closure-flag-check
+challenge_name: "Don't Panic!"
+status: solved
+flag: "HTB{d0nt_p4n1c_c4tch_the_3rror}"
+confidence: 0.9
+artifact_hashes: []
+signals:
+  - "Rust binary compares input against a 31-character secret, but the comparison is split into 31 tiny closures each checking one byte, assembled via a function-pointer array built in check_flag's prologue."
+  - "No packing, no anti-debug, no real cryptographic obfuscation; this scattering is the only 'obfuscation' present."
+  - "Rust binaries retain heavy stdlib/path strings (/rustc/...) in strings output, which is a quick language fingerprint but not flag-bearing."
+key_idea: "A per-character comparison split into many tiny closures assembled through a function-pointer table is a common 'looks harder than it is' Rust rev pattern; disassembling the 31 one-byte closures directly (or just extracting the embedded comparison constants) recovers the expected byte at each position without needing to understand Rust's closure/trait-object machinery in depth."
+prerequisites:
+  - "Disassembler/objdump reading of a Rust binary's check_flag prologue and its per-character closure table"
+exploitation_pattern: "locate per-character closure array in check_flag -> read each closure's single-byte immediate compare -> concatenate expected bytes in order"
+verification:
+  method: "Reconstructed string matched the binary's required input exactly (format HTB{...}, 31 chars) per the challenge's own description of the comparison length."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/rev/Don't Panic!/final_flag.txt"
+pitfalls:
+  - "Don't be deterred by unfamiliar language runtime machinery (Rust closures/trait objects); the underlying comparison is still simple byte-for-byte logic once the dispatch table is identified."
+failed_paths: []
+tools:
+  - objdump/disassembler
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/rev/Don't Panic!/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/rev/Don't Panic!/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/rev/Don't Panic!/solve/solve.py"
+time_heuristic: "When a Rust binary's flag check is split across many tiny closures dispatched via a function-pointer array, treat it as a per-character comparison table and extract each closure's single-byte immediate directly rather than trying to fully understand the closure/trait-object plumbing."
+last_verified: "2026-11-04"

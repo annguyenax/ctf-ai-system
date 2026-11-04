@@ -1,0 +1,47 @@
+id: fortidctf2026_checksum
+event: "FortID CTF 2026"
+category: "reverse/obfuscated-native-checksum"
+challenge_name: "Checksum"
+status: needs_verification
+flag: ""
+confidence: 0.1
+artifact_hashes:
+  - "checksum_v3.tar.gz: 7d82b7f9f285bc43bc2027fdcc0f35ecd5cbca2fd80db4d16a645768e380278b"
+  - "checksum: 5a7f818df906afd8efce22aa15ae234796671fd1e1659bd8d18e44ee6ea0f208"
+signals:
+  - "A hidden FLAG input selects a static DAG of thousands of tiny Rust functions."
+  - "Every reachable operation XORs one byte; the final result is only 0x39."
+key_idea: >
+  Reconstruct the selected call graph and fold its XOR trace to verify the
+  reported checksum. This verifies only the byte result, not the original flag.
+prerequisites:
+  - "ELF symbol and disassembly parsing"
+  - "Call-graph traversal with DAG memoization"
+exploitation_pattern: >
+  Identify the dispatch root -> parse XOR immediates and direct calls -> expand
+  the selected trace -> compare the folded byte with the program output.
+verification:
+  method: "The extracted 4,818-byte trace folds to the observed 0x39; direct hash and environment probes did not recover a flag."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Reverse/Checksum/notes/analysis.md"
+pitfalls:
+  - "A one-byte checksum is not an invertible encoding of a general string."
+  - "A trace that reproduces the checksum is not plaintext."
+failed_paths:
+  - "SHA-1 of code bytes, subtree trace, folded values, and common local descriptors had no symbol-ID matches."
+  - "Changing the local FLAG environment variable did not change the result."
+tools:
+  - "nm"
+  - "objdump"
+  - "Python"
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local ELF analysis was sufficient for the current discriminative tests."
+sources:
+  - "Local challenge files: D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Checksum/files/"
+  - "Analysis: D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Checksum/notes/analysis.md"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Checksum/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Checksum/solve/extract_flag_xor_trace.py"
+time_heuristic: "For a one-byte result over a large generated graph, verify the exact selected trace before escalating to symbolic execution; stop if no input-dependent state exists."
+last_verified: "2026-10-11"

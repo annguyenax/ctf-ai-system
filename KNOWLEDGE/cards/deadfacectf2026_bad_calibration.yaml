@@ -1,0 +1,38 @@
+id: deadfacectf2026_bad_calibration
+event: DeadfaceCTF2026
+category: misc/integrity-check-forgery
+challenge_name: "BrainScans / Bad Calibration"
+status: solved
+flag: "deadface{c4l1br4t10n_f0rg3ry_h4rms_l1v3s}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - A simulated device exposes a shell (`/api/shell`) and lets you mount and read its own config partition.
+  - "verify.py source is readable on-disk: `sha256(data + salt)` where `salt` is a plaintext value in config.yaml."
+  - Tampering integrity is only a hash check with a static, locally-readable salt, not a signature.
+key_idea: When the "integrity check" is a plain hash over attacker-editable data plus a salt that is also attacker-readable, you can edit the protected file and recompute a valid signature yourself; the check was never tamper-proof.
+prerequisites:
+  - Shell/file access to the device's config and verifier source
+  - Ability to read the salt value used by the hash
+exploitation_pattern: read verify.py -> locate hash(data+salt) formula -> read salt from config -> edit protected file -> recompute hash -> overwrite signature file -> re-run verifier to confirm acceptance.
+verification:
+  method: Solver script ran scanctl verify (returned OK) then scanctl scan, which printed the tampered result and the flag in the scan log.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Bad Calibration/writeup/writeup.md"
+pitfalls:
+  - A keyed hash is not an integrity signature unless the key is kept secret from the party being checked; if the verifier and the data live on the same box you control, the key is not secret.
+  - Must recompute the hash over the *exact* tampered bytes (not re-serialized JSON) or the signature mismatches.
+failed_paths: []
+tools:
+  - Python hashlib
+  - sed (in-place edit)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Bad Calibration/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Bad Calibration/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/BrainScans/Bad Calibration/solve/solve.py"
+time_heuristic: When a device's "integrity check" is just hash(data+salt) and you have read access to both the data and the salt, treat it as always forgeable — verify what makes the salt secret before trusting the check.
+last_verified: "2026-11-04"

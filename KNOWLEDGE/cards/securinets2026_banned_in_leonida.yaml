@@ -1,0 +1,35 @@
+id: securinets2026_banned_in_leonida
+event: Securinets CTF Friendly 2026
+category: misc/python-eval-sandbox-escape
+challenge_name: "Banned in Leonida"
+status: solved
+flag: "Securinets{r0ckst4r_b4nn3d_th3_w0rds_n0t_th3_l34k}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Service calls eval(code, {'__builtins__': builtins}) after checking 'if any(word in code.lower() for word in blocked)' against a literal blacklist (open, flag, import, os, system, breakpoint, help)."
+  - "The full builtins module object is passed through intact into the eval globals, not a restricted subset."
+key_idea: "A substring blacklist on the raw source text does not stop you from CONSTRUCTING the banned identifier at runtime: since the full builtins object is reachable, use getattr(__builtins__, 'ope'+'n') and a string built from concatenated fragments ('fla'+'g.txt') so neither 'open' nor 'flag' ever appears literally in the submitted code, defeating the blacklist entirely while still calling the real open() on the real flag path."
+prerequisites:
+  - "Python eval() semantics and the role of the __builtins__ globals entry"
+  - "String concatenation / getattr as a generic blacklist-evasion technique for any keyword-substring filter"
+exploitation_pattern: "banned-keyword substring filter on submitted source text -> build the banned identifier/string at runtime via concatenation or getattr so the literal keyword never appears in the code -> eval() with full builtins still resolves it -> arbitrary file read / code execution."
+verification:
+  method: "Payload getattr(__builtins__,'ope'+'n')('fla'+'g.txt').read() submitted to the live nc service; response is the flag text."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/Banned in Leonida/writeup/writeup.md"
+pitfalls:
+  - "Passing the real builtins module object (even just as {'__builtins__': builtins}) into eval's globals makes any substring/keyword blacklist on the source text bypassable via getattr+string-concatenation; restricting eval requires restricting the reachable objects, not just filtering the source text."
+failed_paths: []
+tools:
+  - "nc"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/Banned in Leonida/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Misc/Banned in Leonida/writeup/writeup.md"
+solver: ""
+time_heuristic: "Whenever a sandbox relies on a substring/keyword blacklist over raw source text but still exposes the real builtins/globals to eval or exec, assume it's bypassable by constructing the forbidden identifier or string at runtime (concatenation, getattr, chr()-joins, etc.)."
+last_verified: "2026-11-04"

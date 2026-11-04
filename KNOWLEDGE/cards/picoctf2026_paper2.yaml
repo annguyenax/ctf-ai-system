@@ -1,0 +1,38 @@
+id: picoctf2026_paper2
+event: picoCTF2026
+category: web/browser-exploitation
+challenge_name: paper-2
+status: solved
+flag: "picoCTF{i_l1ke_frames_on_my_canvas_953d5fff}"
+confidence: 1.0
+signals:
+  - Uploaded files are stored at /paper/<id> and visited by a headless Chrome bot.
+  - Bot receives a SameSite=Strict cookie named secret.
+  - /secret reflects the cookie into body/@secret and response text.
+  - CSP disables script-src but permits same-origin inline HTML/CSS primitives.
+  - External navigation is blocked, so the original webhook-only route is patched.
+key_idea: Use an XML document with an inline XSLT stylesheet to call document('/secret') and interpolate body/@secret into a same-origin PDF iframe fragment. The PDF has AcroForm JavaScript that reads its URL and submits it to a webhook. Redeem the recovered 32-hex secret at /flag.
+exploitation_pattern: upload PDF stage -> upload XML/XSLT stage -> /visit XML -> PDF URL fragment contains secret -> webhook receives fragment -> GET /flag?secret=<secret>
+verification:
+  method: "Live replay against https://lonely-island.picoctf.net:49348"
+  observed_secret: "81a2ad29c32a8cbf31fb047e08fbf902"
+  observed_flag: "picoCTF{i_l1ke_frames_on_my_canvas_953d5fff}"
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Web/paper-2/writeup/writeup.md"
+pitfalls:
+  - Do not use the old external-navigation-only payload; this version blocks external websites.
+  - The PDF must be uploaded before the XML because the XML references the PDF id.
+  - Keep the secret URL fragment encoded when sending it to the callback.
+tools:
+  - Python 3
+  - urllib.request
+  - webhook.site callback
+hexstrike:
+  used: false
+  useful: false
+sources:
+  - "Local source: paper-2.tar / index.ts"
+  - "Live exploit verification: solve/evidence/verified_solver_source.py"
+playbook: "PLAYBOOKS/misc_css_media_query_extraction.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Web/paper-2/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/picoCTF2026/Web/paper-2/solve/solve.py"
+last_verified: "2026-08-28"

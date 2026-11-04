@@ -1,0 +1,36 @@
+id: rstconctf2026_carbon_noneoxide
+event: RSTCON CTF 2026
+category: pwn/embedded-freertos-queue-confusion
+challenge_name: "Carbon Noneoxide"
+status: solved
+flag: "rstcon{y0ur_Q_my_Q}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - QEMU-emulated ARM Cortex-M3 (LM3S6965) target running FreeRTOS, exposing a debug shell with "inject sensor reading" and "suspend/resume task" commands.
+  - The inject command writes a 32-bit value at `base + index*4` with no bounds check, and `index` can be driven far past the intended small sensor-reading array into adjacent global/structure memory.
+key_idea: On embedded/RTOS pwn challenges, an unbounded array-index write that is reachable via a debug command can be walked forward to overwrite an adjacent kernel object (here, FreeRTOS's `QueueDefinition` pointer used by a monitor task). Craft a fake queue-definition structure inside the attacker-controlled buffer (pcHead/pcTail/pcWriteTo/pcReadFrom/uxMessagesWaiting/uxLength/uxItemSize) pointing at the flag's flash address, then let the legitimate consumer task (`xQueueReceive`) dequeue and print the flag bytes as if they were normal sensor readings.
+prerequisites:
+  - Static/decompiled firmware analysis to find buffer layout, adjacent globals, and the consumer task's queue-read logic
+  - Understanding target RTOS's queue/ring-buffer structure layout well enough to forge one
+exploitation_pattern: suspend producer task -> walk the unbounded injection index forward until it reaches the adjacent queue-pointer slot -> write a forged QueueDefinition pointing at the flag's flash address with correct item size/length -> resume/trigger the consumer task -> read flag bytes out of its normal output format (printed "reading" values).
+verification:
+  method: Live remote exploitation against the actual challenge service; script connects, logs in, suspends the task, injects the forged structure, and reads back the flag bytes printed by the monitor task.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Carbon Noneoxide/solve/solve.py"
+pitfalls:
+  - The firmware requires an authentication password (found by analysis) before the debug shell commands are accepted.
+  - Must suspend the producer task before injecting, otherwise ongoing legitimate writes race with/overwrite the forged structure before the consumer reads it.
+failed_paths: []
+tools:
+  - Decompiled/disassembled ARM Cortex-M3 firmware analysis
+  - Python 3 sockets
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Carbon Noneoxide/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Carbon Noneoxide/solve/solve.py"
+time_heuristic: Embedded/RTOS challenge exposing a debug command with an unbounded or weakly-bounded array index -> look for adjacent kernel/RTOS object pointers reachable by walking that index, and consider forging that object's structure to redirect a legitimate consumer routine at arbitrary memory (e.g. the flag location).
+last_verified: "2026-11-04"

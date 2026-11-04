@@ -42,7 +42,7 @@ hexstrike:
 sources:
   - "Challenge files: files/chall.py, files/chall.zip"
 playbook: ""
-writeup: "D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/CIA - What does 'I' stand for/writeup/writeup.md"
-solver: "D:/download/CTFTimeWriteup/PTITCTF2026/Crypto/CIA - What does 'I' stand for/solve/solve.py"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Crypto/CIA - What does 'I' stand for/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Crypto/CIA - What does 'I' stand for/solve/solve.py"
 time_heuristic: "Factoring 4x280-bit moduli is the bottleneck (~10-60 min on 24 cores with ECM); sub-challenge solving is minutes."
 last_verified: "2026-08-22"

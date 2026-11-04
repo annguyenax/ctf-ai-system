@@ -1,0 +1,40 @@
+id: ptitctf2026_seccomp_v3
+event: "PTIT CTF 2026"
+category: "pwn/stack-overflow-16bit-truncation"
+challenge_name: "seccomp-V3"
+status: solved
+flag: "PTITCTF{local_test_flag}"
+confidence: 0.9
+artifact_hashes: []
+signals:
+  - "The size-check compares only the low 16 bits of a 64-bit size returned by strtoull (cmp ax, 0x60) while read(0, buf, size) uses the full 64-bit value, so size=0x10040 (65600) passes the 16-bit check (low word 0x40) but overflows a 96-byte stack buffer massively."
+  - "Saved r12 on the stack holds a menu-string pointer (PIE+0x2101) that is printed every loop iteration via puts(r12); a 2-byte partial overwrite of saved r12 can redirect that puts() to an arbitrary low-16-bit offset from the current PIE base, acting as an info leak -- but only succeeds when the low 16 bits of the real PIE base happen to be 0x0000 (~1/16 chance under ASLR), otherwise it crashes and must be retried on a fresh connection."
+  - "No seccomp filter is ever installed in this run (the option that installs it is never exercised), so open/read/write/execve all remain available for a classic ORW chain once libc is leaked."
+key_idea: "A 16-bit truncated bounds check next to a 64-bit read() size enables a large stack overflow despite a seemingly tight check. Chain: (1) partial-overwrite saved r12 to redirect the menu's own puts() at an .init_array relocation entry, leaking PIE base (probabilistic, retry-on-failure); (2) with PIE known, classic puts(GOT.puts) ROP leaks libc; (3) ORW chain via binary PLT + libc pop-rdx gadget reads /flag.txt. No canary, Full RELRO+NX+PIE otherwise standard."
+prerequisites:
+  - "x86-64 ROP chain construction (pwntools-style)"
+  - "Stack-frame-offset reasoning from disassembly to locate saved r12 relative to the overflowed buffer"
+  - "Patience/retry logic for a probabilistic (~6.25% success) leak primitive across repeated connections"
+exploitation_pattern: "16-bit truncated size check + 64-bit read -> large stack overflow -> probabilistic 2-byte partial overwrite of a register holding a printed pointer, retried until it lands page-aligned -> PIE leak -> classic GOT leak for libc -> ORW ROP chain reading the flag file (no seccomp installed in this path)."
+verification:
+  method: "Offline Docker container replay (Ubuntu 22.04 + socat) ran the local exploit end-to-end and printed the exact flag string; a remote exploit script with retry logic exists but the original live instance expired before a remote capture."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Pwn/seccomp-V3/solve/_dbg/local_final.py printed PTITCTF{local_test_flag} in the public-seccomp_v3 Docker container."
+pitfalls:
+  - "A size check that uses a narrower register/comparison (cmp ax, ...) than the actual value passed to a syscall (64-bit r12) is a classic truncation bypass -- always check the exact register width used in bounds comparisons versus the width used in the subsequent syscall argument."
+  - "A probabilistic partial-overwrite leak primitive requires detecting and handling failure (crash) by reconnecting on a fresh ASLR roll, not treating a single failed attempt as a dead end."
+  - "The flag captured ('PTITCTF{local_test_flag}') is from local Docker replay, not a confirmed live-instance capture -- the original remote instance had expired; renewing and rerunning solve_remote.py would be needed for a genuine remote-verified flag."
+failed_paths: []
+tools:
+  - "pwntools-style exploit scripting (implied by ROP chain construction)"
+  - "Docker (Ubuntu 22.04, socat) for offline replay"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Pwn/seccomp-V3/files/_ex/public/"
+playbook: "pwn_stack_overflow.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Pwn/seccomp-V3/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Pwn/seccomp-V3/solve/_dbg/local_final.py"
+time_heuristic: "When a size/length bounds check compares a narrow register (e.g. 16-bit ax) against a limit but the actual buffer-filling syscall uses the full 64-bit value, treat it as a truncation bypass candidate first; and when a leak primitive depends on ASLR's low bits landing favorably, build retry-on-fresh-connection logic rather than treating one failed attempt as a dead end."
+last_verified: "2026-11-04"

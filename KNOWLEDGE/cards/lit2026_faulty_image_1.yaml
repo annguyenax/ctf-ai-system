@@ -41,7 +41,7 @@ hexstrike:
   notes: "Local PNG/zlib repair; no external tooling needed."
 sources: []
 playbook: PLAYBOOKS/crypto_png_inserted_marker_repair.md
-writeup: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_1_haha\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_1_haha\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\crypto\faulty_image_1_haha\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\crypto\faulty_image_1_haha\solve\solve.py
 time_heuristic: "<10 min: parse chunks, grep repeated marker, strip on stride, decompress."
 last_verified: "2026-08-03"

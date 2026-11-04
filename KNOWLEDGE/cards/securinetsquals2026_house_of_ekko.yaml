@@ -1,0 +1,47 @@
+id: securinetsquals2026_house_of_ekko
+event: Securinets CTF Quals 2026
+category: pwn/fsop-setcontext-ibt
+challenge_name: House of ekko
+status: solved
+flag: "Securinets{lets_hope_i_dont_push_the_revenge}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - two-slot UAF menu, signed size, fgets stops at newline
+  - glibc 2.43 strings mention tcache but a freed small chunk is a smallbin
+  - GNU_RELRO present while JUMP_SLOT is outside it and FLAGS_1 has no BIND_NOW
+  - libc GNU property note contains IBT and SHSTK, the main ELF does not
+key_idea: Poison a smallbin so exit flushes a fake FILE, call setcontext at its endbr (libc+0x40e30) rather than setcontext+4, and ORW the flag through pop rsp.
+prerequisites:
+  - handout libc and loader
+  - a six-byte smallbin leak with no 0x0a
+exploitation_pattern: smallbin header leak libc+0x1d1cb8, overlap, last_remainder arena image, _IO_list_all via unsorted insert, wide vtable+0x68 = setcontext endbr, pop rsp into openat/read/write
+verification:
+  method: "Local pivot prints root: from /etc/passwd. One remote pivotremote printed the flag. submit_flag.py returned correct for challenge 16."
+  evidence: "Securinets{lets_hope_i_dont_push_the_revenge}"
+pitfalls:
+  - GNU_RELRO over .got is not Full RELRO. Check BIND_NOW and where JUMP_SLOT lives.
+  - A tcache symbol in strings is not a tcache at runtime. Free a small chunk and see which bin answers.
+  - setcontext+4 works locally when IBT is off and dies remotely when the indirect call misses endbr. puts still returns, so the FILE is live.
+  - 0x40e6d needs rdx equal to the FILE. This libc has no mov rdx, rdi/rbx that jumps there.
+  - Do not free the first overlapped pop. Its size was zeroed and free says invalid size.
+failed_paths:
+  - tcache poison and safe-linking XOR
+  - unsorted-bin attack as an arbitrary write, largebin attack, house of force
+  - exit@GOT = system
+  - system(" sh") on the service (empty close, no abort)
+  - setcontext+4 (0x40e34) on the service
+tools:
+  - python
+  - readelf
+  - objdump
+hexstrike:
+  used: false
+  useful: false
+  notes: "Static ELF notes plus the handout loader. No scanner."
+sources: []
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/House of ekko/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/House of ekko/solve/solve.py"
+time_heuristic: "One connection after the libc leak. Retry only when a leaked pointer contains 0x0a."
+last_verified: "2026-10-18"

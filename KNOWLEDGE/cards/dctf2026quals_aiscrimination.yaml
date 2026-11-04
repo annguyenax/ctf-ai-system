@@ -1,0 +1,40 @@
+id: dctf2026quals_aiscrimination
+event: DefCamp CTF 2026 Quals
+category: web
+challenge_name: aiscrimination
+status: solved
+flag: "CTF{5bb9cb8b8ff43e243fe85fceaf646e7ba6a5c80250e96678be2aa71add38eb97}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Flask (gunicorn) feed app with a "join"/inclusion form
+  - statement field reflected raw into per-card CSS content string
+  - server "compiles" the CSS by expanding CSS @import url(...) into local file reads
+  - editorial hint "path rules as 'intuitive'"; comment "the renderer will include it"
+key_idea: CSS @import url("/abs/path") in the statement is expanded by compile_theme -> (THEME_ROOT / requested).resolve().read_text() with no containment check; absolute path overrides THEME_ROOT (pathlib) => arbitrary file read reflected in the CSS.
+prerequisites: []
+exploitation_pattern: POST /join with statement='@import url("/home/ctf/flag.txt");', fetch /assets/cards/<id>/identity.css, extract .imported-fragment::after content and unescape \A / \" / \\.
+verification:
+  method: two independent LFI reads of /home/ctf/flag.txt returned identical 64-hex CTF{...} bytes
+  evidence: "D:\\\\download\\\\ctf-ai-system\\\\OUTPUT\\\\dctf2026quals_aiscrimination\\\\raw\\\\flag.txt"
+pitfalls:
+  - URL-path traversal on /assets/cards|/posts|/people 404s (routing is DB-keyed)
+  - reflected file content is CSS-escaped (\n -> \A , \" , \\)
+  - short/non-browser User-Agent triggers a 429 bot block
+failed_paths:
+  - route-level path traversal
+  - Flask session forgery (default secret development-only-change-me) — not needed
+  - SSTI {{7*7}} — rendered literally, not evaluated
+tools:
+  - python
+  - curl
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: ""
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Web\\\\aiscrimination\\\\writeup\\\\writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Web\\\\aiscrimination\\\\solve\\\\solve.py"
+time_heuristic: ~10 min after finding the @import sink
+last_verified: "2026-09-19"

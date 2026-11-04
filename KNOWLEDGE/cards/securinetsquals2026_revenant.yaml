@@ -1,0 +1,33 @@
+id: securinetsquals2026_revenant
+event: Securinets CTF Quals 2026
+category: reverse/vulkan-spirv-chacha-avx2
+challenge_name: "revenant"
+status: solved
+flag: "Securinets{5db6ce3527dfeeafdf5da028ab9282f2bf2fe34400fa06da794cc50afaa43c0e}"
+confidence: 1.0
+artifact: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/revenant"
+signals:
+  - Outer ELF dropper using Vulkan compute shader to decrypt embedded payload
+  - SPIR-V shader implementing XTEA in CTR mode with SHA-256 key derivation
+  - Decrypted static ELF with TracerPid and ptrace/LD_PRELOAD anti-debug checks
+  - Honeypot PRNG printing fake session tokens on failed validation
+  - Invertible 4-stage validation cipher: S-Box, AVX2 vector lane shuffle (vpshufb/vperm2i128), variable bit rotation, and independent ChaCha20 keystream XOR
+key_idea: Extract SPIR-V compute shader from the dropper, reverse XTEA-CTR shader algorithm, and reconstruct SHA-256 key derivation from .stab nodename ('blackkad') and shellcode polynomial checksum of data.bin. Decrypt payload ELF, bypass the 'still dead.' byte check, and analyze the real validator at 0x403040. Since the ChaCha20 keystream is independent of the input, recover the keystream via a probe differential, un-XOR the hardcoded expected target buffer, and invert the bitwise rotation, vector shuffle permutation, and S-box to recover the original 76-character flag.
+exploitation_pattern: SPIR-V extraction -> Reconstruct XTEA-CTR key/IV -> Decrypt payload ELF -> Patch dead/anti-debug traps -> Differential probe for ChaCha keystream -> Invert rol8 -> Invert vpshufb permutation -> Invert S-box
+verification:
+  method: "Local binary execution test & live platform CTFd submit_flag.py"
+  run1: "echo 'Securinets{5db6ce35...}' | ./revenant_patched returned '[+] correct!'"
+  run2: "submit_flag.py confirmed 'Correct' on quals.securinets.tn"
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/revenant/writeup/writeup.md"
+pitfalls:
+  - Running the outer dropper without a physical GPU fails ('dead on arrival'); shader analysis and offline software emulation of XTEA-CTR is required.
+  - The binary prints a fake flag via a PRNG honeypot upon validation failure; checking for the success string '[+] correct!' prevents submitting decoy flags.
+  - TracerPid and ptrace anti-debug triggers decoy crypto tables in .init_array unless bypassed or cleanly executed without attached tracers.
+tools:
+  - python
+  - capstone
+  - wsl (kali-linux)
+  - spirv-dis / spirv-tools
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/revenant/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/revenant/solve/solve_flag.py"
+last_verified: "2026-10-17"

@@ -28,5 +28,5 @@ sources:
   - knowledge of HTTP headers and bots
 
 playbook: "PLAYBOOKS/web_user_agent_spoofing.md"
-writeup: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\web\\Robots\\writeup\\writeup.md"
-solver: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\web\\Robots\\solve\\solve.py"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026\\web\\Robots\\writeup\\writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026\\web\\Robots\\solve\\solve.py"

@@ -1,0 +1,12 @@
+{
+  "challenge_id": "fortidctf2026_sticky_headers",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Sticky Headers",
+  "flag_status": "verified",
+  "attempts": [
+    {"t": "2026-10-10", "phase": "TRIAGE", "hypothesis_id": "H1", "action": "Recon gateway routes + robots.txt", "result": "/staff/preview 403 via gateway ACL; preview takes form field message", "evidence_path": "Web/Sticky Headers/solve/raw.py", "notes": "older courier protocol = chunked TE"},
+    {"t": "2026-10-10", "phase": "EXPLOIT", "hypothesis_id": "H2", "action": "Chunked trailer smuggling: outer POST /order chunked, smuggled request after 0\r\n with 2-byte junk prefix", "result": "Backend parsed smuggled POST /staff/preview; ACL bypassed", "evidence_path": "solve/solve.py", "notes": "gateway swallows exactly 2 bytes of trailer"},
+    {"t": "2026-10-10", "phase": "EXPLOIT", "hypothesis_id": "H3", "action": "SSTI in message field", "result": "{{7*7}}=49 (Jinja2); file read via os.popen", "evidence_path": "solve/solve.py", "notes": ""},
+    {"t": "2026-10-10", "phase": "CAPTURE", "hypothesis_id": "H3", "action": "Read /opt/candy/recipe.txt + submit", "result": "platform accepted", "evidence_path": "Web/Sticky Headers/final_flag.txt", "notes": ""}
+  ]
+}

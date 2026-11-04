@@ -1,0 +1,48 @@
+id: bytemectf2026_soul_memory_thanos
+event: ByteMe CTF 2026
+category: pwn/uaf-indirect-callback
+challenge_name: "Soul // Memory of Thanos"
+status: solved
+flag: "OWASP{Th4n0s_S0ul_Mem0ry_UAF_Type_Confusion}"
+confidence: 1.0
+artifact_hashes:
+  - file: "files/soul-archive-thanos.zip"
+    sha256: "6BC779E39C74E11A03A0CD85E9E064E6537D8FDF7F3465FE7409CEA20BE89B7A"
+signals:
+  - merge_souls frees the source object but leaves archive[source] unchanged.
+  - transfer_soul allocates the same 0x40 size and accepts callback and essence values.
+  - inspect_soul prints the callback pointer and invokes it with the soul pointer in RDI.
+key_idea: Reclaim the last freed source chunk with transfer_soul, replace its callback and magic essence, then invoke it through the stale archive slot after satisfying the global counters.
+prerequisites:
+  - x86-64 PIE and indirect-call triage
+  - Heap allocation size and tcache reuse reasoning
+  - ELF symbol offsets and PIE-base calculation
+exploitation_pattern: stale archive slot -> same-size user-controlled transfer record -> callback overwrite -> hidden callback gate.
+verification:
+  method: Local deterministic run and one scoped remote service session returned the exact same flag.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Soul __ Memory of Thanos/solve/evidence/recovery.json"
+pitfalls:
+  - The supplied loader/libc pair aborts locally; WSL system glibc runs the binary.
+  - transfer_soul does not add its record to the archive; exploit through the stale slot from the last merge.
+  - Subtract the type-1 callback offset 0x13a9 to derive PIE base; this is not a libc leak.
+  - Remote flag recovery does not mean portal acceptance; the portal was not submitted.
+failed_paths:
+  - The bundled loader/libc runtime combination triggered stack smashing before the menu could be used.
+tools:
+  - Python 3 standard library
+  - Kali WSL system runtime
+  - readelf
+  - nm
+  - objdump
+  - strings
+hexstrike:
+  used: false
+  useful: false
+  notes: Local ELF inspection and one scoped remote verification were sufficient.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Soul __ Memory of Thanos/files/soul-archive-thanos.zip"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Soul __ Memory of Thanos/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Binary Exploitation/Soul __ Memory of Thanos/solve/solve.py"
+time_heuristic: When a menu challenge combines free and transfer operations, compare allocation sizes and check whether stale aliases are cleared; a same-size controlled record may reclaim the most recent free without poisoning tcache.
+last_verified: "2026-10-09"

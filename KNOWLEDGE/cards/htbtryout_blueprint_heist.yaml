@@ -1,0 +1,43 @@
+id: htbtryout_blueprint_heist
+event: HTB Try Out
+category: web/wkhtmltopdf-ssrf-lfi-jwt-sqli-ssti-chain
+challenge_name: "Blueprint Heist"
+status: solved
+flag: "HTB{ch41ning_m4st3rs_b4y0nd_1m4g1nary_3dfb9cf1df1e4de4cddde2d22493e0fd}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A PDF-generation endpoint renders an arbitrary user-supplied URL with wkhtmltopdf, which executes embedded JavaScript including XMLHttpRequest, even against file:// and data: URIs."
+  - "JWT verification uses a secret pulled from process.env at runtime that differs from the one shipped in the source zip, so forging a token requires leaking the live secret, not reading the repo."
+  - "A GraphQL admin query builds a SQL LIKE clause from user input filtered by a single-line regex-based SQLi detector; the detector doesn't account for newline-containing payloads bypassing a dot-doesn't-match-newline regex."
+  - "An EJS error-page renderer loads views/errors/{status}.ejs by HTTP status code; no template exists for an uncommon status/path, so writing one via SQL INTO OUTFILE creates a new, attacker-controlled, server-rendered EJS template."
+key_idea: "Chain four independently-small bugs: use wkhtmltopdf's JS execution on a data:text/html document to XHR-read the live .env file and leak the true JWT secret; forge an admin JWT with it; use that admin token to reach an SSRF-restricted internal GraphQL endpoint whose SQLi filter is defeated by a payload split across a newline (since the filter's regex . doesn't match \\n); use the SQLi to write a new EJS template via INTO OUTFILE containing an EJS <%= %> RCE payload; trigger that template by requesting any path that resolves to the newly-created error page."
+prerequisites:
+  - "wkhtmltopdf (or any headless renderer) that executes JS and allows the rendered document to issue file:// or local-network XHR requests"
+  - A SQLi input filter implemented as a single regex without the dotall/multiline flag it needs
+  - A template engine that dynamically loads a file determined by user-influenced status/path with no file-existence allowlist
+exploitation_pattern: "headless-renderer JS (data:URI) XHR-leaks runtime secret from local file -> forge privileged JWT -> SSRF to internal admin API -> newline-smuggled SQLi bypasses line-anchored WAF regex -> SQL INTO OUTFILE writes new EJS template with SSTI RCE -> trigger template by its lookup key"
+verification:
+  method: "Automated multi-step script performed each stage against the live instance; the final GET of the newly-created error page returned the flag inside the SSTI payload's exec() output; a second independent GET replayed the same result."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Blueprint Heist/final_flag.txt"
+pitfalls:
+  - "A headless HTML-to-PDF/screenshot renderer that executes attacker-controlled JavaScript is a strong SSRF/LFI primitive via data: URIs and in-page XHR, independent of whatever URL-scheme filtering exists on the top-level render target."
+  - "A SQLi filter regex without re.S/dotall can be bypassed entirely by splitting the payload across a newline, since . won't match it."
+  - "Dynamically loading a template file named by (indirectly) attacker-influenced status/path, when the file doesn't exist, is an arbitrary-template-creation primitive if an earlier bug (SQLi here) can write files to that directory."
+failed_paths:
+  - "Forging the admin JWT with the .env secret from the handout zip failed (401); the live instance's actual env secret differs and had to be leaked live via the wkhtmltopdf XHR step."
+  - "Using file:// as the wkhtmltopdf top-level document directly failed with a fontconfig-related non-zero exit; using data:text/html as the document and issuing the file:// read via in-page JS XHR instead worked."
+tools:
+  - Python urllib
+  - pypdf (to read generated PDF text for exfiltrated data)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Blueprint Heist/writeup/writeup.md"
+playbook: web_ssrf.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Blueprint Heist/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/Blueprint Heist/solve/solve.py"
+time_heuristic: "When a service renders attacker-supplied URLs with a headless browser/PDF tool, test data:text/html documents whose embedded JS performs file:// or internal XHR requests even if the top-level URL scheme is restricted; treat any single-line SQLi regex filter as bypassable via embedded newlines."
+last_verified: "2026-11-04"

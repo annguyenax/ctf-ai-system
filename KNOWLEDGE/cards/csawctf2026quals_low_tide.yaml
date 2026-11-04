@@ -1,0 +1,35 @@
+id: csawctf2026quals_low_tide
+event: "CSAW CTF Qualifications 2026"
+category: "web/user-agent-trust-gate-ssrf-recon-paused"
+challenge_name: "Low_tide"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "Two hosts: a decoy static login page (broken on purpose) and a separate real backend (Flask/gunicorn) referenced via obfuscated frontend JS (ROT47-encoded constants)."
+  - "A /station/checkin endpoint normally demands a time-derived token ('code_mismatch: expected token derived from current sync time', with a suspiciously fixed sync_time of 2019-01-02T03:14:07Z -- digits of pi), but setting the User-Agent to a specific leaked trusted-agent string (StationSync-Agent/2.1, found via robots.txt Disallow hints) makes the server skip the token check entirely."
+  - "The assigned session id (sid) appears to be derived from the client's perceived IP (via X-Forwarded-For/X-Real-IP), with localhost-like values (127.0.0.1) treated specially, but repeated identical requests do not always return the same sid -- derivation is not a pure deterministic function of the headers alone."
+key_idea: "A backend that trusts a specific literal User-Agent string to skip an otherwise-enforced time/token check, combined with a session id that appears to depend on perceived client IP (via X-Forwarded-For), suggests the end goal is to make the server believe the request originates from a trusted internal station IP to receive an escalated/assigned sid -- but the sid-derivation function must be fully reverse-engineered (including why identical requests sometimes vary) before that path can be driven reliably."
+prerequisites:
+  - "ROT47 / simple frontend-obfuscation decoding"
+  - "Header-based trust-boundary probing (User-Agent allowlists, X-Forwarded-For/X-Real-IP spoofing)"
+exploitation_pattern: "(not completed) decode obfuscated app.js to find the real backend host -> harvest candidate trusted-agent strings from robots.txt Disallow paths -> confirm StationSync-Agent/2.1 bypasses the sync-time token check -> systematically vary X-Forwarded-For chain length/position while repeating identical requests to pin down the exact sid-derivation rule -> aim for an 'assigned' (non-unassigned) sid tied to a trusted/internal station address -> look for a flag field in that assigned-state response or a newly unlocked endpoint"
+verification:
+  method: ""
+  evidence: ""
+pitfalls:
+  - "The service is rate-limited (429 with retry_after) -- probing sid derivation needs pacing, and apparent non-determinism in repeated identical requests may be a time-window/nonce component rather than true randomness; rule that out before concluding the derivation is unsolvable."
+failed_paths: []
+tools:
+  - "python3 (requests)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/Low_tide/writeup/writeup.md"
+solver: ""
+time_heuristic: "Backend skips a time/token check for a specific literal User-Agent (often leaked via robots.txt Disallow paths) and derives a session id from X-Forwarded-For: fully pin down the sid-derivation rule (including any time-window component) before assuming it is purely IP-chain based."
+last_verified: "2026-11-04"

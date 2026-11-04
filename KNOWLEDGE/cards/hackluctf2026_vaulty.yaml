@@ -1,0 +1,38 @@
+id: hackluctf2026_vaulty
+event: "Hack.lu CTF 2026"
+category: "crypto/cgo-strlen-on-binary-hash-truncation"
+challenge_name: "Vaulty"
+status: solved
+flag: "flag{f4ulty_v4ulty_str1ng_l3ngth}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A Go binary SHA-256-hashes the master password and passes the raw 32-byte binary digest (plus an appended NUL) to a C (Cgo) KDF function."
+  - "The C function calls `strlen(pass)` on that binary digest before passing it (and the resulting length) into `PKCS5_PBKDF2_HMAC` -- treating a 32-byte binary hash as if it were a NUL-terminated C string."
+  - "If the SHA-256 digest happens to contain a 0x00 byte at index N, `strlen` returns N, truncating the effective PBKDF2 password to just `digest[:N]` -- if N==2, the real password-space search collapses to only 255^2 ≈ 65,025 possibilities."
+key_idea: "Passing a binary hash digest across an FFI/Cgo boundary into a C function that calls `strlen()` on it silently truncates the key material at the first embedded NUL byte, collapsing the effective entropy of any password whose hash happens to contain an early zero byte to just that many bytes -- brute-force only that tiny truncated space (here at most 2 bytes, ~65k candidates) against the real AES-GCM-encrypted vault with its own PBKDF2 parameters."
+prerequisites:
+  - "AES-GCM authenticated decryption as an oracle (wrong-key -> auth failure)"
+  - "Go/Cgo FFI boundary semantics"
+  - "multiprocessing brute force"
+exploitation_pattern: "recognize strlen() applied to a binary hash in a disassembled Cgo KDF call -> brute-force the truncated 1-2 byte effective password space -> derive the PBKDF2 key for each candidate -> attempt AES-GCM decrypt+zlib-decompress of the vault, success = valid auth tag."
+verification:
+  method: "24-core multiprocessing brute force over ~65,025 candidates completed in ~42s and produced a valid AES-GCM-authenticated, zlib-decompressible vault payload containing the flag."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Vaulty/writeup/writeup.md"
+pitfalls:
+  - "Any FFI call that passes a binary byte buffer (hash digest, random key, etc.) into a C function expecting a NUL-terminated string is a silent truncation bug -- check for strlen()/string-API usage on binary data whenever crossing a language FFI boundary in a crypto path."
+failed_paths: []
+tools:
+  - "Python 3 (hashlib, pycryptodome, multiprocessing)"
+  - "objdump/Ghidra (Cgo function disassembly)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Vaulty/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Vaulty/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Vaulty/solve/solve.py"
+time_heuristic: "When a Go (or any managed-language) binary calls into native C code across an FFI boundary for a KDF/crypto step, check whether the native side treats a binary buffer as a C string (strlen) -- this single-bug pattern can collapse a 256-bit key's effective entropy to a handful of bytes."
+last_verified: "2026-11-04"

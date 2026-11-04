@@ -1,0 +1,45 @@
+id: hitconctf2026_litter
+event: HITCONCTF2026
+category: forensics
+challenge_name: litter
+status: needs_verification
+flag: ''
+confidence: 0.35
+artifact_hashes:
+- 5ed771545e84036f8830e91f7f506881489c75d521bf65fe785805a675ac2588
+signals:
+- Encrypted PNG-like payload with LITTER/5 header
+- YouTube audio appears to encode pu/ding sequence
+- Four audio slots and cipher mapping unresolved
+key_idea: The linked audio may provide key material, but the current transcription
+  and decryption mapping are unverified. Recover a valid image before reporting a
+  flag.
+prerequisites:
+- audio transcription
+- file format analysis
+- cryptographic implementation/source analysis
+exploitation_pattern: Decode audio message; identify password/KDF/cipher from format
+  implementation; decrypt and validate image structure and content.
+verification:
+  method: not achieved; require valid image and independent flag verification
+  evidence: D:\download\CTFTimeWriteup\HITCONCTF2026\Misc\litter\solve\findings.md
+pitfalls:
+- High entropy does not prove a sound cipher or impossibility.
+- Morse transcription remains ambiguous.
+failed_paths:
+- Guessed passwords and cipher constructions did not yield a valid image.
+tools:
+- Python
+- ffmpeg
+- Whisper (prior notes; not reproduced here)
+hexstrike:
+  used: false
+  useful: false
+  notes: Local artifact analysis only.
+sources:
+- D:\download\CTFTimeWriteup\HITCONCTF2026\Misc\litter\chalenge.md
+playbook: ''
+writeup: D:\download\CTFTimeWriteup\HITCONCTF2026\Misc\litter\writeup\writeup.md
+solver: D:\download\CTFTimeWriteup\HITCONCTF2026\Misc\litter\solve\solve.py
+time_heuristic: Resolve exact key carrier and file format before broad password enumeration.
+last_verified: '2026-10-25'

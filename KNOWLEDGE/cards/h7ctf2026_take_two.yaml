@@ -1,0 +1,34 @@
+id: "h7ctf2026_take_two"
+event: "H7CTF 2026 Quals"
+category: "crypto/lms-wots-rollback-leaf-reuse-forgery"
+challenge_name: "Take Two"
+status: "solved"
+flag: "H7CTF{13eed104-ba57-43c2-90e2-ca0e1eaa952b}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Service implements LMS/WOTS stateful hash-based signatures (Merkle tree of Winternitz OTS leaves) and exposes a /rollback endpoint that resets the leaf counter to 0."
+  - "WOTS security depends on each leaf key being used exactly once; rollback lets you re-sign arbitrary messages with the SAME leaf repeatedly."
+key_idea: "WOTS hash chains are one-way (you can advance H^a(sk) forward to H^b(sk) for b>=a but never backward); if a stateful WOTS/LMS leaf counter can be rolled back, request many signatures on benign messages under the same leaf, track the minimum digit value observed at each of the 67 chain positions, then search for a target message (e.g. with an embedded nonce) whose own digits are all >= those minima -- advance each hash chain forward by the small remaining distance to forge a valid signature for an arbitrary message using that reused leaf."
+prerequisites:
+  - "Understanding of Winternitz OTS digit/checksum encoding and chain direction"
+  - "Ability to request several signatures on the exploited leaf before the rollback is disallowed"
+exploitation_pattern: "call /rollback + /sign repeatedly on leaf 0 with benign messages -> record per-position minimum digit -> brute a nonce in the target malicious message so all its digits are >= the recorded minima -> advance each WOTS chain by (target_digit - min_digit) hashes from the stored minimal signature -> submit forged WOTS signature + known Merkle auth path -> verifies against the public root."
+verification:
+  method: "Live replay; forged firmware signature was accepted by /deploy, which returned {\"ok\": true, \"booted\": true, flag: ...}."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Take Two/writeup/writeup.md"
+pitfalls:
+  - "Forgery is only possible for digit values >= the minimum observed per position; you must search for a message/nonce whose digits satisfy this inequality everywhere, not an arbitrary message."
+failed_paths: []
+tools:
+  - "Python"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Take Two/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Take Two/solve/solve.py"
+time_heuristic: "Any stateful one-time-signature scheme (WOTS/LMS/XMSS) that exposes a counter-reset/rollback operation breaks its core one-time guarantee; harvest several signatures on the reused leaf first to build a per-position minimum-digit profile, then search for a forgeable message rather than trying to invert the hash chains directly."
+last_verified: "2026-11-04"

@@ -1,0 +1,37 @@
+id: hackluctf2026_license_validation_suite
+event: "Hack.lu CTF 2026"
+category: "rev/static-key-derivation-vs-gdb-redherring"
+challenge_name: "LIcense Validation Suite"
+status: solved
+flag: "flag{GDB_Runtime_Insights}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Challenge description/hint pushes strongly toward using GDB ('it is recommended to incorporate GDB... enhanced visibility'), implying the derivation differs under a debugger."
+  - "The binary checks `ptrace(PTRACE_TRACEME)`'s result and uses it to pick between two seed constants (0x37 vs 0x37+0x5a) for a byte-wise LFSR-style key derivation (multiply, add, rotate-left-3, XOR with a .rodata table, XOR 199), producing a 26-byte key."
+  - "Despite the GDB hint, the STATIC (non-traced, TRACEME==0) branch produces the correct 26-byte flag key when the derivation is replayed by hand/script -- the hint is a themed red herring pointing at the title/flag text, not a required debugging step."
+key_idea: "Don't assume a strong 'use GDB' hint in the challenge description means the debugger-specific code path is required -- recover and replay BOTH branches of a ptrace-dependent derivation statically; here the untraced (static-analysis) branch alone produced the valid key, and the GDB hint was purely thematic (matching the flag text 'GDB_Runtime_Insights')."
+prerequisites:
+  - "manual byte-wise LFSR/keystream derivation replay"
+  - "ptrace(PTRACE_TRACEME) anti-debug branch awareness"
+exploitation_pattern: "disassemble the 26-byte key derivation loop (seed, multiply, add .rodata-indexed byte, rotate-left-3, XOR table, XOR constant) -> replay both the traced and untraced seed-constant branches offline -> verify the untraced branch's output against the binary directly (`echo key | ./binary`)."
+verification:
+  method: "Running the recovered key directly against the provided binary (`echo \"flag{GDB_Runtime_Insights}\" | ./License_Validation_Suite`) printed '[SUCCESS] Key verified!'."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/LIcense Validation Suite/writeup/writeup.md"
+pitfalls:
+  - "A challenge description that strongly suggests a specific tool/technique (here, GDB) can be purely thematic flavor matching the flag text rather than a required solving step -- always try the simplest static replay of every anti-debug branch before assuming the hinted tool is mandatory."
+failed_paths: []
+tools:
+  - "objdump/Ghidra (manual disassembly)"
+  - "Python 3 (byte-wise derivation replay)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/LIcense Validation Suite/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/LIcense Validation Suite/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/LIcense Validation Suite/solve/solve.py"
+time_heuristic: "For a ptrace-gated key derivation, statically replay BOTH branches (traced and untraced) before reaching for an actual debugger -- a strongly worded tooling hint in the prompt may just be a thematic pun matching the flag text."
+last_verified: "2026-11-04"

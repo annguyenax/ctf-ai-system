@@ -1,0 +1,48 @@
+id: l3akctf_platform_protection_part2
+event: L3akCTF2026
+category: web/react-flight-protocol-rce
+challenge_name: "L3AK Platform Protection - Part 2"
+status: needs_verification
+flag: ""
+confidence: 0.6
+artifact_hashes: []
+signals:
+  - "WAF blocks the literal substring ':constructor' and also its single-level JSON-escaped form ':\\u0063onstructor', but not a double-escaped form ':\\u005cu0063onstructor'."
+  - "The React Flight protocol (React Server Components wire format) decodes a request's JSON value exactly once per chunk, so a naively double-escaped payload does not self-unwrap."
+key_idea: >
+  To get a value JSON-decoded a second time without the framework doing it for
+  you, abuse the react2shell primitive itself: a Chunk whose "then" property is
+  set to Chunk.prototype.then (reached via "$1:__proto__:then") executes with
+  `this` bound to the chunk's own value, and resolving that chunk value as
+  "resolved_model" re-runs it through JSON.parse + reviveModel. Nesting one
+  resolved_model chunk inside another's `value` field turns a single JSON
+  object into a multi-pass decode pipeline, so a WAF-blocked token escaped N
+  times only becomes dangerous after N framework-driven decode passes -- passes
+  the WAF never sees happen on its own single decode of the wire body.
+prerequisites:
+  - Working understanding of React Flight Protocol chunk references ($N, $N:a:b, $Qn, $@n, $F, $B)
+  - A first-stage parser-differential or injection primitive to plant the nested resolved_model chunk at all
+exploitation_pattern: >
+  Construct nested chunks: outer chunk's `then` = "$1:__proto__:then" (reaches
+  Chunk.prototype.then); outer chunk's `value` is itself a JSON string
+  containing another resolved_model chunk whose own `value`/`_formData`/`_prefix`
+  carry the react2shell RCE primitive with the target token escaped one extra
+  level (`:\u005cu0063onstructor`) -> framework's own recursive chunk resolution
+  decodes the inner JSON a second time, producing the real `:constructor` only
+  after the WAF's single-pass scan already passed the request.
+verification:
+  method: Full solve script shown in the source blog targets a live challenge instance URL and prints a decoded redirect result, but no execution output or flag was captured in the available text.
+  evidence: ""
+pitfalls:
+  - A flat/naive multi-escape of the blocked token does nothing by itself; the extra decode pass must be driven by the application's own recursive chunk-resolution logic, not by the attacker pre-decoding anything.
+failed_paths:
+  - "Simply re-escaping the string without wrapping it in a second resolved_model chunk did not bypass the filter, since Next.js only decodes the top-level JSON once."
+tools:
+  - Python requests (multipart/form-data construction)
+sources:
+  - "https://blog.7chn.me/posts/20260804-l3ak-platform-protection"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/L3akCTF2026/l3ak platform protection/L3AK Platform Protection - Part 2/writeup/writeup.md"
+solver: ""
+time_heuristic: "When a target framework re-decodes attacker-controlled JSON as part of its own object graph (not just once at the transport layer), each additional nesting level buys one more escape layer invisible to a single-pass WAF regex."
+last_verified: "2026-11-04"

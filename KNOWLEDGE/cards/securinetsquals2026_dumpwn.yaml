@@ -1,0 +1,39 @@
+id: securinetsquals2026_dumpwn
+event: "Securinets CTF Quals 2026"
+category: "forensics/windows-crashdump-vol3-patch+kernel-rop-pte-walk"
+challenge_name: "DumPwn"
+status: solved
+flag: "Securinets{this_is_real_flag}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A 2.14GB Windows kernel crash dump has `DumpType=0x0a` (Active Memory Dump), which Volatility 3 does not support out of the box (only 0x1 and 0x5) -- requires patching `WindowsCrashDump64Layer` to parse the physical-memory run table at the RDMPDUMP header offset and load the correct PDB symbol GUID."
+  - "Process/driver inventory (pslist, cmdline) reveals a honeypot process printing fake flags, a loaded kernel driver `bomb.sys`, and a single captured command line invoking a userspace `exploit.exe` with explicit kernel addresses (`--ntbase`, `--src`, `--memcpy`, `--delta`) -- i.e. the exploit's exact ROP parameters are sitting in the process's recorded command line inside the dump."
+  - "The real flag bytes live at a physical address reachable only by manually walking the page tables (CR3 -> PTE for the given virtual address, noting the PTE is in 'Transition' state, bit 11 set) to find the PFN, then reading that physical page from the correct memory run and XORing with a 16-byte key recovered from the userspace binary."
+key_idea: "When Volatility 3 can't parse a given Windows crash-dump subtype, patch the specific layer class to read the vendor's documented header fields (run table offset/size) directly rather than giving up on the format -- then treat a captured exploit's own command-line arguments (visible via cmdline) as a literal recipe: reconstruct the kernel page-table walk (CR3 -> PTE -> PFN, respecting Transition-state pages) to find the physical address the exploit's memcpy actually targeted, and decrypt with a key recovered from the companion userspace binary."
+prerequisites:
+  - "Volatility 3 framework internals (layer classes)"
+  - "Windows crash-dump format variants (DumpType field)"
+  - "x86-64 page table walking (CR3/PML4/PDPT/PD/PT, Transition PTE state)"
+exploitation_pattern: "patch volatility3's crash-dump layer to support DumpType 0x0a using the documented RDMPDUMP header run-table offset -> load the correct ntkrnlmp PDB from the Microsoft symbol server -> pslist/cmdline to find the recorded exploit invocation and its exact kernel addresses -> extract and reverse the userspace exploit binary for its XOR key -> manually walk CR3->PTE for the given virtual source address (noting Transition-state PFN encoding) -> read the physical page from the right memory run and XOR-decrypt."
+verification:
+  method: "XOR-decrypting the 32 bytes read from the resolved physical address with the recovered 16-byte key produced the exact ASCII flag string."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Forensics/DumPwn/writeup/writeup.md"
+pitfalls:
+  - "A Transition-state page table entry (bit 11 set) still encodes a valid PFN but is not a normal 'present' PTE -- a naive PTE walk that only checks the present bit will miss it; decode the PFN field regardless of present/transition state when memory forensics requires it."
+failed_paths: []
+tools:
+  - "Volatility 3 (patched)"
+  - "custom page-table-walk script"
+  - "userspace exploit binary reverse engineering for the XOR key"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Forensics/DumPwn/files"
+playbook: "forensics_pcap.md"
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Forensics/DumPwn/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Forensics/DumPwn/solve/solve.py"
+time_heuristic: "When Volatility 3 rejects a crash-dump's DumpType, check the vendor documentation for that subtype's header layout and patch the relevant layer class directly rather than switching tools; always check pslist/cmdline for a captured exploit invocation that may hand you its own kernel addresses and parameters verbatim."
+last_verified: "2026-11-04"

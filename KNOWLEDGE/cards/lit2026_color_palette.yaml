@@ -9,7 +9,7 @@ verification: Found flag LITCTF{n3w-fLAg-c0LOR!?}
 tools:
   - Python
   - curl
-writeup: D:\download\CTFTimeWriteup\LIT2026\web\color_palette\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\web\color_palette\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\web\color_palette\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\web\color_palette\solve\solve.py
 time_heuristic: 5 minutes
 last_verified: 2026-08-03

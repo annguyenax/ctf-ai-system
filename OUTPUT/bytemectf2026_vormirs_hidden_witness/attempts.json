@@ -1,0 +1,33 @@
+{
+  "challenge_id": "bytemectf2026_vormirs_hidden_witness",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Read challenge metadata and both supplied evidence files",
+      "result": "Alias chains, archive page, timestamp mapping, and case shorthand were present",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/Vormir's Hidden Witness/solve/evidence/recovery.json",
+      "notes": "No previous solver or final flag was present."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Resolve ash_17 to mirror_04 and silent_keeper to archive page 77, then decode the timestamp",
+      "result": "Timestamp 02/17/26/09 maps to VORM",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/Vormir's Hidden Witness/solve/evidence/recovery.json",
+      "notes": "The witness clue identifies the archive timestamp as the relevant evidence."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Cross-check decoded VORM against the supplied case shorthand and wrap the exact shorthand",
+      "result": "Decoded prefix matches VORMIR-SOUL-UNSEEN; solver produced OWASP{VORMIR-SOUL-UNSEEN}",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/Vormir's Hidden Witness/solve/evidence/recovery.json",
+      "notes": "Local cross-file verification only; portal submission was not attempted."
+    }
+  ]
+}

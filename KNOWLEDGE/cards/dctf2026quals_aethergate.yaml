@@ -1,0 +1,39 @@
+id: dctf2026quals_aethergate
+event: DefCamp CTF 2026 Quals
+category: web/ssrf-argv-injection
+challenge_name: "aethergate"
+status: solved
+flag: "DCTF{cb3fbfc9cbfd932f53b1168adf0591d70ba645738b25fb9551cc20435a86c2e9}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "ucilib.run_heartbeat() joins endpoint strings then does 'joined.split()' before passing the resulting list as subprocess.run(argv) (list form, not shell) to curl."
+  - "_validate_endpoint() only urlparse()s the WHOLE endpoint string and checks hostname against an allowlist; it never checks for extra whitespace-separated tokens, which urlparse legally permits in a path."
+  - "Flag is not present in the shipped firmware image; a live boot-time init script (serveflag) copies a fixed byte range from a raw block device (/dev/vdb) over the training placeholder file, so the real flag only exists on the live instance's underlying disk, not any file visible to the webui by default path."
+key_idea: "Smuggle extra curl argv tokens past a hostname-only allowlist by putting a space inside an otherwise-valid, allowlisted URL; the validator's urlparse() on the whole string still succeeds, but the code's own '.split()' on the joined string turns the embedded space into additional argv elements (here -o - file:///dev/vdb), letting curl dump a raw disk device to stdout instead of /dev/null."
+prerequisites:
+  - "Understanding that subprocess.run(argv_list) still obeys a tool's own argv parsing/flags even without a shell -- shell metacharacters aren't needed if the argument-splitting logic itself is attacker-influenced"
+  - "curl's file:// scheme and -o - stdout-redirect flag"
+exploitation_pattern: "allowlisted-hostname URL string containing a legal-but-unexpected space -> code's naive whitespace .split() turns it into extra argv tokens for a subprocess list call -> inject -o - (override destination) and file:///dev/vdb (read raw block device) -> response body/detail field leaks the dumped bytes containing the flag."
+verification:
+  method: "Live exploitation against the CyberEDU hosted instance; JSON response 'detail' field contained the flag string verbatim, matching the recorded value."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/aethergate/writeup/writeup.md"
+pitfalls:
+  - "The obvious target file:///opt/flag.txt failed (curl: (37) Could not open) because the webui's visible flag file is a dummy; the real flag only lands on /dev/vdb at boot via a separate init script on the LIVE instance, not in the static firmware image."
+  - "A hostname-based allowlist validated via urlparse() on the full endpoint string does not prevent argv smuggling if the caller later re-splits that same string on whitespace before building a subprocess argv list."
+failed_paths:
+  - "Requesting file:///opt/flag.txt returned curl error 37 (could not open) -- the training placeholder was absent; the live flag lives on the raw disk device instead."
+tools:
+  - curl
+  - Python (subprocess argv injection testing)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/aethergate/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/aethergate/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/aethergate/solve/solve.py"
+time_heuristic: "When a service builds a subprocess argv list (not a shell string) from user input that passed a hostname/URL allowlist check, check whether any later string-splitting step (e.g. .split() on whitespace) can smuggle extra argv tokens even though shell metacharacters are blocked."
+last_verified: "2026-11-04"

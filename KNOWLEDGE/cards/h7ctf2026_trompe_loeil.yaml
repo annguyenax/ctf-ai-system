@@ -1,0 +1,35 @@
+id: "h7ctf2026_trompe_loeil"
+event: "H7CTF 2026 Quals"
+category: "web3/reentrancy-crashes-shared-virtual-price-oracle"
+challenge_name: "Trompe-l'œil"
+status: "solved"
+flag: "H7CTF{f91c6b1c-201d-4ba3-806a-ac4d83a4cb68}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A lending ledger's borrow limit and the grader's insolvency check both use the SAME on-chain \"virtual price\" oracle function, which looks internally consistent/reconciled on paper (borrow == collateral*vp at the time of borrowing, never >)."
+  - "A share-redeeming function updates totalSupply BEFORE sending the ETH leg but pays out the token leg of the redemption AFTER that external ETH call (classic checks-effects-interactions violation / reentrancy window)."
+key_idea: "When a protocol's self-consistency (e.g. \"debt can never exceed collateral value\") relies on a shared price/value oracle that both the risky action (borrowing) and the safety check (insolvency grader) read fresh, look for any other function that can distort that SAME oracle's output after the risky action already happened. Here, a vault share-redeem function pays out its two asset legs (ETH then token) in two separate steps with an external call (ETH transfer) BETWEEN updating totalSupply and paying the token leg -- reentering redeem() during that ETH callback lets you burn shares against a stale, inflated reserve ratio, disproportionately draining the token reserve and crashing the virtual price far below its value at borrow time, making a previously-exactly-solvent position insolvent after the fact."
+prerequisites:
+  - "A reentrant attacker contract (Solidity) able to recurse into redeem() from its receive()/fallback() during the ETH payout"
+  - "Reasoning about effects-ordering (supply updated vs. reserve paid out) across the two legs of a dual-asset redemption"
+exploitation_pattern: "mint LP shares via the fair mint path (price unaffected) -> deposit a portion as collateral and borrow the maximum allowed against the then-correct virtual price -> call redeem() on a remaining LP balance and, inside the ETH-transfer reentrancy window, call redeem() again (nested) before the first call's token payout executes -> the nested burn drains the token reserve disproportionately to the reduced supply, crashing virtual price -> grader's insolvency check (same vp formula) now finds totalDebt > vp_low*totalCollateral -> flag."
+verification:
+  method: "Live on-chain replay via an attacker contract; the Setup grader's isSolved()/insolvency check flipped true after the nested-reentrant redeem sequence, releasing the flag."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Web3/Trompe-l'œil/writeup/writeup.md"
+pitfalls:
+  - "The borrow and insolvency-check formulas being textually identical/\"reconciled\" is not itself a guarantee of safety if a third, seemingly-unrelated function (redeem) can distort the shared oracle input they both depend on after the fact."
+failed_paths: []
+tools:
+  - "Solidity (attacker contract)"
+  - "web3.py"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Web3/Trompe-l'œil/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Web3/Trompe-l'œil/solve/Attacker.sol"
+time_heuristic: "In a DeFi challenge where a borrow/collateral check and an insolvency grader both read the same price/value oracle and appear perfectly reconciled, hunt for any OTHER function (especially a multi-asset redeem/withdraw with ordering between effects and external calls) that can distort that same oracle via reentrancy after the risky position is already open."
+last_verified: "2026-11-04"

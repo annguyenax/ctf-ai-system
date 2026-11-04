@@ -1,0 +1,41 @@
+id: dctf2026quals_kanji
+event: DefCamp CTF 2026 Quals
+category: forensics/huge-pcap-streaming
+challenge_name: "Kanji"
+status: needs_verification
+flag: ""
+confidence: 0.5
+artifact_hashes: []
+signals:
+  - "Password-protected zip expands to a 30+ GB pcap -- far larger than available disk/RAM for extraction."
+  - "IRC botnet traffic is plaintext; dissection-level filtering (tshark -Y) on a multi-gigapacket flood is itself expensive and can produce multi-GB intermediate output before being useful."
+key_idea: "Never extract a multi-GB archive to disk: pipe the archive tool's stdout extraction directly into the analysis tool (7z x -so | tshark -r -), and prefer cheap raw-byte passes (grep -aoE over the decompressed stream) over full protocol dissection when the interesting traffic is plaintext -- byte order in a pcap is chronological order, so a raw grep pass already yields a time-ordered transcript without needing tshark's per-packet timestamps."
+prerequisites:
+  - "7-Zip / tshark CLI usage"
+  - "Awareness that native Windows tshark cannot read MSYS/Git-Bash FIFOs (so tee-ing a stream to two tshark processes fails there; run separate streaming passes instead)"
+exploitation_pattern: "7z x -so -p<pass> archive.zip big.pcap | tshark -r - -T fields ... for structured stats; 7z x -so ... | grep -aoE '<plaintext protocol regex>' for a fast chronological transcript; aggregate large/flood traffic with awk counters instead of writing filtered packets to a file."
+verification:
+  method: "Writeup describes a deterministic multi-pass pipeline over the full pcap producing a consistent IRC botnet transcript and flood statistics, but no literal flag string or flag-file evidence was found in writeup/notes/solve scripts read (only an awk 'END{...}' block, not a flag)."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Forensics/Kanji/writeup/writeup.md"
+pitfalls:
+  - "Writing out a protocol-filtered subset of a huge flood (e.g. all ICMP packets from a 24M-packet flood) can itself produce a huge file (14GB+) before you realize the filter wasn't selective enough -- aggregate with awk counters first, write packets only after you know the filter is narrow."
+  - "Native Windows tshark cannot read a Git-Bash/MSYS named pipe/FIFO; tee-splitting a single decompression stream into two tshark processes fails there (file not found) -- run the decompression+pipe separately per pass instead."
+failed_paths:
+  - "tee-ing one 7z decompression stream into two parallel tshark passes failed under native Windows tshark reading an MSYS FIFO."
+  - "A tshark -Y filter pass over the full ICMP flood produced a 14GB output file before being killed; it was not a cheap filter at this packet volume."
+tools:
+  - 7-Zip (7z)
+  - tshark
+  - grep
+  - awk
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Forensics/Kanji/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Forensics/Kanji/writeup/writeup.md"
+solver: ""
+time_heuristic: "When a forensics challenge's capture/disk artifact is too large to extract or fully dissect, stream it directly from the archive tool into the analysis tool and favor cheap raw-byte scans (grep) over full protocol dissection whenever the signal of interest is plaintext."
+last_verified: "2026-11-04"

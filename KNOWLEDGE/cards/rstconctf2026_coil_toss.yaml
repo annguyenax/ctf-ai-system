@@ -1,0 +1,35 @@
+id: rstconctf2026_coil_toss
+event: RSTCONCTF2026
+category: forensics
+challenge_name: Coil Toss
+status: solved
+flag: rstcon{fc06_writes_dont_lie}
+confidence: 1.0
+artifact_hashes:
+- eeb6aabe313076a7876ed6d755d9b0f873944fe0cd4207db27671c77c4663896
+signals:
+- Modbus FC06 single-register writes
+key_idea: Modbus FC06 single-register writes
+prerequisites:
+- scapy
+exploitation_pattern: Modbus FC06 single-register writes
+verification:
+  method: deterministic replay and retained portal response
+  evidence: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Coil Toss/solve/evidence/manifest.md
+pitfalls:
+- Counting FC06 response echoes would double the message; normal gauge reads are unrelated.
+failed_paths: []
+tools:
+- Python
+- scapy
+hexstrike:
+  used: false
+  useful: false
+  notes: Local tooling sufficient; health not queried.
+sources:
+- D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Coil Toss/chalenge.md
+playbook: ''
+writeup: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Coil Toss/writeup/writeup.md
+solver: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Coil Toss/solve/solve.py
+time_heuristic: Shallow structure inspection before heavy tools
+last_verified: '2026-10-25'

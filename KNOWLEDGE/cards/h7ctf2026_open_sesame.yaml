@@ -1,0 +1,34 @@
+id: "h7ctf2026_open_sesame"
+event: "H7CTF 2026 Quals"
+category: "hardware/ook-rolling-code-prediction"
+challenge_name: "Open Sesame"
+status: "solved"
+flag: "H7CTF{2fcc9411-c9c0-45fe-a426-5dbbcfa06704}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Raw complex-baseband (cf32) capture of 8 OOK (on-off-keyed) remote-control button presses, each advertised as producing a fresh \"unguessable\" code."
+  - "A live /unlock endpoint accepts a 12-hex-digit (48-bit) code and is expecting the 9th press."
+key_idea: "\"Unguessable\" per-press codes in cheap remotes are frequently just a monotonic counter plus a short-period checksum, not real randomness. Envelope-threshold the raw IQ magnitude to get a binary PWM bitstream (distinguish short/long high-pulse widths as bit 0/1, long low gaps as inter-press separators), decode all captured frames into their bit columns, then diff successive frames column-by-column: a fixed serial number stays constant, a counter field increments by a constant step, and any remaining low bits cycle with a short period (checksum). Predict the next frame by extrapolating the counter and brute-forcing only the small checksum/low-bit region, rather than the whole 48-bit space."
+prerequisites:
+  - "Basic OOK/PWM envelope demodulation from raw IQ (abs(), threshold, run-length encode)"
+  - "Column-wise diffing across multiple decoded frames to separate fixed/incrementing/cyclic fields"
+exploitation_pattern: "envelope-threshold cf32 capture -> run-length encode high/low pulses as PWM bit 0/1 with gap-based frame separation -> decode 8 frames to bits -> diff columns across frames to classify fixed/counter/checksum regions -> predict counter for 9th press -> brute only the small checksum region for each candidate -> POST each candidate code to /unlock until accepted."
+verification:
+  method: "Live replay against the service; a predicted+brute-forced 9th code was accepted, returning {\"status\":\"unlocked\", flag:...}."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Open Sesame/writeup/writeup.md"
+pitfalls:
+  - "The true on-air frame length may be one bit shorter than the naive bit-count from demodulation (drop a spurious trailing bit if the frame doesn't divide evenly)."
+failed_paths: []
+tools:
+  - "numpy"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Open Sesame/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Open Sesame/solve/solve.py"
+time_heuristic: "For any \"rolling code\" RF remote challenge, demodulate multiple captured presses into bit columns and diff them to split fixed/incrementing/cyclic fields before attacking the whole code space -- most \"unguessable\" rolling codes reduce to predicting one small cyclic/checksum field plus a known counter step."
+last_verified: "2026-11-04"

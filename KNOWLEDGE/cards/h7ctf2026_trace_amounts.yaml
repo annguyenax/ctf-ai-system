@@ -1,0 +1,34 @@
+id: "h7ctf2026_trace_amounts"
+event: "H7CTF 2026 Quals"
+category: "hardware/cpa-side-channel-aes-key-recovery"
+challenge_name: "Trace Amounts"
+status: "solved"
+flag: "H7CTF{33e2ea2c-6c5b-40a2-a968-471ec25865e7}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "500 known plaintexts paired with 500 power-consumption traces (700 samples each) from a contactless card doing AES-128, plus a ciphertext sealed under the same key."
+key_idea: "Classic Correlation Power Analysis (CPA): for each of the 16 AES-128 key bytes independently, hypothesize all 256 candidate values, compute a Hamming-weight leakage model on the AES round-1 SBox output (HW(SBox(plaintext_byte XOR key_byte_candidate))) for every trace, and compute the Pearson correlation between that hypothesis vector and the actual power trace at every time sample; the candidate value producing the highest peak correlation (across all time samples) is the correct key byte. Recombine all 16 recovered bytes into the full key and decrypt the sealed ciphertext with standard AES-128-ECB/CBC."
+prerequisites:
+  - "numpy for correlation computation across (256 candidates) x (700 time samples) x (500 traces)"
+  - "AES SBox table"
+exploitation_pattern: "for each key byte position: compute HW leakage model per candidate per trace -> Pearson-correlate against trace matrix across all time samples -> pick candidate with highest peak correlation -> repeat for all 16 bytes -> assemble full AES key -> AES-decrypt the sealed secret with PKCS7 unpadding."
+verification:
+  method: "Deterministic CPA recovered all 16 key bytes with peak correlations ~0.65-0.72, and the resulting key correctly decrypted the sealed ciphertext to a well-formed flag."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Trace Amounts/writeup/writeup.md"
+pitfalls:
+  - "Attack each key byte independently (divide-and-conquer); do not try to brute the full 128-bit key jointly."
+failed_paths: []
+tools:
+  - "numpy"
+  - "cryptography (AES)"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Trace Amounts/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Trace Amounts/solve/solve.py"
+time_heuristic: "Given plaintext+power-trace pairs for an AES implementation, run a standard divide-and-conquer CPA against the round-1 SBox Hamming-weight leakage model per key byte before considering any other side-channel technique -- it's the default first attack and usually suffices at a few hundred traces."
+last_verified: "2026-11-04"

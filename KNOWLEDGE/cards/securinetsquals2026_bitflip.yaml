@@ -1,0 +1,30 @@
+id: securinetsquals2026_bitflip
+event: Securinets CTF Quals 2026
+category: pwn/srop-bitflip
+challenge_name: bitflip
+status: solved
+flag: "Securinets{0n3_b1t_fl1ps_s1gpr0cmask_1nt0_s1gr3turn_SROP_00sp1m79qc2l}"
+confidence: 1.0
+artifact: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/bitflip"
+signals:
+  - PIE leak of checkpoint function (0x1509)
+  - Single bitflip in text section via /proc/self/mem (offset < 36, bit < 8)
+  - 640-byte user-controlled input stored in .bss arena (0x6000)
+  - Strict seccomp filter restricting instruction_pointer == syscall_site (0x151d) and allowing only read, write, rt_sigprocmask, rt_sigreturn, exit, openat
+  - Checkpoint loops back to syscall if return value rax != 0
+key_idea: Flipping bit 0 of checkpoint offset 1 turns mov eax, 0xe (rt_sigprocmask) into mov eax, 0xf (rt_sigreturn). Since enter sets rsp=arena, rt_sigreturn immediately unpacks a SigreturnFrame from arena. Any non-zero syscall return (like openat returning fd=3 or read returning byte count) jumps back to checkpoint and executes rt_sigreturn again on the current rsp, enabling chained SROP.
+exploitation_pattern: bitflip rt_sigprocmask -> rt_sigreturn -> Stage 1 SROP read() more frames into arena -> Stage 2 SROP openat("flag.txt") -> read(fd) -> write(stdout)
+verification:
+  method: "Live netcat pwn.securinets.tn:1001"
+  run1: "solve.py recovered Securinets{0n3_b1t_fl1ps_s1gpr0cmask_1nt0_s1gr3turn_SROP_00sp1m79qc2l}; submit_flag.py confirmed Correct"
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/bitflip/writeup/writeup.md"
+pitfalls:
+  - Seccomp restricts IP to the exact syscall instruction site (0x151d).
+  - sscanf("%u %u %c") requires format compliance and expects exactly 2 converted fields.
+  - The initial record prompt ends in newline ("record (640 bytes):\n").
+tools:
+  - pwntools
+  - objdump
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/bitflip/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/bitflip/solve/solve.py"
+last_verified: "2026-10-17"

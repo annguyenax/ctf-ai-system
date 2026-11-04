@@ -1,0 +1,36 @@
+id: csawctf2026quals_autobahn
+event: "CSAW CTF Qualifications 2026"
+category: "rev/self-modifying-code-xor-decrypt"
+challenge_name: "Autobahn"
+status: solved
+flag: "csaw{c0d3_th4t_rewr1t3s_1ts3lf_c4nt_b3_tru5t3d}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "main() calls mprotect(PROT_READ|WRITE|EXEC) on the range of a named function (secret_check) before calling it -- a strong self-modifying-code tell."
+  - "An 8-byte key constant sits in .data right next to the encrypted function bytes; XOR-decrypting the function range with it in-place yields valid x86-64 code."
+  - "Decrypted code contains a direct byte-array password comparison, then a second XOR-based flag decryption keyed off bytes of the now-decrypted function itself."
+key_idea: "A binary that mprotects a code region RWX right before calling it is almost always decrypting/unpacking itself at runtime (self-modifying code); statically decrypt the same bytes offline with the adjacent key constant instead of needing to run the (possibly anti-debug) binary, then disassemble the recovered bytes directly."
+prerequisites:
+  - "Static XOR decryption of a binary region given offsets and a key"
+  - "x86-64 disassembly of the recovered bytes"
+exploitation_pattern: "locate mprotect+decrypt call in main -> extract key bytes and encrypted function range offsets from the binary -> XOR-decrypt offline in Python -> read out the password comparison bytes directly from the decrypted bytes -> run binary with recovered password OR simulate the described flag-decryption formula directly in Python using the decrypted function bytes as the keystream source"
+verification:
+  method: "Ran the binary with the recovered password; output matched the computed flag exactly."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Reverse/Autobahn/writeup/writeup.md"
+pitfalls:
+  - "Disassembling the encrypted bytes directly (before decryption) produces meaningless garbage ('pure noise' per the prompt); always locate and apply the self-decryption key first."
+failed_paths: []
+tools:
+  - "python3 (manual XOR decrypt)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Reverse/Autobahn/files/nitro"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Reverse/Autobahn/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Reverse/Autobahn/solve/solve.py"
+time_heuristic: "Binary calls mprotect(RWX) on a function right before invoking it: decrypt that region offline with the adjacent key rather than disassembling the as-shipped bytes."
+last_verified: "2026-11-04"

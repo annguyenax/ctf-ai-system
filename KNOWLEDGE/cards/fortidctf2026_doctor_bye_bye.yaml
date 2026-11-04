@@ -1,0 +1,37 @@
+id: fortidctf2026_doctor_bye_bye
+event: FortID CTF 2026
+category: web/blind-sqli-order-by-oracle
+challenge_name: "Doctor Bye Bye"
+status: solved
+flag: "FortID{D0C_1M_0UTT4_H3R3_c08ed2ac67}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "GET /api/on-call?sort=... interpolates the sort parameter directly into an ORDER BY clause."
+  - "A WHERE listed = 1 filter hides the target row from the result set, but a scalar subquery placed inside the ORDER BY expression still executes against the full table."
+  - "A single known row (name) can be forced to sort first or not, acting as a one-bit oracle for any boolean condition embedded in a CASE WHEN inside ORDER BY."
+key_idea: "Even when a WHERE clause prevents a row from ever appearing in the output, an ORDER BY CASE WHEN (condition) THEN ... END expression still evaluates the condition against hidden rows via a scalar subquery, turning sort order of a visible anchor row into a binary oracle; binary-search the secret's length then each character with length()/unicode()/substr()."
+prerequisites:
+  - SQL injection point confined to ORDER BY (no UNION/direct SELECT output channel)
+  - A known, stable anchor row to detect which branch of the CASE won
+exploitation_pattern: "hidden-row data read via CASE WHEN (subquery condition) in ORDER BY, observed indirectly via a visible anchor row's position -> binary search length then characters"
+verification:
+  method: "Deterministic extraction script ran the full binary-search protocol against the live instance and reconstructed the exact flag."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Doctor Bye Bye/final_flag.txt"
+pitfalls:
+  - "A WHERE filter that hides a row from the result set does not stop that row's data from being read via a correlated/scalar subquery elsewhere in the same query (e.g. inside ORDER BY)."
+failed_paths: []
+tools:
+  - Python requests
+  - binary search scripting
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Doctor Bye Bye/writeup/writeup.md"
+playbook: web_sqli.md
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Doctor Bye Bye/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/Doctor Bye Bye/solve/blind_sqli.py"
+time_heuristic: "When a SQLi injection point is confined to ORDER BY with no direct output channel, use a CASE WHEN (subquery) expression and a known anchor row's rank as a 1-bit oracle; this works even past WHERE filters that hide the target row."
+last_verified: "2026-11-04"

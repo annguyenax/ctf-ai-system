@@ -1,0 +1,37 @@
+id: sunshinectf2026_homemaker
+event: "SunshineCTF 2026"
+category: "pwn/off-by-one-length-field-overflow-rop"
+challenge_name: "Homemaker"
+status: solved
+flag: "sun{the_future_is_now_today_well_wait_how_are_you_reading_this}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A length-bounded copy uses a <= comparison (jbe) instead of < (jb): `for i in 0..=packet_data_len` copies packet_data_len+1 bytes when exactly packet_data_len bytes were validated as in-bounds."
+  - "The off-by-one write lands exactly on a 2-byte max_len field stored adjacent to the copy destination, and the extra byte copied is the packet's own trailing checksum byte -- so choosing a payload whose checksum equals the desired overflow value (e.g. 0xff) silently expands max_len for every subsequent operation."
+  - "A 'dump context' command that honors the (now-expanded) max_len leaks adjacent stack memory including the canary, saved RBP, and a return address in one read."
+key_idea: "An off-by-one in a bounds check (<= vs <) that writes one extra attacker-influenced byte (such as a trailing checksum) into a small adjacent length/size field can be used to self-expand that same field's own future bound, converting a tiny one-byte overflow into an arbitrarily larger read/write window on a later use of the same field -- check whether a length-field overflow target is itself later used as a bound for a read or write."
+prerequisites:
+  - "CRC-8 (or similar) checksum computation to craft a payload whose checksum equals a specific target byte"
+  - "Stack-leak-then-ROP given a leaked canary/saved-RBP/return-address triple"
+exploitation_pattern: "find the off-by-one `<=` bound check -> brute force (or compute) a first data byte such that CRC8(payload)==0xff -> send it to expand max_len from 0x100 to 0x1ff -> use the now-larger dump command to leak canary, saved RBP, and a return address (-> binary base) in one read -> craft a full-size write containing the correct canary, RBP, and a ROP chain (pop rdi;ret -> buffer address -> system@plt) -> trigger the overwritten return address via the program's own 'exit'/cleanup path which also conveniently carries the shell-command string in its own packet payload"
+verification:
+  method: "Live run against the remote service returned the exact flag after executing the injected shell command."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Homemaker/writeup/writeup.md"
+pitfalls:
+  - "A checksum byte included at the end of a length-validated packet can itself be the off-by-one overflow byte; choose payload content so the checksum equals the exact value needed at the overflowed offset."
+failed_paths: []
+tools:
+  - "pwntools"
+  - "python3 (manual CRC-8 implementation)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Homemaker/files/homemaker"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Homemaker/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Homemaker/solve/solve.py"
+time_heuristic: "A `<=` instead of `<` bound check on a length field whose target is itself used later as a bound: look for self-expanding overflow potential, especially when a trailing checksum/footer byte is the extra byte written."
+last_verified: "2026-11-04"

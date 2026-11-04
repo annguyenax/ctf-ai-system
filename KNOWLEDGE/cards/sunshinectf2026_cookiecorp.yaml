@@ -1,0 +1,36 @@
+id: sunshinectf2026_cookiecorp
+event: "SunshineCTF 2026"
+category: "web/browser-cookie-priority-eviction-bypass"
+challenge_name: "CookieCorp"
+status: solved
+flag: "sun{c00kie_jar_0verfl0w_ev1cts_the_chief}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A bot/reviewer browser loads attacker-controlled 'recipe ingredients' as arbitrary document.cookie entries via client-side JS -- a cookie-injection primitive, but the privileged `role` cookie is set HttpOnly server-side at login, so it cannot be overwritten directly by injected JS cookies."
+  - "The session cookie is set with Priority=High while the HttpOnly role cookie (and any injected cookie) defaults to Medium priority -- an exploitable asymmetry in the browser's own per-domain cookie eviction policy."
+  - "Modern Chromium enforces a per-domain cookie count limit (~180); once exceeded, the browser evicts the OLDEST cookies first within the lowest priority tier, preserving higher-priority cookies regardless of age."
+key_idea: "When a privileged cookie is HttpOnly (can't be overwritten by injected JS) but shares the browser's default (non-High) priority tier with attacker-injectable cookies, flood the SAME browser profile/domain with enough low-priority junk cookies to exceed the browser's per-domain cookie cap, placing the attacker's own newest same-priority cookie (e.g. role=chief) last so it survives the Medium-tier eviction while the original HttpOnly privileged cookie (now the oldest Medium-tier cookie) gets evicted first -- client-side cookie quota exhaustion as a privilege-overwrite primitive, bypassing HttpOnly without ever reading or writing the cookie directly."
+prerequisites:
+  - "Chromium's Cookie Priority (RFC-draft `Priority=High/Medium/Low`) and per-domain cookie-count eviction behavior"
+  - "A client-side injection point that can set many arbitrary same-domain cookies (not necessarily HttpOnly ones) under attacker control"
+exploitation_pattern: "register an account -> submit a 'recipe' whose ingredient list is actually ~200 junk cookie-setting entries, with the desired override (role=chief) placed LAST -> submit for bot review, which loads the page and runs mixer.js, setting every ingredient as a real browser cookie -> exceeding the ~180 per-domain cookie cap evicts the oldest Medium-priority cookies first, which includes the original HttpOnly role=reviewer cookie (older than all the freshly-injected junk) -> the just-injected role=chief cookie (newest Medium-priority) survives -> the High-priority session cookie survives regardless -> /api/seal now reads role=chief -> flag"
+verification:
+  method: "Live submission against the remote service; polling the resulting recipe page shows the Chief's Golden Seal status and the flag."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/CookieCorp/writeup/writeup.md"
+pitfalls:
+  - "An HttpOnly cookie cannot be overwritten directly by injected JavaScript, but it is NOT immune to being evicted by the browser's own cookie-quota/priority eviction policy if it shares a lower priority tier with attacker-controlled cookies."
+  - "Order matters: the attacker's override cookie must be set LAST (newest) among the flood of junk cookies so it is the one that survives eviction, not one of the junk entries."
+failed_paths: []
+tools:
+  - "python3 (requests, simulating the bot's cookie-setting behavior via the recipe submission API)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/CookieCorp/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/CookieCorp/solve/cookiebomb.py"
+time_heuristic: "A privileged cookie is HttpOnly but shares a non-High priority tier with attacker-settable cookies: flood the domain with enough same-priority junk cookies (override cookie placed last) to trigger the browser's per-domain eviction cap and evict the older privileged cookie instead of overwriting it directly."
+last_verified: "2026-11-04"

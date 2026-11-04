@@ -1,0 +1,7 @@
+[
+  {"id": 1, "obs": "Read server.py; primitive = 2 swaps of pristine (container,key,value) from math, <=6 steps/path, <=19 total", "evidence": "files/extracted/mathclipse/src/server.py", "impact": "model established", "next": "map reachable graph", "killed": false},
+  {"id": 2, "obs": "CPython 3.14 exception display imports traceback module fresh -> ~50-module import cascade AFTER swaps; audit+marker instrumented, full sink list captured", "evidence": "notes/SINKS.md; scratch audit2_exc.log, profile.log", "impact": "post-swap execution surface mapped", "next": "weaponize a sink", "killed": false},
+  {"id": 3, "obs": "posix.getcwd() (no-arg sink) fires only with '' in sys.path (-c mode); server runs script mode -> never fires; pdb.set_trace keyword-only", "evidence": "container probes linux_probe.py, fuzz_script_mode.py", "impact": "best sink candidate dead", "next": "brute force all sinks", "killed": true},
+  {"id": 4, "obs": "Brute force 342 + ~5000 + 171 swap combos (live sinks x builtins/modules/cross) -> zero flag leak / pdb / hang", "evidence": "scratch brute2.py brute3.py brute4.py results", "impact": "single-plant space exhausted", "next": "step-budget forensics or fresh insight", "killed": false},
+  {"id": 5, "obs": "Remote parity confirmed: print<->eval swap printed namedtuple eval args on socket; remote alive", "evidence": "solve session log 2026-10-24", "impact": "local model == remote", "next": "-", "killed": false}
+]

@@ -1,0 +1,37 @@
+id: sunshinectf2026_mad_libs
+event: "SunshineCTF 2026"
+category: "pwn/format-string-got-overwrite-self-call"
+challenge_name: "Mad Libs"
+status: solved
+flag: "sun{f1ll_iN_th3_g0T_eNtry}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Program loops calling printf(user_input) directly -- a classic uncontrolled format-string vulnerability, repeated across multiple iterations."
+  - "The target binary ships NO win()/system()-calling convenience function and does not leak libc automatically -- both libc and PIE bases must be derived purely via %N$p format leaks at specific positional argument indices."
+  - "Because printf is called on raw user input EVERY iteration, overwriting printf's own GOT entry with system() makes the VERY NEXT loop iteration's printf(buf) call become system(buf) for free."
+key_idea: "When a format-string bug is inside a loop that calls printf(buf) on freshly-read user input every iteration, overwriting printf's GOT entry with system (via a crafted fmtstr_payload on one iteration) converts the next iteration's identical printf(buf) call into system(buf) automatically -- no separate ROP/return-oriented step needed to reach code execution."
+prerequisites:
+  - "Positional format-string argument leaking (%N$p) to find the exact stack-argument indices holding a known caller's return address and the main() address"
+  - "pwntools fmtstr_payload for a GOT write at a known offset"
+exploitation_pattern: "leak %43$p (a return address into __libc_start_main) and %47$p (&main) in one line -> compute libc_base and pie_base from known fixed offsets -> compute system = libc_base + offset and printf_got = pie_base + offset -> send fmtstr_payload(8, {printf_got: system}) on the next loop iteration -> send '/bin/sh' on the following iteration, which now runs as system('/bin/sh') because printf@GOT was overwritten"
+verification:
+  method: "Live exploit against the remote service spawned a shell and the writeup records the exact flag and the full technique summary."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Mad Libs/writeup/writeup.md"
+pitfalls:
+  - "No win()/system() convenience symbol and no automatic libc leak means every offset (libc_base, PIE base, and the target GOT entry) must be derived from format-string leaks at the correct positional argument index for this specific binary -- verify argument-index alignment locally before assuming the same indices transfer to remote."
+failed_paths: []
+tools:
+  - "pwntools (fmtstr_payload)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Mad Libs/files/mad_libs"
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Mad Libs/files/libc.so.6"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Mad Libs/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Mad Libs/solve/exploit.py"
+time_heuristic: "Format-string bug inside a loop that calls printf(buf) on fresh input every iteration: overwrite printf's own GOT entry with system -- the next loop iteration's identical call becomes free code execution."
+last_verified: "2026-11-04"

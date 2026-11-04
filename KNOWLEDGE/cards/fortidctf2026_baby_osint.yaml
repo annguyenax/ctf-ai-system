@@ -1,0 +1,49 @@
+id: fortidctf2026_baby_osint
+event: "FortID CTF 2026"
+category: "intro/osint"
+challenge_name: "Baby OSINT"
+status: needs_verification
+flag: ""
+confidence: 0.60
+artifact_hashes:
+  - "files/handout.jpeg: 9abcd942c51540a4564a96a3e8122bcbf68fb813630a306d4b128e2566e47978"
+signals:
+  - "The JPEG EXIF capture time pins the rally to 2026-09-05."
+  - "The official rally name and a concurrent Zagreb food festival are searchable by date."
+  - "The Bajs public dashboard embeds weekday averages and exposes historical station counts."
+key_idea: >
+  Use image metadata to establish the date, then join local event listings with
+  public mobility data and normalize each answer to the challenge format.
+prerequisites:
+  - "JPEG EXIF inspection"
+  - "Croatian-language event search"
+  - "JSON and public HTTP API inspection"
+exploitation_pattern: >
+  Extract capture date -> identify exact event and concurrent festival -> parse
+  dashboard weekday averages -> compare station-history maxima across IDs.
+verification:
+  method: "EXIF date, public event sources, embedded weekday values, and station-history API were independently checked; the API's 49 returned station IDs were compared across the pinned history interval."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Intro/Baby OSINT/solve/evidence/verification.txt"
+pitfalls:
+  - "The dashboard is dynamic; preserve the observation date and query interval."
+  - "Use Wednesday rather than the Croatian label Srijeda because the challenge requires English answer words."
+  - "The citywide page reports 200 stations over its archive, while the live station-list endpoint returned 49 IDs during this capture; describe the scope of the queried endpoint accurately."
+failed_paths:
+  - "Previous candidate with 269 bikes was rejected; default station list omitted most historical stations."
+tools:
+  - "Pillow / JPEG EXIF"
+  - "Web search"
+  - "Python urllib / public JSON endpoints"
+hexstrike:
+  used: false
+  useful: false
+  notes: "The challenge was solved with metadata and bounded public-source queries."
+sources:
+  - "https://www.ursh.hr/prosvjed-hodaj-za-liku/"
+  - "https://mojzagreb.info/zagreb/ovo-je-program-18-zegevege-festivala-2026-godine"
+  - "https://bajs.informacija.hr/"
+  - "https://bajs.informacija.hr/api/stations"
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby OSINT/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby OSINT/solve/solve.py"
+time_heuristic: "For OSINT composites, use artifact metadata to fix a date before expanding into event and public-dataset searches."
+last_verified: "2026-10-10"

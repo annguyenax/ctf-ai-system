@@ -1,0 +1,39 @@
+id: sunshinectf2026_cache_money
+event: "SunshineCTF 2026"
+category: "pwn/uaf-safe-linking-tcache-poison-to-bss"
+challenge_name: "Cache Money"
+status: solved
+flag: "sun{s4fe_l1nk1ng_w0nt_s4ve_y0ur_tc4che}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A 'transfer funds' action frees the source wallet's ledger chunk and copies that SAME pointer into the destination wallet's ledger field, while leaving the destination wallet marked active -- a direct UAF via pointer aliasing across two live objects."
+  - "The only chunk in a tcache bin has GLIBC 2.39 safe-linking with target=0, so stored_fd == (chunk_addr >> 12) ^ 0 == chunk_addr >> 12 -- reading it directly yields the safe-linking obfuscation key, from which heap_base = key << 12."
+  - "Withdraw/Deposit provide raw read()/write() primitives sized to the (now-freed, still-referenced) ledger chunk, giving read-after-free (leak) and write-after-free (tcache poison) for free."
+key_idea: "GLIBC safe-linking only obfuscates a tcache fd pointer with (chunk_addr>>12) XOR target; when the target of the FIRST freed chunk in an empty tcache bin is 0 (no next chunk yet), the stored value IS the obfuscation key directly -- read it via any UAF read primitive to derive the heap base with zero guessing, then poison the next chunk's fd with key XOR <desired_target> to redirect a future allocation anywhere (including a non-heap .bss global array) in one step."
+prerequisites:
+  - "glibc 2.39 safe-linking formula: stored_ptr = (chunk_addr>>12) XOR target"
+  - "tcache poisoning / arbitrary-allocation primitive construction"
+  - "GOT overwrite via a forged fake-struct read/write gadget once an attacker-controlled struct lands in a global array"
+exploitation_pattern: "open 4 wallets of equal ledger size -> transfer(0,1) frees w0's ledger into tcache while w1 aliases it -> withdraw(1) leaks the safe-linking key (heap_base = key<<12) -> transfer(2,3) frees w2's ledger as the tcache head with count=2 -> deposit(3) overwrites that chunk's fd with key XOR <address of the global wallet_array> -> open two more wallets to pop first the normal chunk then the poisoned target, landing a fresh wallet struct exactly at the global array's base -> use that wallet's forged ledger pointer to read/write arbitrary offsets inside the global array -> forge a fake wallet struct pointing its ledger at puts@got to leak libc, then retarget it at strtol@got and overwrite with system -> trigger via the program's own menu-input parser calling strtol(attacker_string)"
+verification:
+  method: "Live run against the remote service printed the exact flag, matching the writeup's full transcript (heap key, heap base, libc base, system address all logged)."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Cache Money/writeup/writeup.md"
+pitfalls:
+  - "Safe-linking defeats a naive 'just read the next-pointer' tcache leak; recognize that when a bin has exactly one chunk and its target is 0 (nothing to XOR against), the obfuscated value IS the key, requiring no brute force."
+  - "A transfer/move operation that copies a pointer into a still-active destination object while freeing the source is a UAF even if the source object itself is correctly deactivated."
+failed_paths: []
+tools:
+  - "pwntools"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Cache Money/files/cache_money"
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Cache Money/files/libc.so.6"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Cache Money/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Cache Money/solve/solve.py"
+time_heuristic: "GLIBC 2.39+ safe-linking tcache challenge: if the bin has exactly one chunk with target=0, its obfuscated fd value is the raw safe-linking key -- no brute force needed to get heap base."
+last_verified: "2026-11-04"

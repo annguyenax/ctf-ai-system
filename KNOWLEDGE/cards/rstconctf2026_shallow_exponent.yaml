@@ -1,0 +1,33 @@
+id: rstconctf2026_shallow_exponent
+event: RSTCON CTF 2026
+category: crypto/rsa-low-exponent-no-wrap
+challenge_name: "Shallow_Exponent"
+status: solved
+flag: "rstcon{cube_root_a_tiny_exponent}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - RSA with e=3, ~1024-bit n, but ciphertext c is only ~648 bits — much smaller than n.
+key_idea: When e is tiny (3 here) and the unpadded message m satisfies m^e < n, the modular reduction never actually wraps, so c == m^e exactly over the integers. Recover m by taking the plain integer e-th root (binary-search cube root) of c rather than any modular inverse — no factoring or private key needed.
+prerequisites:
+  - Noticing ciphertext bit-length is suspiciously smaller than modulus bit-length (a tell that m^e < n)
+  - Integer nth-root via binary search (or gmpy2.iroot)
+exploitation_pattern: confirm e small and c bit-length << n bit-length -> integer cube root of c -> bytes -> flag.
+verification:
+  method: Deterministic solver script computes integer cube root and decodes to ASCII, matches recorded flag.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Crypto/Shallow_Exponent/solve/solve.py"
+pitfalls:
+  - Jumping straight to modular-inverse decryption (requires factoring n) when the real vulnerability is "no modular wrap happened at all" — check m^e vs n first.
+failed_paths: []
+tools:
+  - Python 3 (integer binary-search nth root)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: crypto_rsa.md
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Crypto/Shallow_Exponent/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Crypto/Shallow_Exponent/solve/solve.py"
+time_heuristic: Small public exponent (e=3 or e=5) with a short ciphertext relative to modulus size -> try the unpadded-no-wraparound cube/nth-root attack before anything factoring-based.
+last_verified: "2026-11-04"

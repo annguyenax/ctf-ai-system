@@ -1,0 +1,36 @@
+id: sunshinectf2026_robocall
+event: "SunshineCTF 2026"
+category: "rev/ivr-stack-depth-uninitialized-leak"
+challenge_name: "RoboCall"
+status: solved
+flag: "sun{you_must_be_some_sort_of_nimble_space_navigator}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A setup routine writes 13 four-byte flag chunks at specific, DIFFERENT stack-offset depths below the current rsp, then returns -- leaving all of them in now-unused (uninitialized-from-the-caller's-view) stack memory below any later function's rsp."
+  - "A separate, reachable bug: a parse-int helper that fails to write its output variable at all on non-numeric input, so printing that output variable later leaks whatever stack bytes happen to occupy that slot -- an uninitialized-stack-read info leak triggerable from the menu."
+  - "The 'phone tree' menu options are a graph of call paths, each contributing a different, fixed amount of stack depth before returning to the common leak point -- so the EXACT depth reachable (and thus which flag chunk gets leaked) is fully determined by which menu path sequence was taken to get there."
+key_idea: "When a program plants secret chunks at specific, varying depths below a baseline stack pointer and offers an uninitialized-stack-read leak reachable from many different call paths, model each reachable call path's net stack-depth contribution as a 'basis vector' (here: three distinct menu actions each add a fixed, known depth) and find an integer combination of basis-path invocations that lands the leak point exactly on each target chunk's depth -- this converts 'which menu sequence reaches chunk i' into a simple linear/depth arithmetic problem rather than needing one bespoke path per chunk."
+prerequisites:
+  - "Static analysis of per-function stack-frame sizes along each call-graph edge, to compute net depth contribution of each reachable menu path"
+  - "Recognizing an uninitialized-output-on-parse-failure bug as an info-leak primitive"
+exploitation_pattern: "statically map each menu action's net stack-depth contribution (3 distinct 'move' primitives found: scream, outage, tech_outage, each adding a fixed amount) -> for every known target CHUNK_DEPTH offset, solve for a linear combination of the 3 move primitives whose total depth equals that offset relative to the leak point's own base depth -> for each chunk, drive the menu through that exact path, then trigger the leak (two non-numeric answers to the cancel-plan prompts) and read back the printed uninitialized integer as 4 leaked bytes -> concatenate all 13 chunks in order -> flag"
+verification:
+  method: "Live run against the remote service recovered all 13 chunks in sequence, producing the exact flag (confirmed by a terminating '}' byte)."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/RoboCall/writeup/writeup.md"
+pitfalls:
+  - "An uninitialized-variable leak via a failed parse (e.g. non-numeric input to an int-parser that returns 0 without writing its output pointer) is a real, reliable info-leak primitive -- check parse/validation helpers for an early-return path that skips writing the output on failure."
+failed_paths: []
+tools:
+  - "python3 (socket, manual stack-depth call-graph modeling)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/RoboCall/files/robocall"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/RoboCall/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/RoboCall/solve/solve.py"
+time_heuristic: "Secrets planted at varying stack depths with a leak reachable via multiple call paths of differing depth contribution: model each path's depth as a basis value and solve for the combination landing exactly on each target depth, rather than hand-crafting one path per secret chunk."
+last_verified: "2026-11-04"

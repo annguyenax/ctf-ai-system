@@ -1,0 +1,35 @@
+id: bytemectf2026_soul_in_the_shadows
+event: ByteMe CTF 2026
+category: steganography/lsb-layered-encoding
+challenge_name: "Soul in the Shadows"
+status: solved
+flag: "OWASP{the_soul_was_here}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - PNG image whose sequential RGB-channel LSBs decode to readable multi-line text rather than the flag directly.
+  - First decoded line is noise/header; a later line is a base64 token; a themed word (from challenge lore) works as a short repeating XOR key.
+key_idea: When LSB extraction from an image yields text instead of an immediate flag, don't stop at the raw bytes — split the decoded bytes into lines and inspect each one; a base64-looking line is a second encoding layer, and a short XOR key is often a lore/theme word from the challenge title (e.g. "VORMIR") rather than something recovered from the image itself.
+prerequisites:
+  - Standard sequential LSB extraction (R,G,B bits per pixel, MSB-first byte packing)
+  - Recognizing base64 alphabet/padding and layered XOR-with-short-key patterns
+exploitation_pattern: extract LSBs sequentially -> decode to bytes -> split into lines -> isolate base64 token -> base64-decode -> XOR with thematic short key guessed from challenge name/lore -> flag.
+verification:
+  method: Deterministic local solver replay; decoded flag matches recorded flag.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Steganography/Soul in the Shadows/solve/solve.py"
+pitfalls:
+  - Stopping after the first LSB decode pass misses a nested encoding; always scan the whole decoded buffer (or every line) before concluding the image carries no more than noise.
+  - The XOR key was never given explicitly in the files — it had to be guessed from the challenge's narrative theme (series name "Vormir"), which is a pitfall of the challenge design worth flagging for similar lore-themed sets.
+failed_paths: []
+tools:
+  - Python 3 (Pillow, base64)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Steganography/Soul in the Shadows/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Steganography/Soul in the Shadows/solve/solve.py"
+time_heuristic: LSB stego that yields readable-but-not-flag text -> inspect every decoded line for a secondary encoding (base64) and try theme words from the challenge/series name as XOR keys before giving up.
+last_verified: "2026-11-04"

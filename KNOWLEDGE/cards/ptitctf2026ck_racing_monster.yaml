@@ -1,0 +1,38 @@
+id: ptitctf2026ck_racing_monster
+event: "PTITCTF2026-CK"
+category: "reverse/custom-bytecode-vm-and-transform-replay"
+challenge_name: "Racing Monster"
+status: solved
+flag: "PTITCTF{0nly_th3_f4st_surv1v3_th3_m0nst3rs_ch4s3}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A 'locked engine' byte buffer in .rdata is actually a bytecode program for a custom stack-machine VM, but it is stored scrambled; a separate thread applies an invertible byte-wise transform 80 times to produce the real ('unlocked') bytecode."
+  - "The transform's internal state variables are seeded as a function of the iteration count k (bVar5 = 0xFFFFFFA5 + 0x1d*k, uVar6 = 0x5d + 0x11*k, iVar18 = k), so each of the 80 iterations is fully reproducible given only k -- no runtime observation is required to invert it."
+  - "The decoded bytecode program, once parsed against its jump table, is a validation loop of repeating 14-byte units that each enforce one byte of the real flag via flag[idx-1] == X ^ (Z - Y), chained through an accumulator -- the flag can be derived unit-by-unit directly from the decoded bytecode's immediates."
+key_idea: "A layered reverse challenge where the real validation logic is a custom bytecode VM whose program is itself delivered scrambled; the unscrambling transform is deterministic and iteration-count-seeded, so it can be replayed forward exactly 80 times offline with no dynamic execution. Once unscrambled, the VM's jump table and repeating 14-byte unit structure reveal that each unit directly encodes one flag byte via a small xor/subtract relation chained by an accumulator, letting the whole flag be derived by parsing immediates rather than running the VM against guesses."
+prerequisites:
+  - "Custom VM/bytecode-interpreter reverse engineering (jump table + opcode semantics recovery)"
+  - "Precise instruction-level recovery of an iterative, per-iteration-seeded transform from disassembly"
+  - "Byte-level accumulator/xor/add constraint solving across repeating structured units"
+exploitation_pattern: "scrambled bytecode buffer -> deterministic, iteration-seeded unscrambling transform replayed 80 times offline -> decode resulting VM bytecode against its own jump table -> each repeating 14-byte validation unit directly yields one flag byte via a simple xor/subtract relation -> concatenate to the full flag, confirmed by replaying the VM against the derived candidate."
+verification:
+  method: "Full deterministic replay: extract engine bytes, apply the recovered transform forward 80 times, parse the resulting bytecode units, compute each flag byte algebraically, and independently re-run the decoded VM program against the derived flag to confirm it reaches the 'success' opcode (0x17)."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Reverse/💸Racing Monster💸/solve/solve_deepseek.py implements the transform replay plus VM bytecode-unit parsing and VM replay verification."
+pitfalls:
+  - "A byte buffer that looks like opaque scrambled data next to a VM jump table is worth checking as 'this thread's job is to unscramble it into the real bytecode' before assuming the scrambled form itself must be brute-forced or fuzzed against the VM."
+  - "When an obfuscation transform's internal state is seeded purely as a function of a loop/iteration counter (not from any runtime-only secret), the transform is fully offline-replayable regardless of how many times it must be applied (here, 80 iterations)."
+  - "Validating a derived flag by independently re-running the decoded VM program against it (not just trusting the algebraic byte-by-byte derivation) catches any off-by-one or sign errors in the extracted xor/subtract relation."
+failed_paths: []
+tools:
+  - "Python static disassembly/transform-replay solver (solve/solve_deepseek.py)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "rev_esolang_orientation.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Reverse/💸Racing Monster💸/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026-CK/Reverse/💸Racing Monster💸/solve/solve_deepseek.py"
+time_heuristic: "When a reversed binary stores its real validation logic as a custom bytecode program but the stored buffer looks scrambled, check for a separate thread/function that deterministically unscrambles it (especially if its internal state depends only on a loop counter, not on any runtime secret) before assuming brute force against the VM is needed."
+last_verified: "2026-11-04"

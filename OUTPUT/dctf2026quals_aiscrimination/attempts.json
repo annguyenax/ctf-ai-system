@@ -1,0 +1,73 @@
+{
+  "challenge_id": "dctf2026quals_aiscrimination",
+  "event": "DefCamp CTF 2026 Quals",
+  "category": "web",
+  "challenge_name": "aiscrimination",
+  "flag_status": "verified",
+  "flag": "CTF{5bb9cb8b8ff43e243fe85fceaf646e7ba6a5c80250e96678be2aa71add38eb97}",
+  "attempts": [
+    {
+      "t": "baseline",
+      "phase": "triage",
+      "hypothesis_id": "H0",
+      "action": "GET / and /policy; map routes and form fields",
+      "result": "Flask app; join form (display_name/comment/statement); statement reflected into per-card CSS content string",
+      "evidence_path": "raw/feed.html",
+      "notes": "Editorial post 'path rules as intuitive' + comment 'renderer will include it' hint at file-include sink"
+    },
+    {
+      "t": "statement-import-probe",
+      "phase": "test",
+      "hypothesis_id": "H1",
+      "action": "Submit statement '@import url(\"/static/style.css\"); x' and fetch identity.css",
+      "result": "The @import directive was replaced with '/* design fragment unavailable */' — a server-side file-read sink exists",
+      "evidence_path": "raw/import_probe.css",
+      "notes": "compile_theme() expands CSS @import into local file reads"
+    },
+    {
+      "t": "lfi-confirm",
+      "phase": "test",
+      "hypothesis_id": "H1",
+      "action": "Submit statement '@import url(\"/etc/passwd\");'",
+      "result": "/etc/passwd content inlined into .imported-fragment::after content — LFI confirmed",
+      "evidence_path": "raw/etc_passwd.css",
+      "notes": "pathlib: absolute RHS overrides THEME_ROOT; resolve() normalises ../ with no containment check"
+    },
+    {
+      "t": "locate-app",
+      "phase": "test",
+      "hypothesis_id": "H1",
+      "action": "Read /proc/self/cmdline and /proc/self/environ",
+      "result": "gunicorn app:app; PWD=/home/ctf/app; THEME_ROOT=/home/ctf/app/themes/generated; no SECRET_KEY",
+      "evidence_path": "raw/environ.txt",
+      "notes": "secret key defaults to 'development-only-change-me'"
+    },
+    {
+      "t": "read-source",
+      "phase": "test",
+      "hypothesis_id": "H1",
+      "action": "Read /home/ctf/app/app.py",
+      "result": "Confirmed compile_theme() is the only file-read sink; IMPORT_RE and escaping documented",
+      "evidence_path": "raw/app.py",
+      "notes": "Routing is DB-keyed (no route-level traversal); file read only inside compile_theme"
+    },
+    {
+      "t": "read-flag",
+      "phase": "exploit",
+      "hypothesis_id": "H1",
+      "action": "Read /home/ctf/flag.txt via @import",
+      "result": "CTF{5bb9cb8b8ff43e243fe85fceaf646e7ba6a5c80250e96678be2aa71add38eb97}",
+      "evidence_path": "raw/flag.txt",
+      "notes": "flag file read directly"
+    },
+    {
+      "t": "verify",
+      "phase": "verify",
+      "hypothesis_id": "H1",
+      "action": "Re-read /home/ctf/flag.txt on a second independent card",
+      "result": "Identical bytes; inner value is 64 lowercase hex chars (CTF{sha256} format)",
+      "evidence_path": "raw/flag_verify.txt",
+      "notes": "two independent extractions agree"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+id: csawctf2026quals_diamond_dogs
+event: "CSAW CTF Qualifications 2026"
+category: "pwn/dual-array-dangling-pointer-uaf-hypothesis"
+challenge_name: "Diamond Dogs"
+status: paused
+flag: ""
+confidence: 0.25
+artifact_hashes: []
+signals:
+  - "Two independent parallel object-array stores (dogs[8], notes[8]); the 'release'/'shred' operations free() the backing chunk but do NOT null the array slot afterward in either store -- a classic dangling-pointer UAF in both."
+  - "Each dogs[] slot stores an attacker-controlled name buffer AND a function pointer at a fixed offset (0x18), invoked as ((void(*)(char*))dogs[i][0x18])(dogs[i]) by the 'command dog' menu action -- a vtable-style call primitive once that offset is attacker-controlled."
+  - "notes[] allocations are variable-size (1..4096 bytes), letting the attacker choose which glibc bin/size-class a freed note lands in -- including sizes just above the tcache max, which land in the unsorted bin and leak libc pointers on read-after-free."
+key_idea: "No PIE / no canary / partial RELRO binary with two parallel UAF-prone arrays (fixed-size dogs[] with an attacker-reachable function-pointer offset, and variable-size notes[]) likely chains as: free a note sized just above tcache-max to get an unsorted-bin libc-address leak via the un-nulled dangling pointer, then reuse the dogs[]/notes[] UAF to place a controlled 0x18-offset function pointer (system/one_gadget) into a chunk that is still reachable as an active dogs[] slot, and trigger it via 'command dog'."
+prerequisites:
+  - "glibc tcache/unsorted-bin internals (size-class boundaries, fd/bk leak on unsorted-bin free)"
+  - "Dangling-pointer UAF chaining across two independently-freed-but-not-nulled arrays"
+exploitation_pattern: "(hypothesis, untested against a live instance) file a note sized just above the tcache max -> shred it (frees into unsorted bin) -> read it via the still-dangling notes[] pointer to leak an unsorted-bin fd/bk libc address -> compute libc base from a locally-determined main_arena offset -> reuse a dogs[]/notes[] UAF to get a 0x20-chunk whose first bytes are '/bin/sh\x00' and whose offset-0x18 qword is &system, placed into an active dogs[] slot via tcache reuse -> 'command dog' on that index triggers system('/bin/sh\x00'...)"
+verification:
+  method: ""
+  evidence: ""
+pitfalls:
+  - "The exact byte offset of main_arena / the unsorted-bin-chunk-to-libc-base offset must be determined empirically against the provided libc (not assumed from a different glibc version) before the leak step can compute a correct libc base."
+  - "The solve.py in this challenge folder is an untested scaffold with a placeholder prompt-text comment ('adjust after live run') -- it has not been run against the real service and its menu interaction strings are unconfirmed."
+failed_paths: []
+tools:
+  - "pwntools"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Pwn/Diamond Dogs/files/files.zip"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Pwn/Diamond Dogs/writeup/writeup.md"
+solver: ""
+time_heuristic: "Two parallel object arrays where free()/release() never nulls the slot: look for an unsorted-bin-sized allocation to leak libc via read-after-free, then chain into a reachable function-pointer-offset UAF for code execution."
+last_verified: "2026-11-04"

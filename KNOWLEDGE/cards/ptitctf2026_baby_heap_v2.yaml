@@ -40,7 +40,7 @@ hexstrike:
 sources:
   - pwncli house_of_apple2_execmd_when_exit
 playbook: ""
-writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Pwn\baby-heap-V2\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\PTITCTF2026\Pwn\baby-heap-V2\solve\exploit.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Pwn\baby-heap-V2\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Pwn\baby-heap-V2\solve\exploit.py
 time_heuristic: leak tcache+unsorted, poison stderr not stdout, wait the 60s alarm
 last_verified: "2026-08-22"

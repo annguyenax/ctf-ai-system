@@ -1,0 +1,36 @@
+id: "h7ctf2026_signed_sealed_delivered"
+event: "H7CTF 2026 Quals"
+category: "mobile/hmac-key-derived-from-client-controlled-device-id"
+challenge_name: "Signed, Sealed, Delivered"
+status: "solved"
+flag: "H7CTF{5b1076bd-a26f-45df-ade5-c1785658a947}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A delivery-app API has no login/register/JWKS route at all; every request needs custom X-Device-Id/X-Ts/X-Sig headers and plain header/JWT fuzzing never changes the \"missing signature headers\" error."
+  - "Decompiled APK signer class reveals the exact canonical-string format and that the HMAC key is SHA256(hardcoded_pepper + client-chosen deviceId)."
+key_idea: "When a mobile API's request-signing scheme derives its HMAC key purely from a hardcoded app-wide constant plus a value the CLIENT itself supplies (like a self-chosen device id header), there is no real server-held secret at all -- any client can compute a valid signature for ANY request (any path, any query, any device id) once the pepper and canonical-string format are extracted from the decompiled app, including requests the legitimate app never issues (e.g. a dispatcher-only scope the driver UI never sets)."
+prerequisites:
+  - "androguard decompilation of the signer class to recover the pepper constant and exact string-to-sign format (method/path/sorted-query/timestamp)"
+  - "hmac/hashlib to reimplement the signer in Python"
+exploitation_pattern: "decompile signer -> extract pepper + canonical-string template -> pick any device id -> compute key=SHA256(pepper+device_id) -> sign GET path+query the app never sends (e.g. scope=all instead of scope=mine) -> send with matching X-Device-Id/X-Ts/X-Sig -> privileged response returned."
+verification:
+  method: "Live replay; only scope=all with a self-minted signature returned 200 with the dispatcher-only manifest containing the flag; other scopes returned 403."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Mobile/Signed, Sealed, Delivered/writeup/writeup.md"
+pitfalls:
+  - "Pure black-box header/JWT fuzzing against a custom signature scheme is a waste of time once \"missing signature headers\" never changes -- go straight to decompiling the client for the exact header names and signing algorithm."
+failed_paths: []
+tools:
+  - "androguard"
+  - "requests"
+  - "hmac/hashlib"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Mobile/Signed, Sealed, Delivered/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Mobile/Signed, Sealed, Delivered/solve/solve.py"
+time_heuristic: "If an API demands custom signature headers and no amount of header/JWT fuzzing budges the error, decompile the mobile client for the signer code -- a scheme that derives its HMAC key from a hardcoded pepper plus a client-supplied device id has no real server secret and lets any client self-sign privileged requests the app never issues."
+last_verified: "2026-11-04"

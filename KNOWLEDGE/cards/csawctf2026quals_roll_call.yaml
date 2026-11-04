@@ -1,0 +1,35 @@
+id: csawctf2026quals_roll_call
+event: "CSAW CTF Qualifications 2026"
+category: "osint/db-reconciliation-by-canonical-id"
+challenge_name: "Roll Call"
+status: solved
+flag: "csaw{halcyonleaks_still_water_77}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A manual watchlist (handles) must be reconciled against a database that is the declared 'record of truth'."
+  - "The identities table maps multiple handles to one person_id, meaning direct handle-to-handle comparison between two lists can give false mismatches."
+  - "An explicit protocol doc (protocol.md) states reconciliation must occur by person_id, not by raw handle string."
+key_idea: "When two lists of names/handles must be reconciled and a mapping table links multiple aliases to one canonical entity, always join/diff on the canonical ID (person_id), not on the raw strings, or legitimately-matching entities with different displayed handles will appear as false discrepancies."
+prerequisites:
+  - "Basic SQL joins/diffs over a provided sqlite database"
+exploitation_pattern: "read protocol.md for the reconciliation rule -> query DISTINCT person_id for both the watchlist table and the escalations table via a JOIN through identities -> set-difference escalated minus watchlisted -> look up each missing person_id's primary handle -> lowercase and alphabetically order per flag format"
+verification:
+  method: "Deterministic SQL query reproduces exactly 2 missing person_ids whose primary handles match the flag format."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/OSINT/Roll Call/writeup/writeup.md"
+pitfalls:
+  - "Reconciling two lists of names directly by string equality is wrong whenever a many-handles-to-one-entity mapping table exists -- always pivot through the canonical ID first."
+failed_paths: []
+tools:
+  - "python3 (sqlite3)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/OSINT/Roll Call/files/d.zip"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/OSINT/Roll Call/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/OSINT/Roll Call/solve/solve.py"
+time_heuristic: "Reconciling two provided lists against a 'source of truth' database with an identity-mapping table: diff on the canonical ID, not the display string."
+last_verified: "2026-11-04"

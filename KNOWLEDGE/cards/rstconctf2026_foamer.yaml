@@ -1,0 +1,35 @@
+id: rstconctf2026_foamer
+event: RSTCON CTF 2026
+category: osint/geolocation-landmark
+challenge_name: "Foamer"
+status: paused
+flag: ""
+confidence: 0.4
+artifact_hashes: []
+signals:
+  - Photo taken from inside a passenger train car window, showing interior details (seat/wall panel style, FRA safety-glazing stamp) and an exterior cantilever truss bridge across a river.
+key_idea: "Best hypothesis (unconfirmed by server response): interior panel/seat style and FRA glazing stamp identify the train as an Amtrak Amfleet I coach on the Northeast Corridor; the visible cantilever through-truss bridge was matched by shape/scale to the Commodore Barry Bridge (Chester, PA / Bridgeport, NJ), giving candidate coordinates (39.8272, -75.3725). The solver script computes and writes this candidate and POSTs it to the challenge API, but the actual server response was not captured/logged."
+prerequisites:
+  - Visual identification of train rolling-stock interior details
+  - Visual identification of large infrastructure (bridge type/shape) by comparison to known structures
+exploitation_pattern: identify train interior/rolling stock -> narrow to a rail corridor -> identify exterior landmark (bridge) along that corridor -> estimate/confirm coordinates -> submit via challenge's geo-coordinate API endpoint.
+verification:
+  method: Solver script POSTs the candidate coordinates to the challenge API and prints the response status, but no saved evidence of an "accepted" response exists in the repo.
+  evidence: ""
+pitfalls:
+  - A plausible, well-reasoned visual match (correct bridge type + correct rail corridor) is not the same as a server-confirmed correct answer; treat landmark ID without a captured acceptance response as unverified.
+  - The solver script embeds a live session cookie for the challenge API — do not reuse platform session cookies when replaying this kind of solver.
+failed_paths: []
+tools:
+  - Manual visual landmark comparison
+  - Python 3 requests (challenge API submission)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/OSINT/Foamer/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/OSINT/Foamer/solve/solve.py"
+time_heuristic: Train-window geolocation photo -> ID the rolling stock/interior to narrow the rail line/region, then match visible exterior infrastructure (bridges are especially distinctive) to a specific real-world structure along that line; always capture the server's acceptance response as evidence before marking solved.
+last_verified: "2026-11-04"

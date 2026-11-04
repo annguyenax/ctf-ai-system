@@ -1,0 +1,42 @@
+id: fortidctf2026_sticker_booth
+event: FortID CTF 2026
+category: pwn
+challenge_name: Sticker Booth
+status: solved
+flag: "FortID{I_h0p3_Y0u_W1ll_Pu7_Th15_5t1ck3r_0n_Y0ur_L4p70p_a763247af7}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "custom pool/arena allocator with blocks[] metadata"
+  - "read-file primitive gated by per-process secret stored in the same arena"
+  - "refcounted shared blocks (captions with equal text)"
+  - "bitmap render row loop with jae bound (off-by-one row)"
+key_idea: >-
+  mono photo renderer writes h+1 rows, zeroing the next pool block's header.
+  Zero a shared caption block's refcount -> remove frees it while the twin
+  caption dangles -> upload re-occupies with fake caption header len=0x300 ->
+  print dangling caption leaks pool incl. builtin booth_ticket -> upload fake
+  builtin {kind=2, flag=1, ticket, path="flag.txt"} -> print dumps the flag.
+prerequisites:
+  - "reading disassembly of bump/free-list arena allocators"
+exploitation_pattern: "map dump primitives and in-arena secrets first; use header-zeroing overflow to break refcount; leak; forge the gated object"
+verification:
+  method: "local flag.txt dump reproduced + remote instance dump + platform accepted"
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Pwn/Sticker Booth/solve/solve.py"
+pitfalls:
+  - "xalloc offset-vs-size reuse test looks like the bug but is not the exploitable one"
+  - "WSL DNS can fail for .inst domains; use Windows python ssl directly"
+failed_paths:
+  - "xalloc free-reuse overflow hypothesis: no controllable overlap"
+tools: ["objdump", "nm", "checksec", "python stdlib socket/ssl"]
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "binary disassembly"
+playbook: ""
+writeup: "CTFTimeWriteup/FortIDCTF2026/Pwn/Sticker Booth/writeup/writeup.md"
+solver: "CTFTimeWriteup/FortIDCTF2026/Pwn/Sticker Booth/solve/solve.py"
+time_heuristic: "60-120 min: full disasm of arena + render loops"
+last_verified: "2026-10-10"

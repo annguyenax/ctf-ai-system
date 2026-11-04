@@ -1,0 +1,35 @@
+id: sunshinectf2026_suntrail
+event: "SunshineCTF 2026"
+category: "forensics/keyboard-layout-physical-arrow-trail"
+challenge_name: "suntrail"
+status: solved
+flag: "sun{qwerty_sucks}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A small .klc file defines only ~17 keys, each carrying a direction symbol (arrow glyphs like SE/E/NW or a stop square) in its normal state and the actual ASCII character in its shift state."
+  - "The arrows describe physical movement on an ANSI-staggered keyboard layout (e.g. Q is diagonally SE of nothing, A is SE of Q, etc.) rather than a logical state-machine transition."
+key_idea: "When a .klc file's 'normal' character values are direction glyphs (arrows / a stop square) rather than printable text, the file is encoding a physical walk across the real staggered keyboard layout: read each key's shift-state character as the output symbol and its normal-state arrow as 'which physical neighbor key to visit next', and trace the path starting from whichever key the prompt/theme implies."
+prerequisites:
+  - "Awareness of physical ANSI keyboard row staggering (needed to resolve 'NW/SE/E' into the correct adjacent key)"
+  - ".klc layout file parsing"
+exploitation_pattern: "parse .klc rows into {virtual_key: (direction_glyph, shift_char)} -> manually or programmatically map each direction glyph to the correct physically-adjacent key given ANSI row offsets -> walk the path from a plausible start key, collecting each step's shift_char, until reaching the stop glyph -> concatenated chars = flag"
+verification:
+  method: "Deterministic walk of the derived key path reproduces the exact flag string."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/suntrail/writeup/writeup.md"
+pitfalls:
+  - "This looks superficially similar to a DEADKEY-chain .klc challenge (compare: 'my eyes burn' in the same event) but encodes the hidden path as physical keyboard-row-adjacency arrows instead of a logical deadkey state graph -- check which encoding scheme a given .klc file actually uses before assuming it's the deadkey-chain pattern."
+failed_paths: []
+tools:
+  - "python3 (manual .klc parsing)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/suntrail/files/suntrail.klc"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/suntrail/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Forensics/suntrail/solve/solve.py"
+time_heuristic: "A .klc file whose 'normal' values are direction arrows rather than deadkey references: it's encoding a physical walk across the staggered keyboard layout, not a logical deadkey chain -- check which of the two .klc stego schemes applies before parsing."
+last_verified: "2026-11-04"

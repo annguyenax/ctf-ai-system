@@ -1,0 +1,9 @@
+{
+  "challenge_id": "hitcon2026_will_be_there_osint",
+  "flag_status": "none",
+  "attempts": [
+    {"t":"2026-10-25 step 01","phase":"TRIAGE","hypothesis_id":"H1","action":"Inspect the supplied image and metadata","result":"Night photograph shows a rocky hilltop and structure; EXIF GPS is empty; visible scene conflicts with the Church candidate","evidence_path":"D:/download/CTFTimeWriteup/HITCONCTF2026/Osint/Will be there OSINT_/files/will-be-there-osint/IMG_1812.jpg","notes":"Visual location remains approximate."},
+    {"t":"2026-10-25 step 02","phase":"RESEARCH","hypothesis_id":"H2","action":"Compare with Mt John Observatory reference coordinates","result":"University coordinate encodes to 4V8G2F78+82; an OSM-derived viewpoint is 4V8G2F78+R2","evidence_path":"D:/download/CTFTimeWriteup/HITCONCTF2026/Osint/Will be there OSINT_/notes/ANALYSIS.md","notes":"Neither reference point is confirmed as the camera position."},
+    {"t":"2026-10-25 step 03","phase":"VERIFY","hypothesis_id":"H3","action":"Submit one coordinate-derived candidate via official helper","result":"HTTP 403 Cloudflare interstitial; checker did not return a verdict","evidence_path":"D:/download/CTFTimeWriteup/HITCONCTF2026/Osint/Will be there OSINT_/solve/evidence/submission_status.txt","notes":"Unverified, not rejected; no alternate candidate submitted."}
+  ]
+}

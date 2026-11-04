@@ -1,0 +1,51 @@
+{
+  "challenge_id": "bytemectf2026_soul_memory_thanos",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Inspect the supplied archive, binary, challenge metadata, and scoped service",
+      "result": "The archive contains an ELF64 PIE with capture, inspect, merge, erase, and transfer operations; service scope is 145.239.142.129:1339",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Soul __ Memory of Thanos/solve/evidence/recovery.json",
+      "notes": "Archive SHA-256: 6BC779E39C74E11A03A0CD85E9E064E6537D8FDF7F3465FE7409CEA20BE89B7A."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "ANALYZE",
+      "hypothesis_id": "H1",
+      "action": "Disassemble merge_souls, transfer_soul, inspect_soul, and soul_ascension",
+      "result": "merge_souls frees the source without clearing archive[source]; transfer_soul mallocs the same 0x40 size and controls callback and essence; inspect_soul calls the callback from +0x38",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Soul __ Memory of Thanos/writeup/writeup.md",
+      "notes": "Type-1 callback leaks PIE at 0x13a9; soul_ascension is at 0x14fb."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "Run the exploit locally with the bundled loader/libc pair",
+      "result": "The process aborted with a stack-smashing message before presenting a usable menu",
+      "evidence_path": "D:/download/ctf-scratch/bytemectf2026_soul_memory_thanos/inspect4_output.txt",
+      "notes": "The bundled runtime pair is unsuitable for local reproduction; direct launch with WSL system glibc works."
+    },
+    {
+      "t": "2026-10-09 step 04",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "Run the complete counter/UAF/callback sequence with the WSL system runtime",
+      "result": "The controlled stale slot invoked soul_ascension and returned OWASP{Th4n0s_S0ul_Mem0ry_UAF_Type_Confusion}",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Soul __ Memory of Thanos/solve/evidence/local_capture.txt",
+      "notes": "Seven souls captured, slot 0 erased, pairs (1,2), (3,4), and (5,6) merged; transfer reused slot 6's latest freed 0x40 chunk."
+    },
+    {
+      "t": "2026-10-09 step 05",
+      "phase": "REMOTE",
+      "hypothesis_id": "H3",
+      "action": "Run the deterministic exploit once against the scoped challenge service",
+      "result": "The remote service returned the same exact flag after the PIE leak and stale-slot callback",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Soul __ Memory of Thanos/solve/evidence/remote_capture.txt",
+      "notes": "One remote session was used. Portal remains OPEN; no submission was made."
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+id: hackluctf2026_turbo_malloc
+event: "Hack.lu CTF 2026"
+category: "pwn/custom-allocator-realloc-oldsize-overflow"
+challenge_name: "turbo-malloc"
+status: solved
+flag: "flag{4gile_and_f4st_n0t3s_what_m0re_c0uld_you_want_15fd146e710755cac6373c3476893ce5}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A custom allocator's `turbo_realloc` calls `memcpy(new_memory, chunk->memory, chunk->size)` using the OLD (larger) chunk size regardless of the new (smaller) requested size, so shrinking an allocation copies stale bytes past the new allocation's actual bound."
+  - "The 1MB static memory arena is immediately followed in memory by global control variables (`head` free-list pointer, then `notes[16]` pointers, then `note_sizes[16]`), with no gap or guard."
+  - "By sizing the arena-adjacent allocation precisely (allocate most of the arena, then a specific-size note right at the boundary), the realloc-driven overflow lands forged pointer values exactly into `notes[]`/`note_sizes[]`, turning a one-shot OOB write into a permanent, repeatable arbitrary-read/write primitive (point a note slot at any address with any fake 'size')."
+key_idea: "Exploit a realloc that copies the OLD size instead of min(old,new) by placing the vulnerable allocation flush against the arena's end so the overflow spills into global bookkeeping arrays right after it, then self-referentially overwrite the notes array itself with new entries pointing at GOT/environ/stack targets to build a durable arbitrary-read/write primitive, finally scanning the leaked stack for `main`'s saved RIP and chaining pop_rdi/'/bin/sh'/system via the exit path."
+prerequisites:
+  - "custom allocator / arena-adjacent-global exploitation reasoning"
+  - "GOT leak -> libc base -> environ -> stack-scan-for-return-address technique"
+  - "No-PIE ROP chain construction"
+exploitation_pattern: "fill most of the arena -> allocate a boundary note of the exact size that reallocs into global-table territory -> forge target table entries in the note's payload -> trigger realloc(small_size) to overflow them into notes[]/note_sizes[] -> leak libc via GOT entry -> leak stack via environ -> scan backward for saved RIP -> write pop_rdi;'/bin/sh';system ROP chain over it -> trigger return via the menu's exit path."
+verification:
+  method: "Full automated exploit (pwntools) verified against the challenge binary and the exact GLIBC 2.39 environment it targets."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/turbo-malloc/writeup/writeup.md"
+pitfalls:
+  - "`memcpy(dst, src, chunk->size)` after a realloc-to-smaller-size call is a textbook arena-boundary overflow -- check every custom allocator's resize path for whether it uses the OLD size, the NEW size, or min() of the two."
+  - "Globals placed immediately after a static arena with no guard gap become directly overwritable by any arena-overflow primitive; once overwritten, make the primitive durable by pointing the array AT ITSELF so subsequent writes don't need to repeat the original overflow trigger."
+failed_paths: []
+tools:
+  - "pwntools"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/turbo-malloc/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/turbo-malloc/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/turbo-malloc/solve/solve.py"
+time_heuristic: "For any custom allocator challenge, check the resize/realloc path's memcpy length argument first -- using the stale old size instead of the requested new size is a common, high-value bug; if globals sit right after the arena, aim for an arena-boundary overflow rather than internal heap metadata corruption."
+last_verified: "2026-11-04"

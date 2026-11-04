@@ -1,0 +1,37 @@
+{
+  "challenge_id": "securinetsquals2026_old_calculator",
+  "event": "Securinets CTF Quals 2026",
+  "category": "crypto",
+  "challenge_name": "Old Calculator",
+  "flag_status": "verified",
+  "flag": "Securinets{ed9a482110a5a6936482e700155f811742f97a04decfa75d3cee28bca77239c1}",
+  "attempts": [
+    {
+      "t": "2026-10-18T12:00:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Collect (shown, R, expected) by one wrong answer per connection",
+      "result": "Same R maps to different expected values. Low-degree polynomials in shown and R do not fit.",
+      "evidence_path": "raw/flag_runs.txt",
+      "notes": "F is per connection, not a global function of R."
+    },
+    {
+      "t": "2026-10-18T12:20:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Zero both tables, then leak F(R)",
+      "result": "F is unchanged by edits. Leaked values fit a*R+b with small a and b.",
+      "evidence_path": "raw/flag_runs.txt",
+      "notes": "Samples y[i]=a*x[i]+b are the way to read the snapshotted coefficients."
+    },
+    {
+      "t": "2026-10-18T12:40:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H2",
+      "action": "Newton-divide weighted table deltas, pack a+b/256, answer 16 rounds",
+      "result": "verified",
+      "evidence_path": "raw/flag_runs.txt",
+      "notes": "Two full runs returned the same flag JSON."
+    }
+  ]
+}

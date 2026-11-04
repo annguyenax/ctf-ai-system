@@ -1,0 +1,40 @@
+id: ptitctf2026_bug_bounty
+event: "PTITCTF2026"
+category: "forensics/pcap-attacker-timeline-quiz"
+challenge_name: "Bug bounty"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "The challenge is a TCP netcat quiz server (not HTTP), asking sequential questions about a 705MB PCAP of an attacker enumerating/attacking a mod-upload platform ('PalForge'/Palworld-mod API) -- answers must come from precise packet-level facts (filenames, port numbers, exact scan counts), not inference."
+  - "Wrong Q1 answers keep retrying the same question rather than hard-failing after the stated '5 lượt thử' (5 attempts) -- the stated attempt limit did not match observed server behavior in this session."
+  - "A decoy/planted hint existed as a failed-login password field containing a literal Wireshark filter string ('tcp.stream eq 60053'), pointing the analyst at a specific TCP stream that turned out to be a dead/closed-port probe, with the real activity in adjacent streams."
+  - "The quiz flag is per-instance (regenerated per spawned instance) and the challenge instance itself expires after 30 minutes, so analysis and quiz-answering must happen within one live session rather than being resumable across instances."
+key_idea: "Deep PCAP timeline reconstruction (apt package downloads identifying attacker tooling: masscan then gobuster+SecLists, credential registration/login events for two user accounts, multipart file uploads to a mod-platform API) was completed and multiple quiz answers were derived with reasonable confidence, but Q1 (first downloaded tool filename) was tried wrong multiple times across several URL-encoding/exact-filename variants before the instance died, and the per-instance flag was never completed because the 30-minute instance expired mid-quiz. No flag was obtained."
+prerequisites:
+  - "Full PCAP protocol parsing (DHCP, HTTP, TLS SNI/cert metadata, multipart form uploads) at scale (705MB capture, ~400k packets, 60k TCP streams)"
+  - "A persistent/resumable session strategy for quiz-style challenges with hard, short-lived (30-minute) live instances"
+exploitation_pattern: "identify attacker/victim IPs and app actors from PCAP metadata (DHCP hostnames, TLS SNI, HTTP) -> reconstruct a precise exploitation timeline (apt tool downloads, credential registration, scans, file uploads) -> answer a sequential netcat quiz whose per-instance flag only appears after all questions are answered correctly within one live, time-limited instance."
+verification:
+  method: "No verification performed; several candidate quiz answers (Q1-Q9) were derived from the PCAP but at least Q1 was submitted and rejected multiple times before the instance expired."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Forensics/Bug bounty/notes/SESSION.md records exact failed Q1 attempts and the reconstructed timeline/app facts used for later questions."
+pitfalls:
+  - "A quiz-style challenge over a short-lived instance (here 30 minutes) demands finishing the full question sequence inside one spawn -- treat PCAP reverse-engineering and quiz-answering as needing to fit a tight live time budget, not an asynchronous offline pipeline."
+  - "A string that reads like a real credential/password in a login attempt may actually be a planted Wireshark filter hint rather than a real exfiltrated password -- treat it as a pointer to a specific packet/stream, not as material to reuse elsewhere."
+  - "A stated retry/attempt limit in the challenge prompt may not match the server's actual enforced behavior (observed: repeated wrong Q1 answers did not hard-lock after 5 tries) -- verify the real limit empirically rather than assuming the prompt text is authoritative, but still budget conservatively."
+  - "Downloaded-tool filename answers can require the exact URL-encoded form (e.g. '+' encoded as '%2b' in a .deb package name) as transmitted on the wire, not the human-readable decoded filename -- check both forms when a first guess is rejected."
+failed_paths:
+  - "Q1 candidates tried and rejected: gobuster_3.8.2-1_amd64.deb, gobuster, openssl, masscan_1.3.2+ds1-2_amd64.deb, masscan, seclists_2025.3-0kali1_all.deb."
+tools:
+  - "Wireshark / PCAP analysis (implied: tshark or equivalent for 705MB capture at scale)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "forensics_pcap.md"
+writeup: ""
+solver: ""
+time_heuristic: "For a live, time-limited (e.g. 30-minute) netcat quiz over a large PCAP, pre-stage a full offline timeline reconstruction (actors, tool downloads, scan details, uploads) before spawning the instance, so quiz answers can be submitted immediately rather than analyzed under the live time pressure; and try both the human-readable and exact wire-encoded form of any filename/URL answer."
+last_verified: "2026-11-04"

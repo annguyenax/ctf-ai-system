@@ -1,0 +1,41 @@
+id: kalictf26_havok_trail
+event: KaliCTF2026
+category: osint/ctf-team-history
+challenge_name: "Havok Trail"
+status: solved
+flag: "KaliTeam{2024_Riyadh_83}"
+confidence: 0.9
+artifact_hashes: []
+signals:
+  - "Prompt-only guest/OSINT challenge, no attachments; author profile links to a real org (LinkedIn company hav0k)."
+  - "Flag format demands YEAR_CITY_RANK of a named team's competition result."
+key_idea: Reconstruct a named CTF team's public competition history (year, host city, final ranking) from CTFtime team/event pages rather than guessing; corroborate with a second independent public source (LinkedIn post) before picking which numeric rank the prompt wants.
+prerequisites:
+  - CTFtime.org team and event search
+  - Distinguishing "qualification" vs "final" placement for the same event series
+exploitation_pattern: >
+  Search team/author name + event series name -> find CTFtime team page -> read
+  event history rows -> pick the row matching the prompt's exact wording (e.g.
+  "final ranking" means Finals placement, not Quals placement) -> assemble
+  YEAR_CITY_RANK from the matched row.
+verification:
+  method: Cross-checked CTFtime scoreboard entry against an independent LinkedIn mention of the same two numeric placements (quals vs finals) for the same team.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026/guests/Havok Trail/solve/evidence/manifest.md"
+pitfalls:
+  - Using the qualification-round placement instead of the finals placement when the prompt says "final ranking" gives a wrong flag.
+failed_paths: []
+tools:
+  - CTFtime.org team/event pages
+  - Public LinkedIn posts for corroboration
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "https://ctftime.org/team/302650/"
+  - "https://ctftime.org/event/2431/"
+playbook: "recon_external_search.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026/guests/Havok Trail/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026/guests/Havok Trail/solve/solve.py"
+time_heuristic: "A guest/OSINT prompt naming a real team + event series resolves in minutes via CTFtime's team event-history table; don't guess numeric fields that a public scoreboard already states."
+last_verified: "2026-11-04"

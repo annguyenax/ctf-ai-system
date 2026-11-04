@@ -31,7 +31,7 @@ hexstrike:
   notes: exact local/manual reproduction was sufficient
 sources: []
 playbook: PLAYBOOKS/web_nextjs_server_actions_rce.md
-writeup: ../CTFTimeWriteup/BushBash2026/web/Old website/writeup/writeup.md
-solver: ../CTFTimeWriteup/BushBash2026/web/Old website/solve/
+writeup: ../ctf-ai-system/OUTPUT/_archive/BushBash2026/web/Old website/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/BushBash2026/web/Old website/solve/
 time_heuristic: framework fingerprint plus exact affected version should trigger advisory matching before generic route fuzzing
 last_verified: "2026-08-01"

@@ -1,0 +1,37 @@
+id: rstconctf2026_n07_05h4_c3r71f13d
+event: RSTCONCTF2026
+category: misc
+challenge_name: n07_05h4_c3r71f13d
+status: solved
+flag: rstcon{LD_better_than_ST}
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Open-plcIOsim ladder-logic repair
+  - Server-side truth-table validation at /api/solve
+  - Question letters must be reordered by slot
+key_idea: Repair each rung from its truth cases; assemble SAFETY by slot order
+prerequisites:
+  - Python standard library
+exploitation_pattern: "POST corrected rung JSON to /api/solve; order the returned letters by slot; verify through /api/flag"
+verification:
+  method: "Challenge simulator returned the flag; official event helper accepted it"
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Misc/n07_05h4_c3r71f13d/solve/evidence/manifest.md"
+pitfalls:
+  - "Question IDs are not the letter order; the slot mapping is 06,03,04,05,02,01."
+  - "Timer T_BW uses a 500 ms preset and must reset when FLOW drops."
+failed_paths: []
+tools:
+  - Python urllib
+  - Python standard library
+hexstrike:
+  used: false
+  useful: false
+  notes: "Client bundle and challenge API were sufficient."
+sources:
+  - "D:/download/CTFTimeWriteup/RSTCONCTF2026/Misc/n07_05h4_c3r71f13d/challenge.md"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Misc/n07_05h4_c3r71f13d/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Misc/n07_05h4_c3r71f13d/solve/solve.py"
+time_heuristic: "Mine the client only after confirming the app is a logic puzzle; use the actual validation endpoint rather than visual trial and error."
+last_verified: "2026-10-25"

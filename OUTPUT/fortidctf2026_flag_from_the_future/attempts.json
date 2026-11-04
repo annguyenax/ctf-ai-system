@@ -1,0 +1,4 @@
+{"challenge_id":"fortidctf2026_flag_from_the_future","event":"FortID CTF 2026","challenge_name":"Flag from the Future","flag_status":"verified","attempts":[
+{"t":"2026-10-11","phase":"TRIAGE","hypothesis_id":"H1","action":"extract 36x382 grid, identify Game-of-Life text renderer","result":"exact binary board recovered","evidence_path":"Misc/Flag from the Future/solve/current_grid_exact.txt","notes":""},
+{"t":"2026-10-11","phase":"ANALYSIS","hypothesis_id":"H1","action":"search font/size/threshold + N","result":"DejaVuSansMono-Bold 16px >=128, N=18; raw hmtx advance stalls at char 15","evidence_path":"Misc/Flag from the Future/solve/canvas_prefix_search.txt","notes":""},
+{"t":"2026-10-11","phase":"CAPTURE","hypothesis_id":"H2","action":"beam search with 617/64 px advance","result":"full board match, flag accepted","evidence_path":"Misc/Flag from the Future/solve/solve.py","notes":"browser 1/64px quantization"}]}

@@ -1,0 +1,42 @@
+{
+  "challenge_id": "picoctf2026_mss_advance_revenge",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-28T00:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1-small-coeff-lll",
+      "action": "Read chall.py: 30 SHA256-chained 256-bit coeffs, 20 evals mod 1024-bit p, AES-CBC IV=0 under MASTER_KEY=sha256(flag)",
+      "result": "underdetermined interpolation; coeffs << p so Coppersmith/LLL",
+      "evidence_path": "../CTFTimeWriteup/picoCTF2026/Crypto/MSS_ADVANCE Revenge/files/chall.py",
+      "notes": "Hermes sympy solver hung; not a missing-math problem"
+    },
+    {
+      "t": "2026-08-28T00:10:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H1-small-coeff-lll",
+      "action": "Existing solve/solve.py sympy Matrix.lll on 51x51 ~1536-bit lattice",
+      "result": "does not terminate in reasonable time",
+      "evidence_path": "../CTFTimeWriteup/picoCTF2026/Crypto/MSS_ADVANCE Revenge/solve/solve.py",
+      "notes": "sympy LLL trap"
+    },
+    {
+      "t": "2026-08-28T00:20:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1-small-coeff-lll",
+      "action": "python-flint fmpz_mat.lll(delta=0.99) on affine lattice dim 51, W=2^512",
+      "result": "LLL ~14s; harvested 256-bit candidates; one regenerates hash chain",
+      "evidence_path": "../CTFTimeWriteup/picoCTF2026/Crypto/MSS_ADVANCE Revenge/solve/solve_flint.py",
+      "notes": "MASTER_KEY recovered as first coeff"
+    },
+    {
+      "t": "2026-08-28T00:25:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1-small-coeff-lll",
+      "action": "Rebuild 30 hash-chained coeffs from claimed flag; match all 20 evals; AES-CBC unpad",
+      "result": "mismatched_points=0; aes_pt equals flag",
+      "evidence_path": "OUTPUT/picoctf2026_mss_advance_revenge/raw/verify.txt",
+      "notes": "independent of LLL recovery"
+    }
+  ]
+}

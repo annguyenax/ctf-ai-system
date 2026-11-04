@@ -1,0 +1,35 @@
+id: deadfacectf2026_alice_and_bob
+event: DeadfaceCTF2026
+category: osint/github-keys-endpoint
+challenge_name: "OSINT / Alice and Bob Would Like a Word"
+status: solved
+flag: "deadface{PubM34n5Publ1cDuH}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - A forum thread hints that "public keys" for some account are openly viewable "right there in the files" of a repository host.
+  - GitHub exposes every account's SSH public keys at the unauthenticated, undocumented-feeling but standard URL `https://github.com/<username>.keys`.
+  - Among the real SSH key lines, one entry is a crafted fake key whose body embeds the flag text (obfuscated flag delimiters, e.g. custom characters instead of `{`/`}`).
+key_idea: GitHub serves a plaintext list of every user's public SSH keys at `https://<host>/<username>.keys` with no auth required; when OSINT needs to find something a user "left in their keys," check that endpoint directly rather than searching repos/commits for key material.
+prerequisites:
+  - A known or discoverable GitHub username for the target (often chained from a prior OSINT challenge)
+exploitation_pattern: resolve target's GitHub username (from a previous OSINT step) -> GET https://github.com/<username>.keys -> scan the returned key list for an entry that doesn't parse as a normal key / contains flag-shaped text -> de-obfuscate per the challenge's custom flag-delimiter format.
+verification:
+  method: Fetching the .keys endpoint returned a list including a crafted ed25519-looking line whose body contained the flag text per the challenge's stated delimiter substitution.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/Alice and Bob Would Like a Word/writeup/writeup.md"
+pitfalls:
+  - Easy to miss the planted fake key among several real-looking ones — diff/scan every line rather than eyeballing just the first match.
+failed_paths: []
+tools:
+  - urllib / curl
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/Alice and Bob Would Like a Word/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: recon_external_search.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/Alice and Bob Would Like a Word/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/OSINT/Alice and Bob Would Like a Word/solve/read_topic_44.py"
+time_heuristic: When OSINT points at a target's "public keys," try the platform's built-in public-keys endpoint (e.g. GitHub's `/<user>.keys`) before digging through repos or commit history.
+last_verified: "2026-11-04"

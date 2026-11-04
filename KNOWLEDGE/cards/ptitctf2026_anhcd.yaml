@@ -42,7 +42,7 @@ hexstrike:
 sources:
   - "https://github.com/matthewgao/F5-steganography - reference F5 extractor used for a bounded negative test"
 playbook: ""
-writeup: D:/download/CTFTimeWriteup/PTITCTF2026/Forensics/anhcd/writeup/writeup.md
-solver: D:/download/CTFTimeWriteup/PTITCTF2026/Forensics/anhcd/solve/solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Forensics/anhcd/writeup/writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Forensics/anhcd/solve/solve.py
 time_heuristic: "Fast extraction; stop broad search once common carrier families are killed and request an independent verification gate."
 last_verified: "2026-08-23"

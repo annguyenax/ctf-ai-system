@@ -1,0 +1,36 @@
+id: deadfacectf2026_real_pain_in_the_prostate
+event: DeadfaceCTF2026
+category: web/sqli-enumeration-then-idor
+challenge_name: "Web / Real Pain in the Prostate (2 of 4 series)"
+status: solved
+flag: "deadface{hipaa_exposure_is_bad}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - A prior SQLi (`' OR '1'='1`) only ever surfaces the *first* matching row (the first account in the table), hiding other accounts.
+  - Negating the already-known account in the injected condition (`' OR username != 'john.smith`) returns the next account instead, acting as a crude enumeration primitive.
+  - The newly-leaked account's credentials and department scope then unlock a department-scoped data endpoint (`/api/patients`) containing a record with the flag in a free-text field (`diagnosis`).
+key_idea: When a boolean/UNION-less SQLi only reveals one row at a time (e.g. the first row matching `OR 1=1`), iteratively negate every already-known value in the same injected condition (`username != 'known_value'`) to walk through additional rows one at a time, then use each newly-revealed account's own credentials/scope to pull further data from authenticated, scope-filtered endpoints.
+prerequisites:
+  - A working SQLi primitive from a prior step that returns full row data
+  - A scope-filtered data endpoint (e.g. one keyed by departmentid) reachable once authenticated as any valid user
+exploitation_pattern: inject `' OR username != '<already_known_username>` as username with any password -> read the new account's leaked creds/department -> log in normally with those creds -> call the department/resource-scoped endpoint -> flag/data appears in a planted record (e.g. "Patient Zero") within that scope.
+verification:
+  method: Logging in as the newly-leaked account and querying its department's patient list returned a record whose diagnosis field was the exact flag string.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Web/Real Pain in the Prostate (2 of 4 series)/writeup/writeup.md"
+pitfalls:
+  - A naive repeat of the same `OR '1'='1'` payload only ever returns the same first row; must actively exclude already-seen values to progress to the next account.
+failed_paths: []
+tools:
+  - Python urllib
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Web/Real Pain in the Prostate (2 of 4 series)/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: web_sqli.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Web/Real Pain in the Prostate (2 of 4 series)/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Web/Real Pain in the Prostate (2 of 4 series)/solve/solve.py"
+time_heuristic: If a row-returning SQLi only ever surfaces the same first match, iterate by negating already-known values in the injected condition to enumerate further rows, then chase each newly-revealed account's own data scope.
+last_verified: "2026-11-04"

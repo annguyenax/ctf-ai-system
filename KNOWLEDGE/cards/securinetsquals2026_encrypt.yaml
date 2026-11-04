@@ -1,0 +1,29 @@
+id: securinetsquals2026_encrypt
+event: SecurinetsQuals2026
+category: reverse
+challenge_name: Encrypt
+status: solved
+flag: "Securinets{I_d0n't_ev3n_kn0w_wh4t_w0uld_b3_th1s_fl4g_but_br3ak_1t_d0wn_l1ke!!}"
+confidence: 1.0
+artifact_hashes:
+  - "handout.zip: 6b4d55efa6de50f1ee11341b4c2dfb288c9791a7e53db646f668d3ab59898f1f"
+signals: [packed Rust egui GUI, cipher.txt not block aligned, public length-seeded shuffle, AES S-box reused in custom cipher, anti-debug self-hash, runtime generated machine code]
+key_idea: "Use the program's own routine under Unicorn as a key-material oracle; invert each stage in Python; brute force the unstored millisecond field and accept on valid XPRESS output."
+prerequisites: [unicorn, capstone, pefile, Frida, Windows ntdll XPRESS]
+exploitation_pattern: "capture seed -> decode header -> harvest keys by emulation -> invert stages -> brute force w0 -> re-encrypt check"
+verification:
+  method: "Re-run original routine with recovered plaintext and seed; output equals cipher.txt byte for byte"
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/Encrypt/solve/evidence/recovery.json"
+pitfalls: [q1 is 0 because GetModuleHandle(NULL) is the stub, fdd0 seed path depends on compress success, generated code differs per seed, pass C inverse can branch]
+failed_paths: [modelling q1 from inner .text hash, hand lifting every stage before using the emulator]
+tools: [Python, unicorn, capstone, pefile, Frida via REA]
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local emulation and Frida were enough."
+sources: []
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/Encrypt/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/Encrypt/solve/solve.py"
+time_heuristic: "Capture the live seed first; skip static modelling of environment-dependent values."
+last_verified: "2026-10-18"

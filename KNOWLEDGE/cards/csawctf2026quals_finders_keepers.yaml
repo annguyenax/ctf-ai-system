@@ -1,0 +1,38 @@
+id: csawctf2026quals_finders_keepers
+event: "CSAW CTF Qualifications 2026"
+category: "crypto/stego-container-metadata"
+challenge_name: "Finders Keepers!"
+status: solved
+flag: "csaw{y0u_@lw@ys_kn0w_wh3r3_t0_l00k}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Video frames, audio track and spectrogram contain no visible payload; pure decoration."
+  - "`strings -n 8` on the raw mp4 reveals an Adobe XMP packet with a <dc:subject> tag left by the export pipeline (Canva/ExifTool)."
+  - "Base64-decoded XMP tag yields ciphertext that resembles the flag format but with a shifted prefix (esnp{ vs csaw{)."
+key_idea: "When a video/image challenge's pixel and audio data are a red herring, dump raw container bytes with strings/exiftool before assuming steganography in the media stream; export tools (Canva, Adobe) often leave an XMP dc:subject/dc:description block untouched by re-encoding."
+prerequisites:
+  - "Basic container format awareness (mp4 XMP packet, ftyp/moov vs mdat)"
+  - "Vigenere cipher recognition from prefix mismatch"
+exploitation_pattern: "container metadata (XMP dc:subject) -> base64 decode -> prefix mismatch indicates keyed substitution -> brute-force thematic Vigenere key from prompt wording -> flag"
+verification:
+  method: "Deterministic local decode; solve.py reproduces the exact flag from the embedded base64 blob."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Finders Keepers!/writeup/writeup.md"
+pitfalls:
+  - "Do not assume stego is in the pixel/audio stream; check container-level metadata first for video challenges."
+  - "A decoded string that reads as flag-shaped but with a wrong fixed prefix (e.g. esnp{ vs csaw{) is a strong signal of a Vigenere/substitution cipher over alphabetic chars only, with non-alpha chars passed through unshifted."
+failed_paths: []
+tools:
+  - "strings"
+  - "python3 (base64, manual Vigenere)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Finders Keepers!/files/finderskeepers.mp4"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Finders Keepers!/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Finders Keepers!/solve/solve.py"
+time_heuristic: "Video/image challenge with no visible payload in frames/audio: run strings/exiftool on the raw container bytes first; export-tool XMP blocks are a common, fast place to find an encoded flag."
+last_verified: "2026-11-04"

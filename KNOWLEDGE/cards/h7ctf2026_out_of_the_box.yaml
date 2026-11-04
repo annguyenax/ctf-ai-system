@@ -1,0 +1,33 @@
+id: "h7ctf2026_out_of_the_box"
+event: "H7CTF 2026 Quals"
+category: "misc/pyjail-weakvaluedict-builtins-bypass"
+challenge_name: "Out of the Box"
+status: "solved"
+flag: "H7CTF{7023bcfe-0b1c-4e6c-adfc-9b6d3656549d}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "eval(src, {\"__builtins__\": {}}, {}) with a case-insensitive substring blocklist on dangerous keywords/names (import, os, open, chr, getattr, etc.)."
+key_idea: "Emptying __builtins__ in the eval globals dict does not remove the real builtins from already-loaded objects' __globals__ -- walk the live class hierarchy from any literal (e.g. ().__class__.__base__.__subclasses__()) to find a standard-library class whose __init__.__globals__['__builtins__'] still holds the real builtins dict, then index into it with string-concatenation-built keys (e.g. 'op'+'en') to dodge a naive substring keyword blocklist, and build blocked path strings (e.g. '/fl'+'ag.txt') the same way."
+prerequisites:
+  - "Knowing a stdlib class name reliably present in the subclasses list (e.g. _WeakValueDictionary) whose __init__ exposes real builtins via __globals__"
+  - "String concatenation to avoid literal blocklisted substrings"
+exploitation_pattern: "[c for c in ().__class__.__base__.__subclasses__() if 'TargetClassNameFragment' in c.__name__][0].__init__.__globals__['__builtins__']['op'+'en']('/fl'+'ag.txt').read()"
+verification:
+  method: "Live replay against the TCP jail service; payload returned the flag file contents directly."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Out of the Box/writeup/writeup.md"
+pitfalls:
+  - "A keyword blocklist checked as a simple substring match is defeated entirely by string concatenation at each blocked token (getattr/vars/dir aren't even needed here since dict indexing with __globals__ suffices)."
+failed_paths: []
+tools:
+  - "Python"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: "jail_boolean_oracle.md"
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Out of the Box/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Out of the Box/solve/solve.py"
+time_heuristic: "For an eval() jail with an empty __builtins__ dict and a substring keyword blocklist, the standard escape is ().__class__.__base__.__subclasses__() to find a class exposing real builtins via __init__.__globals__, with every blocked token rebuilt via string concatenation."
+last_verified: "2026-11-04"

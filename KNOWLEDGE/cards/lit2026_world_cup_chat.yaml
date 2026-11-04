@@ -9,7 +9,7 @@ verification: Found flag LITCTF{ent1ty_m4g1c_1fj10d}
 tools:
   - Python
   - curl
-writeup: D:\download\CTFTimeWriteup\LIT2026\web\world_cup_chat\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\web\world_cup_chat\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\web\world_cup_chat\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\web\world_cup_chat\solve\solve.py
 time_heuristic: 5 minutes
 last_verified: 2026-08-03

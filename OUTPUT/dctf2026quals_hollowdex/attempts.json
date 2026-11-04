@@ -1,0 +1,33 @@
+{
+  "challenge_id": "dctf2026quals_hollowdex",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-09-18T20:50:00+07:00",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "unzip apk; strings so/dex",
+      "result": "JNI_OnLoad patches DEX via /proc/self/mem",
+      "evidence_path": "CTFTimeWriteup/DCTF2026Quals/Reverse/hollowdex/notes/ANALYSIS_hermes.md",
+      "notes": "SELF-DERIVED"
+    },
+    {
+      "t": "2026-09-18T20:55:00+07:00",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H1",
+      "action": "XOR code_item 0x62c; invert ARX",
+      "result": "vault hex c19e6e4be6148b5581809ae7291c9cfe",
+      "evidence_path": "CTFTimeWriteup/DCTF2026Quals/Reverse/hollowdex/solve/solve.py",
+      "notes": "forward ARX replay OK"
+    },
+    {
+      "t": "2026-09-18T21:18:00+07:00",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "portal wrap CTF{sha256} of ascii hex",
+      "result": "CTF{712ce34b07c19165180e69583257151dd56963a04989272bc55a249ab5e98cb5}",
+      "evidence_path": "CTFTimeWriteup/DCTF2026Quals/Reverse/hollowdex/final_flag.txt",
+      "notes": "CTF{raw hex} rejected on CyberEDU"
+    }
+  ]
+}

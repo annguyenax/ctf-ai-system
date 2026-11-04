@@ -1,0 +1,35 @@
+id: "h7ctf2026_frame_of_reference"
+event: "H7CTF 2026 Quals"
+category: "pwn/cpp-coroutine-uaf-vtable-type-confusion-rsa-backdoor"
+challenge_name: "Frame of Reference"
+status: "solved"
+flag: "H7CTF{6f222992-556a-4901-90a4-11aa23473b29}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A C++20 coroutine's suspended frame holds a reference into a custom slab allocator cell that is freed before the coroutine resumes, and a LIFO freelist immediately hands that same cell to an unrelated object type."
+  - "The resumed coroutine reads/writes through its stale reference, aliasing the new object's vtable pointer at the same memory offset."
+key_idea: "A coroutine frame storing a reference/pointer into a manually-managed allocator cell is a UAF if the cell is freed while the coroutine is still suspended and not yet resumed; if the allocator's freelist is LIFO, the very next same-size allocation (e.g. a different polymorphic class) reuses that exact cell, so when the coroutine resumes it reads/writes fields that now alias the new object's vtable pointer and other members at predictable offsets. This gives an arbitrary-pointer leak-then-overwrite primitive (here: leak a vtable pointer disguised as an RSA modulus n=p*q with q=1, then write back an attacker-chosen vtable pointer disguised as a derived RSA private exponent d, landing on an unreachable subclass's vtable to hijack a later virtual call)."
+prerequisites:
+  - "Reasoning about coroutine frame lifetime vs. custom allocator free/reuse timing"
+  - "Enough control over \"legitimate\" computed values (e.g. an RSA key-derivation step) to land a chosen bit pattern at a chosen offset"
+exploitation_pattern: "round 1 - stage a coroutine with a benign computation that frees-then-reuses the same cell with a second object, causing the coroutine's \"leak\" field to equal the second object's vtable pointer -> compute target = leaked_vptr + known_offset_to_desired_subclass_vtable -> round 2 - replay with the \"write-back\" computation engineered (via its own math, e.g. picking RSA d coprime to lambda with chosen low bits) so the written-back value's low bits equal target -> vtable pointer is now hijacked -> trigger the virtual call for the attacker-chosen subclass's method, which leaks the flag."
+verification:
+  method: "Live replay; after the two-round primitive, invoking the hijacked virtual method printed the flag via XOR against an empty attacker-supplied message."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/frame-of-reference/writeup.md"
+pitfalls:
+  - "You must reverse the exact LIFO reuse ordering and byte offsets the coroutine frame vs. the second object occupy in the shared cell before any leak/write makes sense."
+failed_paths: []
+tools:
+  - "pwntools"
+  - "manual C++ binary reverse engineering"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/frame-of-reference/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Pwn/frame-of-reference/exploit.py"
+time_heuristic: "When a C++ pwn target uses coroutines with a custom slab/pool allocator, specifically check whether a coroutine's captured reference outlives the explicit free of its backing cell and whether the next same-size allocation (LIFO freelist) is a different polymorphic type -- that combination is a reliable vtable-aliasing UAF primitive even without any classic heap-exploitation technique."
+last_verified: "2026-11-04"

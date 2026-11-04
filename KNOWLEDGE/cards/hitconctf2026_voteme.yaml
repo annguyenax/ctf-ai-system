@@ -1,0 +1,43 @@
+id: hitconctf2026_voteme
+event: "HITCON CTF 2026"
+category: "crypto/tls-prng-mt19937+js-math-random-recovery"
+challenge_name: "VoteMe"
+status: solved
+flag: "hitcon{cuz_@_the_end_of_the_day_,_it_s_me_myself_and_sqrt(-1)_..._...}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Custom TLS curve has cofactor 2^16, so the low 16 bits of the ECDHE scalar are recoverable via Pohlig-Hellman in the 2-torsion subgroup from the public point alone."
+  - "Each TLS handshake leaks 16 bits of a persistent server-side Ruby MT19937 generator; ~1248 consecutive handshakes on one connection gives 19968 bits, enough to solve the full 19937-bit MT19937 state via GF(2) Gaussian elimination."
+  - "Node vm.createContext() omits `crypto` from the sandbox, so snarkjs's getRandomBytes() and a uuid library both silently fall back to Math.random()."
+  - "V8 Math.random() batches 64 XorShift128 outputs per refill and pops them in LIFO order; tracing exact call counts (uuid buffer fill then PLONK seed) lets you align UUID bytes to forward XorShift128 state and the seed bytes to a different offset in the same 128-bit linear generator."
+key_idea: "Chain two independent weak-PRNG breaks: (1) recover a Mersenne Twister's full internal state from torsion-subgroup-leaked low bits of each TLS ECDHE scalar to decrypt captured traffic, then (2) recover the V8 Math.random() 128-bit XorShift state from a UUID's bytes (via a GF(2) linear system, 2^6 candidate states) to predict the ZK-proof blinding factors and brute-force the committed vote per ballot."
+prerequisites:
+  - "Pohlig-Hellman over small prime-power subgroups"
+  - "GF(2) linear algebra for LCG/MT/xorshift state recovery"
+  - "Node vm sandbox semantics (missing globals fall back silently)"
+  - "PLONK wire polynomial blinding structure"
+exploitation_pattern: "small-order curve subgroup leak -> MT19937 state recovery -> TLS session key -> decrypt HTTP response -> per-ballot UUID leaks sandboxed Math.random() state -> predict ZK blinding -> brute-force 3 candidate votes against eval_a."
+verification:
+  method: "Deterministic solver replay reproduced the exact flag from the decrypted/recovered data."
+  evidence: "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/VoteMe/writeup/writeup.md"
+pitfalls:
+  - "A curve with a large smooth cofactor leaks low bits of any scalar multiplication's exponent for free -- always factor the curve order before assuming ECDH/ECDSA scalars are opaque."
+  - "Any JS sandbox (vm.createContext, isolated-vm, etc.) that omits `crypto` silently downgrades every library relying on it to Math.random() rather than erroring -- a correctness bug becomes a cryptographic break."
+  - "V8's Math.random() entropy pool is LIFO; naive 'count calls forward' reasoning gives the wrong byte order unless you account for the pop order explicitly."
+failed_paths: []
+tools:
+  - "Python 3 (sympy/custom GF(2) solver)"
+  - "custom C bit-parallel Gaussian elimination solver"
+  - "Node.js for ground-truth tracing"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/VoteMe/files/voteme-27f2656eaea4fcf2.tar.gz"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/VoteMe/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HITCONCTF2026/Crypto/VoteMe/solve/decrypt_final.py"
+time_heuristic: "When a challenge layers a custom-curve TLS plus a server-side ZK proof system, check the curve's cofactor for small-subgroup leaks first, then check every sandboxed JS runtime for an accidentally-missing `crypto` global before assuming Math.random() is unreachable."
+last_verified: "2026-11-04"

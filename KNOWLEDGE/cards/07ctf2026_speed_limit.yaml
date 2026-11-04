@@ -1,0 +1,36 @@
+id: 07ctf2026_speed_limit
+event: 07CTF 2026
+category: osint/streetview-panoid
+challenge_name: "Speed Limit"
+status: solved
+flag: "07CTF{d1d_y0u_s33_th3_p4n0_1d?}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "GeoGuessr-style viewer embeds a data-image-src filename that is a 22-character alphanumeric token (e.g. Zt9tz2XOdBXULkk-uisalA) -- the exact shape of a Google Street View pano_id."
+  - "The check endpoint requires a proof-of-work token before accepting a coordinate guess."
+key_idea: "Recognize that a 22-char filename token embedded in an equirectangular-panorama viewer is a Google Street View pano_id, resolve it to exact lat/lon via the streetlevel library (or the SV metadata endpoint) instead of visually geoguessing, then automate the required proof-of-work to submit the guess."
+prerequisites:
+  - "Familiarity with Google Street View pano_id format and lookup libraries (streetlevel, or raw metadata API)"
+  - "Basic hash-based proof-of-work solving (parallel SHA-256 brute force)"
+exploitation_pattern: "panorama image filename -> recognize as Street View pano_id -> streetview.find_panorama_by_id() -> exact coordinates -> solve PoW -> POST guess to check endpoint -> flag in response."
+verification:
+  method: "Automated solver script fetched PoW token, solved it, submitted the resolved coordinates, and the server response JSON contained success:true and the flag."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/07CTF2026/OSINT/Speed Limit/writeup/writeup.md"
+pitfalls:
+  - "Do not attempt manual visual geolocation of an equirectangular panorama when the asset filename already encodes a resolvable platform identifier (pano_id) -- check the filename/URL structure first."
+failed_paths: []
+tools:
+  - "streetlevel (Python Street View metadata client)"
+  - "Node.js worker_threads for parallel SHA-256 PoW solving"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/07CTF2026/OSINT/Speed Limit/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/07CTF2026/OSINT/Speed Limit/writeup/writeup.md"
+solver: ""
+time_heuristic: "For any 'guess the location from this panorama' web challenge, first check whether the image/asset filename is itself a platform-specific identifier (Street View pano_id, Mapillary image key, etc.) before doing manual visual OSINT."
+last_verified: "2026-11-04"

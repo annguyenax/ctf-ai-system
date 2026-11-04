@@ -1,0 +1,39 @@
+id: dctf2026quals_ratatouille
+event: DefCamp CTF 2026 Quals
+category: reverse
+challenge_name: ratatouille
+status: solved
+flag: "DCTF{e132475cf5b732c2ba714f028a159d957ace5f790edb629b99387621d03bbc61}"
+confidence: 1.0
+artifact_hashes:
+  - "ratatouille sha256:90bea036072598cd34e6f67b2b1ec9ef6f7b9a4220754f3b3ce8087ebc9ab1d5"
+signals:
+  - ELF custom section .recipe
+  - host telemetry / activation profile
+  - FNV-1a with 0xff field separators
+  - xorshift64* (mul 0x2545f4914f6cdd1d)
+key_idea: Do not run the implant. Hash hardcoded telemetry with FNV-1a, seed xorshift64*, XOR .recipe.
+prerequisites: []
+exploitation_pattern: FNV-1a transcript of 7 literals XOR 'ratatoui' then xorshift64* stream
+verification:
+  method: offline decrypt of .recipe is ASCII DCTF{64 hex}
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Reverse\\\\ratatouille\\\\final_flag.txt"
+pitfalls:
+  - executing the ELF
+  - bash vs /bin/bash in the FNV transcript
+  - hashing .recipe instead of decrypting
+failed_paths:
+  - sha256 of .recipe
+tools:
+  - python
+  - readelf
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "PLAYBOOKS/elf_telemetry_fnv_xorshift_section.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Reverse\\\\ratatouille\\\\writeup\\\\writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Reverse\\\\ratatouille\\\\solve\\\\solve.py"
+time_heuristic: static decrypt once literals known
+last_verified: "2026-09-18"

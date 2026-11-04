@@ -1,0 +1,36 @@
+id: fortidctf2026_baby_pwn
+event: FortID CTF 2026
+category: pwn/uaf-stale-alias
+challenge_name: "Baby Pwn"
+status: solved
+flag: "FortID{W0ah_My_F4v0r173_r3viw_C0n7a1n5_4_Fl4G_92900280a1}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "mark_favourite() caches a raw pointer to a heap object in a global; delete_review() frees that object but never clears the global."
+  - "A second allocation of the exact same size (write_draft, 40 bytes) reclaims the freed tcache chunk and lets attacker-controlled bytes land at the same address."
+  - "preview_favourite() calls favourite->display(favourite), an indirect call through the first 8 bytes of attacker-controlled data."
+key_idea: "Classic UAF via stale global pointer: free the tracked object without clearing the alias, reallocate the same tcache size with fully attacker-controlled bytes, overwrite the vtable-like function-pointer field with the address of a fixed win() function, then trigger the stale call."
+prerequisites:
+  - ELF without PIE (fixed win() address)
+  - Tracking allocation sizes across menu operations to predict tcache reuse
+exploitation_pattern: "free(tracked_obj) without clearing alias -> same-size malloc reclaims chunk -> overwrite function-pointer field -> call through stale alias"
+verification:
+  method: "Remote TCP exploit script ran the menu sequence and the server printed the flag."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Pwn/final_flag.txt"
+pitfalls:
+  - "Freeing an object is not enough; always check whether every alias/global pointer to it is cleared, not just the primary one."
+failed_paths: []
+tools:
+  - pwntools-style raw socket scripting
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Pwn/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Pwn/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Pwn/solve/solve.py"
+time_heuristic: "In menu-driven heap challenges, check every global/cached pointer after a free() call, not just the one the free() function itself nulls."
+last_verified: "2026-11-04"

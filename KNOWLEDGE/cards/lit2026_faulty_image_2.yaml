@@ -41,7 +41,7 @@ hexstrike:
   notes: "Local PNG chunk parsing + XOR."
 sources: []
 playbook: ""
-writeup: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_2\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\crypto\faulty_image_2\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\crypto\faulty_image_2\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\crypto\faulty_image_2\solve\solve.py
 time_heuristic: "<10 min: enumerate chunks, spot bad-CRC custom chunk + tEXt key, XOR."
 last_verified: "2026-08-03"

@@ -1,0 +1,36 @@
+id: rstconctf2026_low_bit_levee
+event: RSTCONCTF2026
+category: forensics
+challenge_name: Low Bit Levee
+status: solved
+flag: rstcon{least_significant_secret_bits}
+confidence: 1.0
+artifact_hashes:
+- f22b90cb7c3423754faeaff28be3891e4a0ca60fd464397b6600a10bbdae5005
+signals:
+- RGB least significant bits with length prefix
+key_idea: RGB least significant bits with length prefix
+prerequisites:
+- Pillow
+exploitation_pattern: RGB least significant bits with length prefix
+verification:
+  method: deterministic replay and retained portal response
+  evidence: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Low Bit Levee/solve/evidence/manifest.md
+pitfalls:
+- Reading compressed IDAT bytes as if they were pixels is wrong. Ignoring the two-byte
+  prefix also includes unrelated trailing bits.
+failed_paths: []
+tools:
+- Python
+- Pillow
+hexstrike:
+  used: false
+  useful: false
+  notes: Local tooling sufficient; health not queried.
+sources:
+- D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Low Bit Levee/chalenge.md
+playbook: ''
+writeup: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Low Bit Levee/writeup/writeup.md
+solver: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Low Bit Levee/solve/solve.py
+time_heuristic: Shallow structure inspection before heavy tools
+last_verified: '2026-10-25'

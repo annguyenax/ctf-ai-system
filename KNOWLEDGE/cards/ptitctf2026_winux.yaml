@@ -34,7 +34,7 @@ hexstrike:
   notes: ""
 sources: []
 playbook: PLAYBOOKS/rev_strings_password.md
-writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Winux\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Winux\solve\crack_key.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\Winux\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\Winux\solve\crack_key.py
 time_heuristic: follow corrupted-package-key string into per-char hash, do not unpack rootfs first
 last_verified: "2026-08-22"

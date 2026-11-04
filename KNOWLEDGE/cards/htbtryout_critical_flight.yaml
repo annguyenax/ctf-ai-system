@@ -1,0 +1,37 @@
+id: htbtryout_critical_flight
+event: HTB Try Out
+category: hardware/gerber-layer-hidden-text
+challenge_name: "Critical Flight"
+status: solved
+flag: "HTB{533_7h3_1nn32_w02k1n95_0f_313c720n1c5#$@}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "No HTB{ substring exists anywhere in the raw Gerber text (text is aperture/stroke vector data, not ASCII)."
+  - "Rendering the silkscreen layers shows only normal component labels, not the flag."
+  - "Rendering the bottom-copper and inner-copper-1 layers (after rotation) each reveal half of the flag as copper-fill cutout text."
+key_idea: "Hidden text in a PCB fabrication file is not necessarily on the silkscreen; sabotaged/flag-bearing text can be etched directly into inner or bottom copper layers, split across multiple layers, and may require a 90-degree rotation to read correctly after rasterization."
+prerequisites:
+  - Gerber (RS-274X) rasterization tool (e.g. pygerber)
+  - Willingness to render and inspect every copper/mask/silk layer, not just the obvious silkscreen
+exploitation_pattern: "raster every Gerber layer (not just silk) -> find copper-etched text split across 2+ layers -> rotate as needed -> concatenate"
+verification:
+  method: "Two independent copper layers (B_Cu rotated, In1_Cu) each rendered a contiguous half of the flag string with no ambiguity."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/hw/Critical Flight/final_flag.txt"
+pitfalls:
+  - "Don't stop at silkscreen layers when hunting hidden PCB text; check every copper layer (top/bottom/inner) and be ready to rotate renders 90 degrees."
+failed_paths:
+  - "Rendered front/back silkscreen first; no HTB{ text appeared there."
+tools:
+  - pygerber
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/hw/Critical Flight/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/hw/Critical Flight/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/hw/Critical Flight/solve/solve.py"
+time_heuristic: "For PCB Gerber forensics, raster all layers (silk, mask, every copper layer) and consider that hidden text may be split and rotated across more than one layer."
+last_verified: "2026-11-04"

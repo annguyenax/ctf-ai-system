@@ -1,0 +1,43 @@
+id: bytemectf2026_sacrifice
+event: ByteMe CTF 2026
+category: forensics/network-pcap
+challenge_name: Sacrifice
+status: solved
+flag: "OWASP{4_50u1_f0r_4_50u1_v0rm1r}"
+confidence: 1.0
+artifact_hashes:
+  - file: files/s0ul.pcap
+    sha256: d08f3d1e01ddd3dea611653b2d1fcc1fd10f6e9db2577386ac983c71a27bb76c
+signals:
+  - FTP control stream uses EPSV and repeated STOR uploads.
+  - A unique passive TCP stream begins with JPEG magic and has an appended ZIP.
+  - JPEG COM marker supplies a passphrase; ZIP member is nested compressed data.
+key_idea: Reassemble the uploaded JPEG by TCP sequence, use its comment to unlock the appended ZIP, then decompress and decode the embedded log.
+prerequisites:
+  - PCAP parsing with Scapy
+  - Basic JPEG, ZIP, gzip, bzip2, tar, and Base64 signatures
+exploitation_pattern: PCAP FTP control/data correlation -> TCP reassembly -> JPEG comment -> appended encrypted ZIP -> nested decompress -> tar member -> Base64 flag.
+verification:
+  method: deterministic replay plus independent extraction from reconstructed JPEG; decoded bytes match saved flag and OWASP format
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Forensics/Sacrifice/solve/evidence/recovery.json"
+pitfalls:
+  - Reassemble TCP by sequence and handle retransmissions; packet iteration alone is brittle.
+  - The password clue is for an appended ZIP, not a steghide payload.
+failed_paths:
+  - Raw flag search in packet previews found no flag because the payload was encrypted and compressed.
+  - steghide extraction failed; file-signature inspection revealed an appended ZIP instead.
+tools:
+  - Python 3
+  - Scapy
+  - Kali WSL steghide for a disproved initial hypothesis
+hexstrike:
+  used: false
+  useful: false
+  notes: Local Scapy and Python archive libraries handled the PCAP and payload.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Forensics/Sacrifice/files/s0ul.pcap"
+playbook: none
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Forensics/Sacrifice/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Forensics/Sacrifice/solve/solve.py"
+time_heuristic: For small FTP PCAPs, inspect control commands and data streams before broad carving; a unique uploaded image often exposes the next layer through comments or trailing container signatures.
+last_verified: "2026-10-09"

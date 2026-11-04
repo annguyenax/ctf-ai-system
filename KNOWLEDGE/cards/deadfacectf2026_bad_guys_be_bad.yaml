@@ -1,0 +1,36 @@
+id: deadfacectf2026_bad_guys_be_bad
+event: DeadfaceCTF2026
+category: forensics/dns-exfil-xor-known-plaintext
+challenge_name: "TrafficAnalysis / Bad Guys Be Bad"
+status: solved
+flag: "deadface{c2_traffic_be_bussing}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - An HTTP staging-config fetch reveals a C2 domain used for later DNS-based exfiltration.
+  - DNS queries use sequentially-numbered subdomain labels (`s00-...`, `s01-...`) encoding Base32 chunks of ciphertext.
+  - "The flag format is known in advance (`deadface{...}`), which is itself a known-plaintext crib against the XOR-obfuscated payload."
+key_idea: "For DNS-tunneled exfiltration with an XOR-obfuscated payload, reassemble the Base32 chunks in label-sequence-number order first to get the full ciphertext, then use the known flag prefix (`deadface{`) as a known-plaintext crib: XOR the first bytes of ciphertext against the expected prefix to recover the repeating XOR key, then decrypt the rest."
+prerequisites:
+  - Knowing (or assuming) the exact flag prefix format to use as a crib
+  - Correctly ordering DNS labels by their embedded sequence number before Base32-decoding
+exploitation_pattern: extract DNS query labels matching `s<seq>-<base32chunk>.<c2domain>` -> sort by seq -> concatenate base32 chunks -> base32-decode to ciphertext bytes -> XOR first len("deadface{") bytes of ciphertext against "deadface{" to recover the repeating key -> XOR the full ciphertext with the repeating key -> read plaintext flag.
+verification:
+  method: XORing the Base32-decoded ciphertext with the recovered key "Sp00ky" produced the exact flag text.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Bad Guys Be Bad/writeup/writeup.md"
+pitfalls:
+  - Base32 decoding requires correct padding (`'=' * ((8 - len%8) % 8)`); forgetting padding throws a decode error even though the chunk data is correct.
+failed_paths: []
+tools:
+  - Python base64 (b32decode), re
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Bad Guys Be Bad/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: crypto_xor_repeating.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Bad Guys Be Bad/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Bad Guys Be Bad/solve/solve.py"
+time_heuristic: For DNS-tunneled exfiltration with suspected XOR obfuscation, reorder sequence-numbered subdomain chunks, decode the encoding layer (Base32/64), then use the known/expected flag prefix as a known-plaintext crib to recover the repeating XOR key.
+last_verified: "2026-11-04"

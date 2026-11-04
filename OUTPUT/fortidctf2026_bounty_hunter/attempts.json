@@ -1,0 +1,26 @@
+{
+  "challenge_id": "fortidctf2026_bounty_hunter",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Bounty Hunter",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-10",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Inspect the verifier for proof consistency checks and the solver for its target claim.",
+      "result": "The verifier commits to prover-supplied next polynomials but does not enforce that they are the algebraic fold of the current polynomial.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Crypto/Bounty Hunter/files/verifier.py",
+      "notes": "The weakness permits arbitrary intermediate polynomial construction."
+    },
+    {
+      "t": "2026-10-10",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Inspect local flag/writeup consistency and query platform status using status.py (read-only GET).",
+      "result": "Local flag matches the writeup and format; platform reports Bounty Hunter SOLVED.",
+      "evidence_path": "CTFTimeWriteup/FortIDCTF2026/Crypto/Bounty Hunter/solve/evidence/verification.txt",
+      "notes": "Did not rerun the proof POST. Raw proof and response are absent."
+    }
+  ]
+}

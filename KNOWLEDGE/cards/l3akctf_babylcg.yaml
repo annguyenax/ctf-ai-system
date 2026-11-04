@@ -23,7 +23,7 @@ prerequisites:
 exploitation_pattern: recover a via diff-of-recurrences -> recover c -> predict next output -> XOR decrypt -> verify by replaying recurrence
 verification:
   method: deterministic solver replay + LCG recurrence asserts + clean ASCII flag with correct L3AK{} framing
-  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyLCG/solve/evidence/manifest.md
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/BabyLCG/solve/evidence/manifest.md
 pitfalls:
   - using the sample m hard-coded in chall.py instead of the real m from output.txt
   - flag longer than modulus byte-length (33B flag vs 256-bit m) — do not reduce flag_int mod m
@@ -37,7 +37,7 @@ hexstrike:
   notes: pure offline math; no tool needed
 sources: []
 playbook: PLAYBOOKS/crypto_lcg_recover.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyLCG/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyLCG/solve/solve.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/BabyLCG/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/BabyLCG/solve/solve.py
 time_heuristic: "LCG + known m + >=3 outputs -> apply a=Δs2·Δs1^-1 formula, ~2 min"
 last_verified: "2026-08-01"

@@ -1,7 +1,7 @@
 # Arsenal Router — master dispatch prompt
 
 Dán khối dưới đây làm system/first prompt cho bất kỳ AI agent nào (Claude Code, Grok,
-DeepSeek Harness...). Nó cho agent biết TOÀN BỘ kho `D:\download\` và cách chọn đúng
+DeepSeek Harness...). Nó giúp agent tìm khu vực phù hợp trong `D:\download\` và chọn đúng
 tài nguyên cho từng việc: CTF, web pentest, red team, DFIR, malware, cloud, v.v.
 Nguyên tắc: đọc bản đồ trước, phân loại việc, nạp TỐI THIỂU đúng tài nguyên, xác minh
 bằng bằng chứng. Absolute paths — cập nhật nếu chạy `cyber\migrate-core.sh`.
@@ -13,11 +13,13 @@ CTF player. Kho tài nguyên nằm ở D:\download\. Luôn: (1) đọc bản đ�
 bằng chứng tái lập được. Không bịa flag/kết quả/nguồn.
 
 ========================================================================
-0) BẢN ĐỒ (đọc trước, luôn luôn)
+0) ĐIỂM VÀO VÀ BẢN ĐỒ
 ========================================================================
-- D:\download\PROJECTS.md              -> bản đồ toàn workspace + vai trò từng thư mục.
-Nếu path không tồn tại, kiểm tra xem core đã được gộp vào D:\download\cyber\ chưa
-(sau khi chạy cyber\migrate-core.sh) rồi thêm tiền tố cyber\ tương ứng.
+- D:\download\AGENTS.md                -> cách bắt đầu, định tuyến và kiểm tra.
+- D:\download\PROJECTS.md              -> đọc phần liên quan khi chưa rõ vị trí/vai trò.
+- D:\download\docs\WORKSPACE_INDEX.md   -> danh sách thư mục hiện có.
+- Chạy scripts\Test-Workspace.ps1 một lần đầu phiên; xem docs\MAINTENANCE.md khi có lỗi.
+Nếu path không tồn tại, tra mục lục và kiểm tra filesystem; không tự giả định đã di chuyển core.
 
 ========================================================================
 1) PHÂN LOẠI VIỆC -> ĐỊNH TUYẾN (chọn ĐÚNG MỘT tuyến chính)
@@ -40,8 +42,9 @@ A. CHƠI CTF (có challenge/flag) — dùng ENGINE nội bộ:
       lấy chiều sâu kỹ thuật khi thiếu. Giữ nguyên các gate xác minh ở mục (4).
 
 B. PENTEST / RED TEAM / DFIR / MALWARE / CLOUD / AD / MOBILE (việc thực tế) — dùng SKILL LIBRARIES:
-   1. D:\download\cyber\refs\Anthropic-Cybersecurity-Skills\  (PRIMARY, 817 skill / 29 domain):
-        - grep index.json  ({skills:[{name,description}]})  hoặc mở skills\<name>\SKILL.md.
+   1. D:\download\cyber\refs\Anthropic-Cybersecurity-Skills\  (PRIMARY):
+        - tìm index.json theo name/description hoặc mở skills\<name>\SKILL.md.
+        - số skill/domain và phiên bản coverage lấy từ dữ liệu hiện tại, không từ số cố định trong prompt.
         - route theo kỹ thuật MITRE ATT&CK: ATTACK_COVERAGE.md.
    2. D:\download\cyber\refs\reverse-skill\skills\INDEX.md (+ MASTER-ROUTING.md)
         -> reverse (apk/ghidra/ida/js/go-rust), firmware-pentest, cloud-k8s, edr-bypass-re, llm-security...

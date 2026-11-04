@@ -1,0 +1,43 @@
+id: csawctf2026quals_the_vantage_job
+event: "CSAW CTF Qualifications 2026"
+category: "misc/pdf-luma-stego-blocked-on-discord"
+challenge_name: "The Vantage Job"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A hand-built single-page PDF draws one near-white image (pixel values only 252-255, R=G=B) over an otherwise textless content stream -- classic luminance/anti-aliasing steganography, not a channel-split LSB trick."
+  - "Splitting the image by exact luma value into separate layers (254/253/252) reveals at least 3 separate stanzas of hidden poem text at the same row band, each a riddle about a 'bot' with 'one word as a secret sign', ending in 'slash the fingerprint'."
+  - "A companion plaintext poem (evidence_02.txt) thematically echoes one of the hidden stego layers, confirming the PDF's near-white image deliberately hides more text."
+  - "The CSAW portal links to a live Discord server; the riddle's wording ('slash the fingerprint', 'whisper it quiet') strongly implies a themed Discord bot slash-command (e.g. /fingerprint) is the next required step."
+key_idea: "A PDF whose only content is a single near-white (luma 252-255, R=G=B) embedded image with no visible page text is very likely hiding multiple stacked text layers distinguished by exact luma value; split/threshold by each luma level separately rather than one global contrast stretch, since stacked layers at different luma values will otherwise blend into noise together."
+prerequisites:
+  - "PDF structure parsing (pikepdf/pymupdf) to confirm no other hidden objects (JS/attachments/annotations)"
+  - "Per-luma-value image layer separation and contrast normalization"
+exploitation_pattern: "confirm PDF has no JS/attachments/embedded files -> extract the single near-white XObject image -> split by each exact luma value (252, 253, 254) into separate layers -> contrast-stretch each layer independently -> OCR or manually read each stanza -> the stanzas describe a Discord bot slash-command and secret word mechanism -> (BLOCKED) join the linked Discord server, find the themed bot, feed it the derived word"
+verification:
+  method: ""
+  evidence: ""
+pitfalls:
+  - "A single global contrast stretch across all near-white pixels will mix multiple stacked luma-separated text layers into illegible noise; separate strictly by exact luma value first."
+  - "OCR on very faint anti-aliased near-white text is unreliable; a dedicated stego/threshold tool or manual pixel-level overlay against the known background value gives a cleaner transcript than vision-model OCR alone."
+  - "Completing this challenge requires live interaction with a themed Discord bot (per the 'Type: dynamic' field) -- it cannot be fully solved from the static files alone."
+failed_paths:
+  - "Standard LSB/channel-split steganography does not apply -- R=G=B always in the near-white pixels, ruling out a classic color-channel LSB extraction."
+tools:
+  - "pikepdf"
+  - "PyMuPDF"
+  - "python3 (PIL/numpy, manual luma thresholding)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Misc/The Vantage Job/files/evidence_01.pdf"
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Misc/The Vantage Job/files/evidence_02.txt"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Misc/The Vantage Job/writeup/writeup.md"
+solver: ""
+time_heuristic: "A PDF/image with only near-white (luma 252-255) content and no other data: separate and contrast-stretch by exact luma value, not globally, to find multiple stacked hidden text layers."
+last_verified: "2026-11-04"

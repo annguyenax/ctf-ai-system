@@ -1,0 +1,34 @@
+id: rstconctf2026_leaky_logger
+event: RSTCON CTF 2026
+category: pwn/format-string-stack-leak
+challenge_name: "Leaky Logger"
+status: solved
+flag: "rstcon{f0rmat_str1ngs_l3ak_the_stack}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Binary reads a flag into a local stack buffer at startup, then echoes a user-supplied log line via `printf(user_buffer)` with no format specifier.
+key_idea: Classic format-string leak. Compute the stack distance (in qwords) between the format-string buffer's own vararg position and the flag buffer using static analysis (`rbp` offsets of each buffer), then send that many `%p ` specifiers to dump the intervening stack as raw pointers; the flag's bytes appear embedded as literal little-endian 64-bit words at the computed argument indices.
+prerequisites:
+  - Disassembly/decompilation to get both buffers' `rbp`-relative offsets and compute the vararg index distance
+  - Little-endian byte reconstruction from printed hex `%p` values
+exploitation_pattern: disassemble to find flag-buffer and format-buffer stack offsets -> offset_bytes / 8 = vararg index where leak begins -> send `%p ` repeated enough times to cover that range -> parse printed pointers at the computed index range -> convert each hex value to little-endian bytes -> concatenate -> flag.
+verification:
+  method: Live remote exploitation against the actual challenge service; printed `%p` values reassemble into the exact recorded flag string.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Leaky Logger/solve/solve.py"
+pitfalls:
+  - The vararg index arithmetic must account for the calling convention's register-passed args (x86-64 System V skips the first 6 integer/pointer varargs via registers before stack args appear as `%p` sequence positions) — getting this off by a few indices misses the flag entirely.
+failed_paths: []
+tools:
+  - Static disassembly (ghidra/objdump-class tooling)
+  - Python 3 sockets
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Leaky Logger/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Leaky Logger/solve/solve.py"
+time_heuristic: "printf(user_controlled_buffer) with no format specifier and a sensitive value elsewhere on the stack -> compute the qword-distance between the two stack buffers and target that exact `%p` vararg index range instead of blindly dumping the whole stack."
+last_verified: "2026-11-04"

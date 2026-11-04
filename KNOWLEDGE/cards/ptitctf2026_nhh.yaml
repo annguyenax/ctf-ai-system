@@ -33,7 +33,7 @@ hexstrike:
   notes: ""
 sources: []
 playbook: PLAYBOOKS/crypto_rsa.md
-writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Crypto\That Should Be nhh\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\PTITCTF2026\Crypto\That Should Be nhh\solve\hg_sympy.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Crypto\That Should Be nhh\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Crypto\That Should Be nhh\solve\hg_sympy.py
 time_heuristic: CF then ρ then sympy LLL Coppersmith
 last_verified: "2026-08-22"

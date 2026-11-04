@@ -1,0 +1,42 @@
+﻿{
+  "challenge_id": "bytemectf2026_hidden_coordinates",
+  "flag_status": "none",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Inspect the existing challenge description and attached screenshot",
+      "result": "The task requires identifying a night-time photo location and exact 24-hour time; visible format is City/State/Country__HH:MM",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/The Hidden Coordinates/chalenge.md",
+      "notes": "One metadata-named PNG attachment; no final flag exists."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Check the supplied PNG for GPS metadata",
+      "result": "ExifTool returned no GPS tags",
+      "evidence_path": "D:/download/ctf-scratch/bytemectf2026_hidden_coordinates/gps_metadata_result.txt",
+      "notes": "The screenshot itself has no embedded coordinates."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "ANALYZE",
+      "hypothesis_id": "H2",
+      "action": "Inspect local crops of the scene, signage, and wristwatch",
+      "result": "The supplied pixel detail is insufficient to read a unique location or exact time",
+      "evidence_path": "D:/download/ctf-scratch/bytemectf2026_hidden_coordinates/signs.png",
+      "notes": "No city/time guess was promoted to a flag candidate."
+    },
+    {
+      "t": "2026-10-09 step 04",
+      "phase": "BLOCKED",
+      "hypothesis_id": "H3",
+      "action": "Use the explicitly selected in-app Browser to trace the source image",
+      "result": "Browser bootstrap returned Browser is not available: iab",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/The Hidden Coordinates/notes/SESSION.md",
+      "notes": "No alternate web search or portal session was used; resume after Browser reconnects."
+    }
+  ]
+}

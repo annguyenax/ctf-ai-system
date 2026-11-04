@@ -25,7 +25,7 @@ prerequisites:
 exploitation_pattern: register -> upload auto-submit CSRF page -> /report to admin bot -> admin pw reset -> login admin -> GET /flag
 verification:
   method: end-to-end exploit against official instance; read admin-gated /flag
-  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/Get The Flag/solve/evidence/run_transcript.txt
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/Get The Flag/solve/evidence/run_transcript.txt
 pitfalls:
   - trying to read /flag via XSS fetch/iframe (blocked by CSP connect-src/frame-src none)
   - forgetting the new password must be >= 8 chars
@@ -41,7 +41,7 @@ hexstrike:
   notes: manual source review + scripted HTTP chain; no scanner needed
 sources: []
 playbook: PLAYBOOKS/web_csrf_method_override_bypass.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/Get The Flag/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/Get The Flag/solve/exploit.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/Get The Flag/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/Get The Flag/solve/exploit.py
 time_heuristic: "method-override + verb-gated security check -> flip verb via ?_method= , ~10 min"
 last_verified: "2026-08-01"

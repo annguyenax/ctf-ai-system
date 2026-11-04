@@ -1,0 +1,57 @@
+id: l3akctf_squid
+event: L3akCTF2026
+category: web/flask-send_file-race-condition
+challenge_name: "squid"
+status: solved
+flag: "L3AK{niCe_C47ch_U_0w3_me_4_BeeR_1547859621}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A registration endpoint parses the request body twice with two different JSON libraries (json.loads for validation, ujson.loads for the value actually stored)."
+  - "An internal SSRF-reachable endpoint validates the target hostname with urllib.parse.urlparse() but the actual outbound request is made with the requests library (which uses urllib3's own parser)."
+  - "A file-read/download endpoint built on Flask's send_file() returns Content-Length: 0 for /proc/self/environ even though the file genuinely contains data (the OS reports size 0 for that special file)."
+key_idea: >
+  Three independently well-known bug classes chained: (1) a json vs ujson
+  parser differential on dangling UTF-16 surrogates (\ud800) lets a
+  self-registration request smuggle "role":"admin" past a json-based check
+  while ujson (which actually stores the record) accepts it; (2) a
+  urllib.parse vs requests/urllib3 hostname-parsing differential
+  (http://allowed.host\@internal.host) bypasses an SSRF allowlist built on the
+  wrong parser; (3) Flask/werkzeug's send_file() calls os.stat() on the path
+  for Content-Length *before* opening it for the actual read -- swapping a
+  larger decoy file's open fd (via /proc/self/fd/N) for a symlink to a 0-size
+  special file (e.g. /proc/<pid>/environ) between those two steps makes
+  send_file() report the decoy's real size but stream the special file's
+  content instead, defeating the "0 bytes reported" dead end.
+prerequisites:
+  - Byte-for-byte control of two requests (or ability to race them) against the same send_file()-backed endpoint
+  - A way to discover the target process's PID (e.g. via a distinctive cwd under /proc/<pid>)
+  - Any file-read primitive plus any way to set/leak an environment variable containing the flag in the privileged process
+exploitation_pattern: >
+  mass-assignment (json/ujson surrogate differential) -> admin role -> SSRF
+  past an allowlist (urlparse vs urllib3 host differential) -> reach an
+  internal root-owned worker that templates a secret into a job's environment
+  -> path traversal file-read primitive on the admin endpoint -> win the
+  send_file() TOCTOU: request send_file(large_decoy) to get fd N open, swap
+  what fd N points to (symlink to target proc's /environ) before werkzeug's
+  second open() call, so stat() measured the decoy's real size but read()
+  streams the environ content instead.
+verification:
+  method: Author's writeup shows the full flag string repeated many times (from a format string `$FLAG` substituted into a padding template to reach the decoy's larger reported size), matching the challenge's flag format.
+  evidence: "writeup section 'Conclusion' / exploit output quoting FLAG = L3AK{niCe_C47ch_U_0w3_me_4_BeeR_1547859621}"
+pitfalls:
+  - "The fake (decoy) file's reported size must be SMALLER than the real target file's size, or gunicorn/werkzeug will wait indefinitely for bytes that never arrive; pad the template content (e.g. repeat $FLAG$FLAG...) to control the real size instead of picking an arbitrarily small decoy."
+  - "/proc/self/cmdline cannot be read for PID discovery for the same size-0 reason as /environ; use a distinctive /proc/<pid>/cwd instead to find the right PID."
+  - "The json/ujson differential (dangling UTF-16 surrogate \\ud800) only works on ujson < 5.4.0 -- it was later fixed and tracked as GHSA-wpqr-jcpx-745r."
+failed_paths:
+  - "Reading /proc/self/environ directly through the send_file()-based download endpoint returns HTTP 200 with Content-Length: 0 because os.stat() reports the special file's size as 0."
+tools:
+  - curl / Python requests
+  - ffuf (used to spam the timing-sensitive symlink-swap requests)
+sources:
+  - "https://jorianwoltjer.com/blog/p/ctf/l3akctf-2026-squid"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Web/squid/writeup/writeup.md"
+solver: ""
+time_heuristic: "A file-read primitive that reports 0 bytes for a special /proc file is not a dead end in Flask/werkzeug: send_file() stats then opens the path in two separate steps, so swapping the fd's target (symlink to the real special file) between those steps, behind a larger decoy's reported size, exfiltrates the content anyway."
+last_verified: "2026-11-04"

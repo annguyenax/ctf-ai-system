@@ -1,0 +1,36 @@
+id: bytemectf2026_vormir_common_modulus
+event: ByteMe CTF 2026
+category: crypto/rsa-common-modulus
+challenge_name: "Vormir Common Modulus"
+status: solved
+flag: "OWASP{v0rm1r_tw1st3d_rsa_l34ks_th3_s0ul}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Same RSA modulus n encrypts the same plaintext m under two coprime public exponents e1, e2 (c1 = m^e1 mod n, c2 = m^e2 mod n).
+  - gcd(e1, e2) == 1.
+key_idea: Common-modulus attack. Use the Extended Euclidean Algorithm to find integers s1, s2 with s1*e1 + s2*e2 = 1 (Bezout). Recover m = c1^s1 * c2^s2 mod n without ever factoring n or knowing the private key. If either s_i is negative, use modular inverse of the corresponding ciphertext raised to the absolute value of that exponent instead of a negative pow().
+prerequisites:
+  - Extended Euclidean Algorithm implementation
+  - Python pow(x, -1, n) or manual modinv for negative Bezout coefficients
+exploitation_pattern: same n, coprime e1/e2, same plaintext -> egcd(e1,e2) -> m = c1^s1 * c2^s2 mod n (handling negative exponents via modular inverse) -> decode m to ASCII flag.
+verification:
+  method: Deterministic local solver replay; recovered ASCII matches recorded flag.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Vormir Common Modulus/solve/solve.py"
+pitfalls:
+  - Python's built-in pow() raises ValueError on negative exponents with a modulus argument prior to the modinv fallback; must branch on sign of s1/s2 and invert the ciphertext first.
+  - This attack requires the *same* modulus and *same* plaintext across both ciphertexts — verify both before attempting, otherwise the recovered "m" is meaningless.
+failed_paths: []
+tools:
+  - Python 3 (pow, extended Euclidean algorithm)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Vormir Common Modulus/files/params.txt"
+playbook: crypto_rsa.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Vormir Common Modulus/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Vormir Common Modulus/solve/solve.py"
+time_heuristic: Same n with two different e values given alongside two ciphertexts of the same message -> immediately try the common-modulus / Bezout attack; it needs no factoring and is near-instant.
+last_verified: "2026-11-04"

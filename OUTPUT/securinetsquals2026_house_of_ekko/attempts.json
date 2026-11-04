@@ -1,0 +1,42 @@
+{
+  "challenge_id": "securinetsquals2026_house_of_ekko",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-18T00:00:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "Read the menu and the handout libc",
+      "result": "partial",
+      "evidence_path": "raw/evidence.txt",
+      "notes": "UAF, two slots. Early Full RELRO and tcache guesses were later measured false."
+    },
+    {
+      "t": "2026-10-18T01:00:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "H2",
+      "action": "Free a 0x50 chunk and show it; readelf the RELRO and property notes",
+      "result": "partial",
+      "evidence_path": "raw/evidence.txt",
+      "notes": "smallbin libc+0x1d1cb8. Partial RELRO. libc has IBT and SHSTK, chall does not."
+    },
+    {
+      "t": "2026-10-18T02:00:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H3",
+      "action": "FSOP setcontext+4 ORW",
+      "result": "fail",
+      "evidence_path": "raw/evidence.txt",
+      "notes": "Local /etc/passwd prints root:. Remote closes with an empty body. puts on the same hook returns."
+    },
+    {
+      "t": "2026-10-18T03:00:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "H4",
+      "action": "Call setcontext at 0x40e30 (endbr64) and submit",
+      "result": "pass",
+      "evidence_path": "raw/evidence.txt",
+      "notes": "Remote printed Securinets{lets_hope_i_dont_push_the_revenge}. Portal status correct."
+    }
+  ]
+}

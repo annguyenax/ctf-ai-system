@@ -1,0 +1,43 @@
+id: l3akctf_platform_protection_part3
+event: L3akCTF2026
+category: web/react-flight-protocol-rce
+challenge_name: "L3AK Platform Protection - Part 3"
+status: needs_verification
+flag: ""
+confidence: 0.55
+artifact_hashes: []
+signals:
+  - "The Part 2 double-escape (':\\u005cu0063onstructor') is now blocked too, and multiple layers of JSON decoding are filtered."
+  - "Triple-escaping the token (':\\u005cu005cu005cu005cu0063onstructor') passes the WAF, implying the server-side decode depth increased."
+key_idea: >
+  The same nested-resolved_model-chunk trick from Part 2 generalizes: wrap the
+  RCE primitive in a configurable number of extra resolved_model layers
+  (DEPTH), escaping the WAF-blocked token one extra backslash-u0063 level per
+  layer, so the decode depth the attacker builds matches whatever depth the
+  challenge now requires. The technique is parameterized (DEPTH variable in the
+  solve script) rather than a one-off trick, which is the generalizable lesson.
+prerequisites:
+  - Same React Flight Protocol chunk-reference understanding as Part 2
+  - Binary-search or incrementally test how many escape/decode layers the current WAF+backend pair requires
+exploitation_pattern: >
+  Same as Part 2 but parameterized by DEPTH: build an innermost chunk carrying
+  the RCE primitive (child_process.execSync via Function constructor reached
+  through _formData.get = "$0:constructor:constructor"), wrap it in DEPTH
+  additional resolved_model layers each referencing the previous via "$0" /
+  "_chunks":"$Q1", then wrap the outermost layer's then in "$1:__proto__:then"
+  with the target token escaped DEPTH+1 times.
+verification:
+  method: Solve script in the source blog is complete and parameterized (DEPTH=3), targets a live instance, and checks for a 303 status before decoding the X-Action-Redirect header, but no execution output or flag text was present in the available source.
+  evidence: ""
+pitfalls:
+  - Getting the escape-level count wrong (one too few or too many \u005c layers) silently fails rather than erroring clearly; increment DEPTH and retest rather than guessing a fixed value.
+failed_paths: []
+tools:
+  - Python requests (multipart/form-data construction)
+sources:
+  - "https://blog.7chn.me/posts/20260804-l3ak-platform-protection"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/L3akCTF2026/l3ak platform protection/L3AK Platform Protection - Part 3/writeup/writeup.md"
+solver: ""
+time_heuristic: "In a series of escalating WAF-bypass challenges against the same backend, expect the fix each round to just raise the decode-depth requirement rather than close the technique class; parameterize depth instead of hardcoding it."
+last_verified: "2026-11-04"

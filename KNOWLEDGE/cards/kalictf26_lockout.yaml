@@ -28,5 +28,5 @@ sources:
   - CWE-698
 
 playbook: "PLAYBOOKS/web_execution_after_redirect.md"
-writeup: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\web\\Lock Out\\writeup\\writeup.md"
-solver: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\web\\Lock Out\\solve\\solve.py"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026\\web\\Lock Out\\writeup\\writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026\\web\\Lock Out\\solve\\solve.py"

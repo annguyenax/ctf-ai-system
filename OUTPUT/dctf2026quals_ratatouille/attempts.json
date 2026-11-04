@@ -1,0 +1,24 @@
+{
+  "challenge_id": "dctf2026quals_ratatouille",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-09-18T21:00:00+07:00",
+      "phase": "TRIAGE",
+      "hypothesis_id": "H1",
+      "action": "readelf -S; dump .recipe; do not exec",
+      "result": "70-byte custom section",
+      "evidence_path": "CTFTimeWriteup/DCTF2026Quals/Reverse/ratatouille/solve/evidence/manifest.md",
+      "notes": "SELF-DERIVED"
+    },
+    {
+      "t": "2026-09-18T21:40:00+07:00",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "H3",
+      "action": "FNV-1a 7 fields + xorshift64* XOR .recipe",
+      "result": "DCTF{e132475cf5b732c2ba714f028a159d957ace5f790edb629b99387621d03bbc61}",
+      "evidence_path": "CTFTimeWriteup/DCTF2026Quals/Reverse/ratatouille/solve/solve.py",
+      "notes": "replay from ELF bytes; telemetry list from static RE"
+    }
+  ]
+}

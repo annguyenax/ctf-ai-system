@@ -1,0 +1,35 @@
+id: rstconctf2026_thought_slop
+event: RSTCON CTF 2026
+category: pwn/llm-mediated-format-string
+challenge_name: "Thought Slop"
+status: solved
+flag: "rstcon{nuclear_0pti0n_trash_EVERYTHING}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Service reads flag.txt into a local stack buffer, then runs user input through a local quantized LLM (GPT-2 via llama.cpp, deterministic fixed sampler seed) and prints the model's generated text with unsanitized `printf(output_buf)`.
+key_idea: "The actual vulnerability is a normal format-string bug (`printf` on attacker-influenced data), but the attacker does not control the bytes directly — they must craft a *prompt* that makes a deterministic, fixed-seed small LLM generate a continuation containing many `%p.` tokens (the model naturally emits bullet-point-like `%p.` sequences when primed with a \"Format string: %p.%p....\" style prompt). Once the model's output contains enough `%p` specifiers, the vulnerable printf leaks the stack exactly as in a traditional format-string attack."
+prerequisites:
+  - Recognizing that an LLM-generation step before an unsanitized printf is an indirect but still fully exploitable format-string sink
+  - Prompt engineering against a deterministic (fixed-seed) small local model to reliably reproduce specific token sequences
+exploitation_pattern: send a prompt priming the model to continue with `%p.` tokens -> deterministic fixed-seed sampler reproduces the same completion every run -> model's generated text is printf'd unsanitized -> parse resulting `0x...` hex values from the response -> reconstruct little-endian flag bytes.
+verification:
+  method: Live remote exploitation against the actual challenge service; reconstructed bytes match the recorded flag exactly.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Thought_Slop/writeup/writeup.md"
+pitfalls:
+  - Must confirm the sampler is actually deterministic (fixed seed) before relying on prompt-engineered output being reproducible run to run.
+  - Naively assuming "AI-generated text can't be attacker-controlled" misses that priming the prompt is itself the attacker-controlled input channel.
+failed_paths: []
+tools:
+  - Python 3 sockets
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Thought_Slop/extracted/thoughtful.c"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Thought_Slop/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Pwn/Thought_Slop/solve/solve.py"
+time_heuristic: Service feeds user input to a local LLM and then printf's the LLM's raw output -> treat the LLM as a controllable-but-indirect format-string payload generator; a prompt that primes the model (especially one with a fixed/deterministic sampler seed) to emit `%p`-like tokens turns LLM text generation into a classic stack leak.
+last_verified: "2026-11-04"

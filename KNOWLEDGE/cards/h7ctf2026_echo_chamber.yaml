@@ -1,0 +1,36 @@
+id: "h7ctf2026_echo_chamber"
+event: "H7CTF 2026 Quals"
+category: "ai/agent-corroboration-manipulation"
+challenge_name: "Echo Chamber"
+status: "solved"
+flag: "H7CTF{bce65fa6-2243-471f-97a5-bd23e8be2cac}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "An \"incident intelligence\" pipeline only issues a deep/expanded report once a hypothesis has >= N corroborating citations from ingested research submissions."
+  - "A public research-submission endpoint lets anyone add documents that the pipeline automatically summarizes and treats as independent supporting evidence."
+key_idea: "When an automated analysis/agent pipeline gates a privileged report behind a corroboration-count threshold fed by a public ingestion endpoint, you can manufacture the required number of plausible supporting documents yourself and resubmit them as \"research\" to push the count past the threshold, then re-trigger the analysis to unlock the gated report."
+prerequisites:
+  - "Ability to read the working hypothesis text so synthetic submissions can echo its exact claims"
+  - "Access to the public submission and analyze endpoints"
+exploitation_pattern: "read current hypothesis/status -> submit >=required_count documents that restate/confirm the hypothesis in different wording -> re-run analyze -> status flips to corroborated and unlocks an expanded report containing the flag."
+verification:
+  method: "Live API replay; server state transitioned from unverified/standard to corroborated/deep and returned the flag in the generated report artifact."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/AI/Echo Chamber/writeup/writeup.md"
+pitfalls:
+  - "Submitting vague or generic text may not count as corroborating; echo the hypothesis's specific technical claims closely."
+  - "The flag may be buried in one specific report artifact (e.g. a forensic file), not the top-level JSON status."
+failed_paths: []
+tools:
+  - "Python"
+  - "urllib/requests"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/AI/Echo Chamber/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/AI/Echo Chamber/solve/solve.py"
+time_heuristic: "An agentic analysis/escalation pipeline gated by \"N corroborating sources\" is almost always gameable by self-submitting that many matching documents through its own public ingestion API."
+last_verified: "2026-11-04"

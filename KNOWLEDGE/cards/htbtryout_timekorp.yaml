@@ -1,0 +1,37 @@
+id: htbtryout_timekorp
+event: HTB Try Out
+category: web/php-exec-last-line-cmdi
+challenge_name: "TimeKORP"
+status: solved
+flag: "HTB{t1m3_f0r_th3_ult1m4t3_pwn4g3_489135c96ccbd58dbb8f42b8806e5911}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A ?format= query parameter is concatenated unsanitized into a shell command string: \"date '+\" . $format . \"' 2>&1\", then run via PHP exec()."
+  - "PHP's exec() returns only the last line of combined stdout/stderr, not the full output stream."
+  - "The target secret file (/flag) has no trailing newline, so naive command injection payloads can push the flag out of exec()'s single captured line or get it swallowed by later error output."
+key_idea: "Breaking out of the single-quoted date format argument with a closing quote and semicolon lets you inject arbitrary commands, but PHP's exec() silently discards all but the last output line; craft the injected command sequence (and use a trailing comment # instead of leftover quote syntax) so that `cat /flag` output is forced to be the actual last captured line, accounting for the flag file's missing trailing newline."
+prerequisites:
+  - Unsanitized shell-command string concatenation with single-quote-delimited user input
+  - "Awareness that exec() (unlike shell_exec/system) returns only the final output line, which changes payload construction (trailing # comment vs relying on command chaining to '' close cleanly)"
+exploitation_pattern: "break out of single-quoted command argument (' ; cat /flag # ) -> trailing # comments out the rest of the original command syntax -> exec()'s last-line capture contains the flag"
+verification:
+  method: "Direct GET request with the crafted format parameter returned the flag embedded in the rendered <h1> time string; a second payload variant was verified to return the identical flag."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/TimeKORP/final_flag.txt"
+pitfalls:
+  - "PHP's exec() returns only the last line of output; when injecting multiple commands, either ensure the payload's intended output is the actual last line, or capture via a different mechanism (redirect to a readable file) if multi-line output is needed."
+  - "A file with no trailing newline can end up concatenated with subsequent error/output text on what exec() treats as a single 'line' -- verify how the target data's exact byte content interacts with the injection technique."
+failed_paths: []
+tools:
+  - Python urllib
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/TimeKORP/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/TimeKORP/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/web/TimeKORP/solve/solve.py"
+time_heuristic: "When exploiting OS command injection through PHP exec() (not system()/shell_exec()), remember only the last output line is returned; design the injected command sequence so the secret you want is that last line."
+last_verified: "2026-11-04"

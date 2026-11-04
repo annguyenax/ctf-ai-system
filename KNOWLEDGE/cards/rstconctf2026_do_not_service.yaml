@@ -1,0 +1,36 @@
+id: rstconctf2026_do_not_service
+event: RSTCON CTF 2026
+category: forensics/dns-exfil-pcap
+challenge_name: "Do_Not_Service"
+status: solved
+flag: "rstcon{d0main_n@m3_EXPansi0n}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Large pcapng capture of normal workstation traffic; challenge title "Do Not Service" is a pun on DNS (Domain Name Service/System).
+  - DNS queries formatted as `www.<base64-blob>.<tld>`, i.e. exfiltration encoded into a subdomain label.
+key_idea: When a pun/title hints at DNS specifically, filter the capture to DNS query records and regex the subdomain labels for base64-shaped tokens rather than scanning all traffic/strings. One query's base64 subdomain decodes directly to a length-prefixed flag (`\x00\x1d` + `rstcon{...}`).
+prerequisites:
+  - scapy PcapNgReader + DNS layer parsing
+  - base64 decoding with graceful failure handling across many DNS queries
+exploitation_pattern: parse pcap -> filter DNS query layer -> regex `www.([A-Za-z0-9+/=]+)\.` from qname -> base64-decode each candidate -> grep for `rstcon{` in decoded bytes.
+verification:
+  method: Deterministic solver iterates all DNS queries in the capture and prints the decoded flag; reproducible from the preserved artifact.
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensic/Do_Not_Service/solve/solve.py"
+pitfalls:
+  - A 51MB capture is too large to `strings`/manually scan; narrow to the specific protocol (DNS) the title hints at before brute-force searching.
+  - Base64-decoding must tolerate garbage/non-base64 subdomains from unrelated legitimate DNS traffic (wrap in try/except).
+failed_paths: []
+tools:
+  - scapy (PcapNgReader, DNS layer)
+  - Python 3 (base64, re)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: forensics_pcap.md
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensic/Do_Not_Service/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensic/Do_Not_Service/solve/solve.py"
+time_heuristic: Challenge title puns on a specific protocol (DNS/"Domain Name Service") -> filter the pcap to that protocol's records first and look for encoded data in an unusual field (subdomain labels), rather than searching the whole capture.
+last_verified: "2026-11-04"

@@ -1,0 +1,36 @@
+id: rstconctf2026_setpoint
+event: RSTCONCTF2026
+category: forensics
+challenge_name: Setpoint
+status: solved
+flag: rstcon{high_alarm_disabled_silently}
+confidence: 1.0
+artifact_hashes:
+- 3a4280943077ecd6c8eb0aa36ca8fed7dd11747c9c003ce01202e43f1ebd1c7b
+signals:
+- Modbus FC16 multi-register write
+key_idea: Modbus FC16 multi-register write
+prerequisites:
+- scapy
+exploitation_pattern: Modbus FC16 multi-register write
+verification:
+  method: deterministic replay and retained portal response
+  evidence: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Setpoint/solve/evidence/manifest.md
+pitfalls:
+- Using only the low byte of each register discards half the message. Do not treat
+  the acknowledgement as the write payload.
+failed_paths: []
+tools:
+- Python
+- scapy
+hexstrike:
+  used: false
+  useful: false
+  notes: Local tooling sufficient; health not queried.
+sources:
+- D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Setpoint/chalenge.md
+playbook: ''
+writeup: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Setpoint/writeup/writeup.md
+solver: D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Setpoint/solve/solve.py
+time_heuristic: Shallow structure inspection before heavy tools
+last_verified: '2026-10-25'

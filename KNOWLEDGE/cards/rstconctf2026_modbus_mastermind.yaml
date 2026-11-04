@@ -1,0 +1,37 @@
+id: rstconctf2026_modbus_mastermind
+event: RSTCONCTF2026
+category: misc
+challenge_name: Modbus Mastermind
+status: needs_verification
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - Modbus/TCP mirrors expose different holding-register maps
+  - Mirror 2 repeated 7-word complement pattern
+key_idea: "Unresolved: determine intended state transition and decode mirror-2 register pattern"
+prerequisites:
+  - Python standard library sockets and struct
+exploitation_pattern: "Use bounded FC03 reads; verify every FC06 write with readback; restore test values"
+verification:
+  method: "No verified flag; one speculative candidate rejected by official submission"
+  evidence: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Misc/Modbus Mastermind/solve/evidence/manifest.md"
+pitfalls:
+  - "The candidate rstcon{armed_mind} was rejected."
+  - "Do not assume the provided mirrors share state."
+failed_paths:
+  - "Holding-register 100 toggle on mirror 1 changed only its own value."
+  - "Writing 1 to mirror-2 register 100 changed only that register; it was restored."
+tools:
+  - Python
+hexstrike:
+  used: false
+  useful: false
+  notes: "Protocol probes were narrow and performed with Python standard library."
+sources:
+  - "D:/download/CTFTimeWriteup/RSTCONCTF2026/Misc/Modbus Mastermind/challenge.md"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/RSTCONCTF2026/Misc/Modbus Mastermind/writeup/writeup.md"
+solver: ""
+time_heuristic: "After three unproductive state tests, inspect official hints and change the model rather than brute-force writes."
+last_verified: "2026-10-25"

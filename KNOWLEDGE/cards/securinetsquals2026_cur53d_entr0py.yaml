@@ -1,0 +1,39 @@
+id: securinetsquals2026_cur53d_entr0py
+event: "Securinets CTF Quals 2026"
+category: "rev/custom-packer-identification-via-section-names"
+challenge_name: "CUR53D ENTR0PY"
+status: paused
+flag: ""
+confidence: 0.25
+artifact_hashes: []
+signals:
+  - "A PE32+ binary's 17 section names, concatenated in file order, spell out a literal self-describing sentence ('This File is Pr0t3ct3d By Ad3M Pr0t3ct0r v3 eNJOY sOLVING'), confirming a custom, author-branded packer rather than any public one (UPX/VMProtect/Themida signatures all absent, `upx -t` confirms not-UPX)."
+  - "The PE's `AddressOfEntryPoint` lands inside one of the LAST, highest-entropy sections rather than a nominal early '.text'-equivalent, and a TLS callback directory is present -- both classic packer-stub-placement and early-anti-debug/decryption-kickoff indicators."
+  - "Entropy analysis (binwalk -E) identifies two sharply-bounded near-maximal-entropy byte ranges (one ~3.63MB, one ~550KB) as the real compressed/encrypted payload; a third high-entropy hit that LOOKS like an embedded file (a PNG+zlib stream) turns out to exactly coincide with the PE's own `.rsrc` icon resource -- a red herring, not a hidden packer payload."
+key_idea: "To fingerprint a bespoke/unknown packer with no public signature, read the PE's own section names in order (authors of 'joke'/branded protectors sometimes spell out a message across them), cross-check `AddressOfEntryPoint` against which section it falls in (packer stubs place EP in a late/high-entropy section, not the nominal code section), and use a sharp-edged entropy scan to delineate exactly which byte ranges are the real compressed/encrypted payload versus incidentally-high-entropy legitimate data (icon/resource PNGs, embedded compressed assets) that a naive binwalk file-type hit might mistake for hidden content."
+prerequisites:
+  - "PE section table / entry point analysis"
+  - "entropy scanning (binwalk -E or equivalent)"
+  - "distinguishing legitimate high-entropy resources (icons, fonts) from packer payloads"
+exploitation_pattern: "read section names in file order for any self-describing packer branding -> check AddressOfEntryPoint's containing section against the 'normal' early sections -> entropy-scan the whole file for sharply-bounded high-entropy regions -> cross-reference any binwalk file-type hit (e.g. embedded PNG) against the PE Data Directory table to rule out resource/icon false positives before treating it as a hidden payload."
+verification:
+  method: "No flag or unpacked payload recovered yet; this documents confirmed static identification of the custom packer and its payload byte ranges only."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/CUR53D ENTR0PY/notes/ANALYSIS.md"
+pitfalls:
+  - "A binwalk file-type hit for an embedded image (e.g. PNG+zlib) inside a packed binary is not automatically a hidden/smuggled payload -- cross-check its file offset/size against the PE's own resource directory entry (.rsrc) before concluding it's packer-injected content; it may simply be the application's normal icon resource."
+failed_paths: []
+tools:
+  - "pefile/objdump (section table, entry point)"
+  - "binwalk -E (entropy scan)"
+  - "upx -t (signature elimination)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/CUR53D ENTR0PY/files/CUR53D_ENTR0PY.rar"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/CUR53D ENTR0PY/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Reverse/CUR53D ENTR0PY/solve/solve.py"
+time_heuristic: "For an unknown/bespoke packer with no public signature match, check section names for self-describing branding, compare the entry point's containing section against nominal early sections, and entropy-scan for sharply-bounded payload regions before assuming any particular embedded-file hit from a generic carving tool is the real hidden content."
+last_verified: "2026-11-04"

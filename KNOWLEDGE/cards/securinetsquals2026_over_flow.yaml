@@ -1,0 +1,40 @@
+id: securinetsquals2026_over_flow
+event: "Securinets CTF Quals 2026"
+category: "pwn/signed-compare-bypass-no-reachable-overwrite"
+challenge_name: "Over?flow"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A length-check `cmp eax, 0x70; jle` on a `scanf`-read int32 `count` is a SIGNED comparison, so any negative `count` also passes the `<= 0x70` check and then gets sign-extended (`movsxd`) into a near-maximum `size_t` for the subsequent `memcpy` call -- not a small controllable overflow, but effectively `memcpy(dst, src, ~2^64)`, which hangs/crashes rather than yielding a useful short overflow."
+  - "A second, intermediate function's own stack canary sits between the attacker-controlled copy source and the ultimate destination buffer in `main`; copying up to the full allowed length (0x70 bytes) overwrites `main`'s canary with 8 bytes that happen to equal `input`'s own (same-TLS) canary value, so the check still passes, but `main`'s saved RBP and return address remain 8+ bytes further away and are never reached by this particular copy."
+  - "A separate `escape()` helper doubles every `%` byte in the user string before `printf`ing it with no format-string argument-count validation, and OOB reads leaked PIE-internal addresses (not libc) through this printf -- but only within the single request/response of one connection, with no second turn to use the leaked address."
+key_idea: "A length check using a SIGNED comparison against an int32 user input can be bypassed with negative values, but don't assume that automatically yields a useful short overflow -- verify what the negative value sign-extends to when later used as an unsigned size_t (here, effectively unbounded, causing a hang rather than a controlled few-byte overflow); separately, a function-local buffer's own canary can silently absorb bytes that would otherwise have reached a caller's return address, so trace the EXACT byte offsets a copy reaches in each stack frame before assuming the maximum-allowed-length path reaches RIP."
+prerequisites:
+  - "signed vs. unsigned comparison bugs"
+  - "stack frame layout tracing across nested function calls"
+  - "single-shot (no second-turn) leak-then-use infeasibility recognition"
+exploitation_pattern: "confirm the count<=0x70 check is signed and any negative int32 passes it -> trace exactly how much of the read buffer memcpy's into each enclosing frame at the maximum ALLOWED (non-negative, non-huge) length -> determine the copy stops 8 bytes short of main's saved RIP -> separately analyze escape()'s %-doubling printf for an OOB/format leak, but note the single-request/no-second-turn structure prevents using any leaked address productively without another primitive."
+verification:
+  method: "Not solved; this documents a precise negative result (why the obvious signed-compare bypass and the length-0x70 overflow both fail to reach RIP) for the next session."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/Over_flow/notes/ANALYSIS.md"
+pitfalls:
+  - "Finding a signed-vs-unsigned comparison bug does not automatically mean you have a useful bounded overflow -- check what every out-of-range value you can pass actually becomes after any later sign-extension or size_t cast; a 'passes the check' negative value can sign-extend into an effectively infinite copy length that just hangs the process."
+  - "When a buffer overflow's maximum reachable copy length is computed from one function's allowed input size, re-derive the EXACT byte offset it reaches in the CALLER's frame (not just whether it 'overflows into' the caller) -- an overflow that reaches and passes the caller's own canary check does not necessarily reach the caller's saved return address if there's a gap in between."
+failed_paths:
+  - "count=-1 (and other negative values) pass the signed <=0x70 check but sign-extend to near-2^64 for memcpy, producing a hang rather than a controlled overflow of any useful size."
+  - "Copying the full allowed 0x70 bytes into main's buffer overwrites main's own canary with input's matching (same TLS) canary value (so the check still passes) but lands exactly at [rbp], 8 bytes short of main's saved RBP and further still from the saved return address -- this specific copy length cannot reach RIP."
+tools:
+  - "capstone/manual disassembly (no checksec tool available in this environment)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/Over_flow/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/Over_flow/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Pwn/Over_flow/solve/solve.py"
+time_heuristic: "When you find a signed-comparison length-check bypass, immediately trace what the bypassing (negative) value becomes after any later unsigned/size_t cast before assuming it gives a small controlled overflow; always compute the exact stack-frame byte offset a bounded copy reaches, not just whether the copy 'reaches' the caller's frame."
+last_verified: "2026-11-04"

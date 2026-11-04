@@ -46,8 +46,8 @@ sources:
   - https://github.com/openai/whisper
   - https://huggingface.co/openai/whisper-tiny.en
 playbook: PLAYBOOKS/hardware_spectrogram_image_reconstruction.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/hardware/Spectre/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/hardware/Spectre/solve/reconstruct.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/hardware/Spectre/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/hardware/Spectre/solve/reconstruct.py
 time_heuristic: prefer the representation whose reconstructed duration agrees with the stable activity-group count before scaling ASR
 last_verified: "2026-08-02"
 

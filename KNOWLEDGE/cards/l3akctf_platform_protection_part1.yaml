@@ -1,0 +1,45 @@
+id: l3akctf_platform_protection_part1
+event: L3akCTF2026
+category: web/waf-parser-differential
+challenge_name: "L3AK Platform Protection - Part 1"
+status: needs_verification
+flag: ""
+confidence: 0.6
+artifact_hashes: []
+signals:
+  - "Target is a Next.js app (React Server Components / react2shell RCE family) behind a separate proxy that regex-filters the body for malicious substrings like :constructor."
+  - "The proxy and the Next.js server disagree on how to decode the same request body."
+  - "Challenge author's own blog lists the exact bug classes used across the series: charset/parsing differential, string concatenation via path.join, recursive JSON decoding (one and two levels), Error.toString concatenation."
+key_idea: >
+  When a proxy/WAF regex-filters a raw request body before a backend parses it
+  with awareness of encoding, a charset mismatch is a parser differential: send
+  a multipart/form-data part with Content-Type "text/plain; charset=utf16le" and
+  UTF-16LE-encoded bytes. A WAF that decodes everything as UTF-8 never sees the
+  blocked substring (e.g. ":constructor" becomes ":\x00c\x00o\x00n\x00s\x00t...");
+  the Next.js/React Flight-protocol parser does honor the declared charset and
+  decodes it back to the dangerous string, so the RCE primitive reaches the app.
+prerequisites:
+  - Access to the proxy's filtering behavior (black-box testing of which payloads 400 vs pass)
+  - Knowledge that the backend's multipart parser respects declared charset while the WAF does not
+exploitation_pattern: >
+  Build a react2shell-style React Flight payload (resolved_model chunk chain
+  ending in a thenable that triggers an RCE primitive) -> encode only the
+  substring the WAF blocks (":constructor") as UTF-16LE inside a multipart part
+  with charset=utf16le -> send alongside the unmodified chunks -> proxy's UTF-8
+  regex scan misses the blocked token -> Next.js decodes the part per its
+  charset and reassembles the dangerous string -> RCE payload executes.
+verification:
+  method: Exploit code is complete and specific to the target's React Flight protocol internals, but no server response or flag capture was present in the available source; treat as an unverified but concrete technique.
+  evidence: ""
+pitfalls:
+  - This bypass is reported to work only when the WAF decodes multipart bodies as UTF-8 regardless of the declared Content-Type charset; a WAF that also respects charset closes this path (see Part 2+ in the same series).
+failed_paths: []
+tools:
+  - Python requests (multipart/form-data construction)
+sources:
+  - "https://blog.7chn.me/posts/20260804-l3ak-platform-protection"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/L3akCTF2026/l3ak platform protection/L3AK Platform Protection - Part 1/writeup/writeup.md"
+solver: ""
+time_heuristic: "When a proxy/WAF blocks a known-dangerous token but the backend is charset-aware, try re-encoding just that token in a less common charset (UTF-16LE) inside the same request before assuming a deeper bypass is needed."
+last_verified: "2026-11-04"

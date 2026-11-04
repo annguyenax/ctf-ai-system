@@ -1,0 +1,34 @@
+id: "h7ctf2026_splice"
+event: "H7CTF 2026 Quals"
+category: "web/ffmpeg-argument-injection-arbitrary-file-read"
+challenge_name: "Splice"
+status: "solved"
+flag: "WEBVERSE{34782f9bd6e1c776c225dfbc3fea624d}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A user-controlled \"slug\"/filename field is spliced unquoted into an ffmpeg argv built by splitting on whitespace, with no shell involved (so `;`/`|`/ `$()` are inert), and the server exposes ffmpeg's stderr (or accepts a verbosity flag) when something goes wrong."
+key_idea: "When a user-controlled string is inserted directly into a subprocess argv (not through a shell) and later tokens get a suffix appended (e.g. \".png\"), a literal SPACE in that string is still a command injection primitive -- it lets you inject entirely new CLI arguments after your intended one, even though shell metacharacters are inert. For ffmpeg specifically, inject \"-f data -i <path> -map N -c copy -f data <name>\" after your legitimate output filename to add a second arbitrary-file input and copy its raw bytes out as a new output file the app will happily serve back to you (arbitrary file read with no shell command execution needed at all)."
+prerequisites:
+  - "Access to see ffmpeg's own error output (or enable -loglevel trace) to confirm the exact command line being built"
+  - "Knowledge of which ffmpeg flags are \"input-like\" vs \"output-like\" to place your injected arguments correctly relative to existing -map/-frames flags"
+exploitation_pattern: "submit slug containing a legitimate first output name, then \" -f data -i /target/file -map N -c copy -f data exfil\" -> ffmpeg processes the extra input and writes its raw bytes to a new output file -> fetch the returned artifact URL for \"exfil.png\" -> raw target file bytes recovered."
+verification:
+  method: "Live replay; the server returned a downloadable \"leak.png\" whose raw bytes were the contents of /flag.txt."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Web/Splice/writeup/writeup.md"
+pitfalls:
+  - "No shell metacharacter matters here (no shell is used) -- the only injection primitive is a literal space creating a new argv token; don't waste time on shell-style payloads."
+failed_paths: []
+tools:
+  - "requests"
+  - "urllib"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: "web_ssrf.md"
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Web/Splice/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Web/Splice/solve/solve.py"
+time_heuristic: "When a user-controlled filename/argument is passed straight into a subprocess argv array for a media tool like ffmpeg (no shell), test whether a literal space in that field lets you append entirely new CLI flags/arguments -- this alone (no shell metacharacters needed) is often enough for arbitrary file read via a second crafted input/output pair."
+last_verified: "2026-11-04"

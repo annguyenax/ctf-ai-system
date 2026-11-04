@@ -1,0 +1,42 @@
+id: sunshinectf2026_vecnet
+event: "SunshineCTF 2026"
+category: "misc/git-leak-to-vector-db-embedding-inversion"
+challenge_name: "Vecnet"
+status: solved
+flag: "sun{k33p_your_emb3ddings_secur3!}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Target web root exposes an accessible .git/ directory, letting the full commit history (including a later-reverted secrets commit) be reconstructed."
+  - "A leaked config.php from a reverted commit contains internal service URLs/credentials (MailHog admin UI, an internal API key) that are not reachable from the current HEAD source alone."
+  - "An internal fetch.php implements an allow-list-restricted URL fetch (SSRF-shaped primitive) that nonetheless permits retrieving a specific internal archive path."
+  - "An internal mail server (MailHog) and a ChromaDB vector-database REST API (v2) are both reachable on non-standard ports once credentials are known, and ChromaDB's /get endpoint returns raw embedding vectors (not just documents) for stored items."
+  - "One stored ChromaDB item has a null document but a real 768-dim embedding vector -- the actual secret was stored ONLY as an embedding, never as plaintext."
+key_idea: "A vector-database (ChromaDB-style) item that has a non-null embedding but a null/empty document field is deliberately hiding plaintext in embedding-space; recovering it requires an embedding-inversion model trained for/compatible with the same embedding function (e.g. the vec2text framework for GTR-family embedders) rather than any document-level query, since the database's own query API never returns the underlying text directly."
+prerequisites:
+  - "Git history reconstruction from an exposed .git/ directory (even after secrets were reverted in a later commit)"
+  - "ChromaDB REST API v2 usage (collections, get with include=embeddings)"
+  - "vec2text embedding-inversion framework (hypothesizer + corrector models matching the target embedding function)"
+exploitation_pattern: "find exposed .git/ -> reconstruct commit history -> recover reverted config.php (internal URLs/creds) -> use an internal fetch.php allow-list bypass to pull a password-protected archive -> log into MailHog with leaked creds to read internal emails describing an internal vector-DB deployment and the exact inversion parameters (num_steps, beam_width) to use -> query ChromaDB's REST API for collection items including embeddings -> find the item with a null document but a real embedding vector -> run vec2text with the matching embedding function and the emailed parameters to recover its hidden plaintext description -> combine that description with another plaintext clue (a user's initials + a magic string) to brute-force a short password-shaped field -> use the cracked password to decrypt the final password-protected archive containing the flag"
+verification:
+  method: "Deterministic end-to-end script reproduces the cracked password and the exact flag from the decrypted archive."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Misc/Vecnet/writeup/writeup.md"
+pitfalls:
+  - "A vector-DB item with embeddings but no document text is not 'empty' -- its content was deliberately pushed into embedding-only space; a document-level query will never surface it, only an embedding-inversion attack will."
+  - "An exposed .git/ directory can still leak secrets that were later reverted in a subsequent commit; always walk the full history, not just the current HEAD tree."
+failed_paths: []
+tools:
+  - "git (manual .git/ object reconstruction)"
+  - "vec2text (gtr-base hypothesizer/corrector models)"
+  - "7z (password-protected archive extraction)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Misc/Vecnet/specs.7z"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Misc/Vecnet/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Misc/Vecnet/solve/solve.py"
+time_heuristic: "Vector-database item with an embedding but a null/empty document: this is deliberately hidden plaintext that only an embedding-inversion model (e.g. vec2text) can recover, not a document-query gap to work around some other way."
+last_verified: "2026-11-04"

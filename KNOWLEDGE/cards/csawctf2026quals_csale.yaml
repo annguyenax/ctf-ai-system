@@ -1,0 +1,35 @@
+id: csawctf2026quals_csale
+event: "CSAW CTF Qualifications 2026"
+category: "web/blackbox-idor-hunt-paused"
+challenge_name: "CSALE"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "No source provided (removed by the organizers as 'inaccurate'); the app must be probed entirely blackbox."
+  - "Seller-locked 'unlisted' draft listings carry GLOBAL ids but every access path (image/edit/delete, and the unlock endpoint) is strictly ownership-checked server-side -- straightforward IDOR by changing the id alone does not work."
+  - "The /account/unlisted/unlock endpoint accepts a base64 JSON lock_state blob ({v, u, bn}) plus a PIN, but the PIN is always validated against the CALLER's own seller_pin, and the `u` (target user id) field inside lock_state does not grant cross-user access in the responses observed so far."
+key_idea: "When an unlock/authorization endpoint accepts a structured, client-supplied state blob (versioned JSON, base64-encoded) alongside a secret, treat the blob's version field and any bad-attempt/lockout counter as attack surface in their own right (version/schema confusion, or a lockout-counter that can be driven to a bypass state) rather than only trying to IDOR the target-user field directly, since direct field substitution was tested and does not grant access on its own."
+prerequisites:
+  - "Blackbox web probing (signup/login/listing/draft flows) with no source available"
+exploitation_pattern: "(not completed) candidate next steps: test whether lock_state's `v` (version) field has an older/alternate schema the server still accepts with weaker checks; test whether the `bn` (bad-attempts) counter can be driven to a state that resets or bypasses PIN validation; test parameter pollution or SSTI in the unlock endpoint; try `u` as a username string instead of a numeric id; attempt session/cookie forgery given the lock_state encoding scheme observed."
+verification:
+  method: ""
+  evidence: ""
+pitfalls:
+  - "Direct IDOR via the lock_state `u` field substitution was tested specifically and does NOT work -- ownership checks on image/edit/delete and the unlock PIN check all still bind to the caller's own session user, not to the `u` value supplied in the blob."
+failed_paths:
+  - "Setting lock_state's `u` field to a target user's id while authenticated as a different user: unlock endpoint still validates PIN against the caller's own seller_pin, and does not grant access to the target's draft."
+tools:
+  - "python3 (requests, manual blackbox probing)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/CSALE/writeup/writeup.md"
+solver: ""
+time_heuristic: "Unlock/authz endpoint taking a structured client-supplied state blob (base64 JSON with a version + counter field) that resists direct target-id substitution: probe the version/schema and counter fields for confusion/bypass rather than only the target-id field."
+last_verified: "2026-11-04"

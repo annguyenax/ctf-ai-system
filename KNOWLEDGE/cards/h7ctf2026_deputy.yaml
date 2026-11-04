@@ -1,0 +1,38 @@
+id: "h7ctf2026_deputy"
+event: "H7CTF 2026 Quals"
+category: "cloud/aws-confused-deputy-chain"
+challenge_name: "Deputy"
+status: "solved"
+flag: "H7CTF{d6cc592f5a2f3db80718}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Low-priv IAM user can invoke a Lambda whose execution role is far more privileged, and the Lambda's own response payload echoes its temporary credentials back to the caller."
+  - "iam:PassRole plus sts:AssumeRole chains across two AWS accounts, with the final hop gated by an ExternalId condition recoverable from a bucket only the previous-stage role can read."
+  - "s3:ListAllMyBuckets is allowed even when GetObject/ListBucket on specific buckets is denied -- use it purely for recon of bucket names you can't read yet."
+key_idea: "Chain privilege escalation across an emulated multi-account AWS environment: invoke an over-privileged Lambda to leak its runtime role credentials, AssumeRole cross-account with those, read a config object that contains the next hop's required ExternalId, then AssumeRole again with that ExternalId to reach the final (confused-deputy) role and its flag bucket."
+prerequisites:
+  - "boto3 configured against a custom endpoint_url with verify=False"
+  - "Understanding of sts:AssumeRole, ExternalId conditions, and Lambda invoke payloads"
+exploitation_pattern: "analyst creds -> lambda.invoke() leaks ci-runner creds in Payload JSON -> ci-runner sts:AssumeRole(partner-admin-role) cross-account -> partner-admin reads config object for ExternalId -> partner-admin sts:AssumeRole(partner-secure-role, ExternalId=...) -> partner-secure reads crown-jewels bucket."
+verification:
+  method: "Live multi-stage replay against the instance; each stage's S3 GetObject succeeded only with the correctly escalated identity, confirming all 4 flags independently."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Cloud/Deputy/writeup/writeup.md"
+pitfalls:
+  - "IAM enumeration (GetRole/ListRoles/ListRolePolicies) is deliberately locked down for the privileged roles; don't rely on it to discover the chain -- use allowed recon (ListAllMyBuckets, Lambda invoke payload) instead."
+  - "RoleSessionName has a minimum length requirement on AssumeRole in this emulation."
+failed_paths:
+  - "Direct bucket-name brute force for the crown-jewels bucket failed; the names were only discoverable via the analyst's ListAllMyBuckets permission."
+tools:
+  - "boto3"
+  - "Python"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Cloud/Deputy/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Cloud/Deputy/solve/solve.py"
+time_heuristic: "In an emulated multi-account AWS scenario, when IAM inspection is denied, use whichever identity you hold to list resources (ListAllMyBuckets) rather than inspect policies, and check Lambda invoke responses for leaked execution-role credentials before assuming the chain is purely PassRole/AssumeRole."
+last_verified: "2026-11-04"

@@ -1,0 +1,38 @@
+id: compfest18ctf2026_mirai_nikki
+event: "CTF COMPFEST 18 (2026)"
+category: "pwn/heap-uaf-tcache"
+challenge_name: "未来日記 (Mirai Nikki)"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "delete() frees nikkis[idx] but never clears nikkis[idx]/sizes[idx] to NULL/0, leaving a dangling pointer."
+  - "edit() writes read(0, nikkis[idx], sizes[idx]) with no NULL check, so it writes directly into the freed chunk -> UAF write that can corrupt the tcache 'next' safe-linked pointer and zero the tcache key field, enabling a double-free."
+  - "predict() leaks heap pointer bits but casts the 64-bit pointer to unsigned short before shifting right by 12, so it only recovers 4 bits (bits 12-15) of the address -- not enough to beat glibc 2.42 safe-linking (which needs the pointer's bits 12-19 or 12-27) without brute force."
+key_idea: "Classic UAF + double-free primitive is clearly present (free without nulling pointer/size, then unchecked write-after-free into the freed chunk), but the one available leak (predict()) is deliberately crippled by a narrowing cast that destroys all but 4 address bits, which is insufficient against glibc 2.42 safe-linking tcache protections and per-thread tcache key verification. With only 7 allocation slots, there is not enough capacity to fill tcache and leverage smallbin/largebin leftovers in a single malloc call either. Exploitation was blocked at the leak stage; no flag was recovered."
+prerequisites:
+  - "glibc 2.42 heap internals: safe-linking tcache next-pointer obfuscation, per-thread tcache key double-free detection"
+  - "ASLR/heap-layout reasoning (PIE-heap gap size, 2MB-aligned libc region from transparent huge pages)"
+exploitation_pattern: "free-without-null -> use-after-free write corrupts tcache next/key -> double-free potential, BUT the only address leak available truncates the pointer to 4 usable bits, which is below the threshold needed to defeat glibc 2.42 safe-linking without ASLR brute force (out of scope)."
+verification:
+  method: "No flag recovered; analysis is source-code and local-maps based (binary + libc + loader supplied)."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Pwn/未来日記/solve/EXPLOIT_PLAN.md and solve/evidence/aslr_maps.txt"
+pitfalls:
+  - "A narrowed/truncated pointer-leak primitive (e.g. casting a 64-bit pointer through a 16-bit type before shifting) can look like a useful info leak but may expose far fewer usable bits than it appears -- always check the exact cast widths before assuming an info leak defeats a given mitigation."
+  - "Counting available allocation slots against tcache capacity (per-size-class, 7 default) matters: too few live/freed slots to fill tcache rules out certain smallbin/largebin stash tricks in one malloc call."
+failed_paths:
+  - "Treating the 4-bit predict() leak as sufficient to compute a usable heap/libc address without ASLR brute force -- ruled out as out of scope/insufficient."
+tools:
+  - "pwntools-style local analysis (implied); ld.so/libc supplied in the challenge archive"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Pwn/未来日記/files/public.zip"
+playbook: "pwn_stack_overflow.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Pwn/未来日記/writeup/writeup.md"
+solver: ""
+time_heuristic: "In a heap-UAF menu challenge, before committing to an exploit plan, precisely measure how many address bits a given leak primitive actually exposes (watch for narrowing casts through 16-bit intermediate types) and compare that against the modern glibc protection in play (safe-linking needs bits 12-19 or 12-27); a leak that looks plausible can still be mathematically insufficient."
+last_verified: "2026-11-04"

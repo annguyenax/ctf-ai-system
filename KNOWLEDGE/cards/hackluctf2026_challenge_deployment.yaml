@@ -1,0 +1,42 @@
+id: hackluctf2026_challenge_deployment
+event: "Hack.lu CTF 2026"
+category: "web/k8s-controller-multidoc-yaml-bypass"
+challenge_name: "Challenge Deployment"
+status: solved
+flag: "flag{1ts_alw4ys_DNS_4lso_1n_K8s}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "`require_challenge()` only checks that AT LEAST ONE document in a multi-document YAML stream has `kind: Challenge`; any other document (e.g. `kind: Secret`) in the same stream skips the normalize/validation step and is applied directly."
+  - "`_apply()` merges the live cluster object with the submitted doc and shells out to client-side `kubectl apply -f -`, which automatically stores the full merged JSON (including secret data) into the `kubectl.kubernetes.io/last-applied-configuration` annotation."
+  - "A debug view masks only the top-level `data`/`stringData` fields of a Secret but leaves `metadata.annotations` untouched, so the client-side-apply annotation leaks the unmasked base64 secret."
+  - "RBAC restricted `services/get` to name `ui` but left `pods/portforward` unrestricted to ANY pod, so port-forwarding directly to the `api` pod (bypassing the UI's restricted `/create` form) reaches the raw multi-document YAML sink."
+key_idea: "When a controller validates a multi-document manifest stream by checking only that some document matches an expected kind, smuggle an extra document of a different kind (here `Secret`) into the same stream; if the controller then does a client-side `kubectl apply`, the full merged object -- including fields a separate debug/masking view thinks it hid -- gets echoed back verbatim inside the `last-applied-configuration` annotation."
+prerequisites:
+  - "Kubernetes RBAC verb/resource model"
+  - "client-side kubectl apply annotation behavior"
+  - "YAML multi-document parsing"
+exploitation_pattern: "enumerate RBAC with kubectl auth can-i to find an unrestricted verb (pods/portforward) reaching a service beyond the intended UI -> submit a 2-document YAML (Challenge + target Secret) to the raw create sink -> read the Secret's last-applied-configuration annotation via the debug view that only masks top-level data fields."
+verification:
+  method: "Live run against the deployed instance; the controller wrote the real Secret into the annotation and the debug endpoint returned it unmasked, base64-decoding to the exact flag."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/Challenge Deployment/writeup/writeup.md"
+pitfalls:
+  - "A 'require at least one document of kind X' validator does not reject additional, differently-kinded documents in the same YAML stream -- always test smuggling an extra document rather than assuming single-document validation."
+  - "Masking only top-level fields of a returned Kubernetes object misses `metadata.annotations`, which `kubectl apply` (client-side) populates with the full unredacted input object."
+  - "RBAC that scopes `services/get` to a specific name but leaves `pods/portforward` wide open lets you bypass a restrictive UI entirely by port-forwarding straight to a backend pod."
+failed_paths: []
+tools:
+  - "kubectl"
+  - "Python requests/urllib"
+  - "PyYAML"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/Challenge Deployment/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/Challenge Deployment/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Misc/Challenge Deployment/solve/exploit.py"
+time_heuristic: "For a Kubernetes-admin-proxy-style web challenge, check `kubectl auth can-i --list` first for any unrestricted portforward/exec verb, then look for multi-document YAML validation that only checks for a required kind rather than rejecting extras."
+last_verified: "2026-11-04"

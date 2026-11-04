@@ -1,0 +1,36 @@
+id: hackluctf2026_chip
+event: "Hack.lu CTF 2026"
+category: "pwn/vm-in-vm-rop-no-leak"
+challenge_name: "CHIP"
+status: solved
+flag: "flag{w0w_1t_3ven_h4s_a_d1spl4y_217f2ef7a14ac133efe137599d4f5407}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A CHIP-8 VM's state struct lives directly on main's stack; opcode FX1E increments the 16-bit index register `I` by `V[X]&0xFFF` with no bounds check, and FX65/FX55 read/write memory at `I` unbounded, reaching main's saved RBP/RIP past the 4096-byte memory buffer."
+  - "The VM's own saved return address (into `__libc_start_call_main+N`) can be read into VM registers via FX65, giving a libc-base-equivalent value entirely inside the VM with no external leak needed."
+  - "CHIP-8's 8XY4 (`VX+=VY`, carry into VF) is enough to implement a full 64-bit multi-precision adder across 8 registers purely in VM bytecode."
+key_idea: "When an interpreted VM's state (including saved return address) is reachable via an unbounded index-register OOB read/write, you don't need an external information leak at all: read the known-offset return address into VM registers, compute ROP-gadget deltas as bytecode-level 64-bit additions (implementing your own ripple-carry adder with the VM's native carry-flag opcode), and write the resulting ROP chain back over the saved RIP -- entirely deterministic, no brute force, no multi-connection leak."
+prerequisites:
+  - "Custom VM reverse engineering (CHIP-8 ISA)"
+  - "manual multi-precision arithmetic construction from single-byte ALU ops"
+  - "x86-64 stack layout / libc offset math"
+exploitation_pattern: "read saved RIP at known VM-memory offset into registers -> apply precomputed libc-internal deltas via a ripple-carry 64-bit adder built from 8-bit ADD+carry opcodes -> write pop_rdi/'/bin/sh'/system ROP chain back at the same offset -> execute an unrecognized opcode to break the VM's dispatch loop and let `main` return into the chain."
+verification:
+  method: "Exploit ran against the remote instance over TLS and returned an interactive shell that read the flag file."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/CHIP/writeup/writeup.md"
+pitfalls: []
+failed_paths: []
+tools:
+  - "Python 3 (struct, socket, ssl)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/CHIP/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/CHIP/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/CHIP/solve/solve.py"
+time_heuristic: "When an embedded interpreter/VM's own saved return address is reachable through an OOB primitive internal to the VM, prefer computing ROP deltas as VM-native arithmetic over the VM's own ALU opcodes instead of hunting for an external memory leak."
+last_verified: "2026-11-04"

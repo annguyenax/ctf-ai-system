@@ -1,0 +1,10 @@
+# picoCTF2026 paper-2 verified run
+Target: https://lonely-island.picoctf.net:49348
+Webhook token: REDACTED
+PDF: /paper/2
+XML: /paper/3
+Leaked URL: https://web/paper/2#81a2ad29c32a8cbf31fb047e08fbf902
+Secret: 81a2ad29c32a8cbf31fb047e08fbf902
+Flag: picoCTF{i_l1ke_frames_on_my_canvas_953d5fff}
+
+The exact stdout is preserved in the challenge writeup and the reviewed solver source is under the challenge solve directory.

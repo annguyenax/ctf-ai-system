@@ -47,7 +47,7 @@ hexstrike:
 sources:
   - "https://www.loc.gov/resource/sn83030214/1920-08-21/ed-1/?sp=1&st=text (New-York Tribune, định danh số báo + toàn văn)"
 playbook: "PLAYBOOKS/osint_historic_newspaper_fulltext.md"
-writeup: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\osint\\The Unbroken Shelf\\writeup\\writeup.md"
-solver: "D:\\download\\CTFTimeWriteup\\KaliCTF2026\\osint\\The Unbroken Shelf\\solve\\solve.py"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026\\osint\\The Unbroken Shelf\\writeup\\writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/KaliCTF2026\\osint\\The Unbroken Shelf\\solve\\solve.py"
 time_heuristic: "10-25 phút nếu vào thẳng Chronicling America; lâu hơn nếu vướng Cloudflare khi tự động hoá"
 last_verified: "2026-08-05"

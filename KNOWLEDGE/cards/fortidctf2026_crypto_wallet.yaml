@@ -1,0 +1,44 @@
+id: fortidctf2026_crypto_wallet
+event: FortID CTF 2026
+category: rev/apk-bip39-seed-what3words-geofence-stub
+challenge_name: "Crypto Wallet"
+status: paused
+flag: ""
+confidence: 0.25
+artifact_hashes: []
+signals:
+  - "A wallet-recovery APK verifies a 12-word BIP-39 mnemonic by grouping it into 4 word-triplets, converting each to a what3words address, and checking a perfect-matching against 4 fixed airport coordinates with a 900m vicinity check."
+  - "The vicinity-check service (PendingPartnershipVicinityService.checkObjectVicinity) is an unconditional stub that always returns true with a 'not implemented yet' message, so the 900m geofence constraint provides no real narrowing."
+  - "The actual security check is BIP-39 checksum validity plus a fixed target Ethereum address derived via standard BIP-32/44 m/44'/60'/0'/0/0 from the seed; only on an address match does AES-128-GCM decryption (with a fixed key-derivation formula, IV, and AAD) release the flag."
+key_idea: "The native library's geofence/what3words targets are fully reversed (4 coordinates, matching table) but the vicinity check being stubbed-true removes a constraint without revealing the actual 12-word seed; what3words-converting the 4 target coordinates yields 12 words, but only 7 of 12 are valid BIP-39 dictionary entries, so that direct conversion is NOT the seed. The real 12-word seed is unknown, and brute-forcing it (e.g. by scanning nearby what3words grid cells for a BIP-39-only variant, or scanning APK-bundled PNG pixel bit-planes for a hidden mnemonic) has been tried at meaningful scale with zero matches against the target Ethereum address."
+prerequisites:
+  - APK reverse engineering (Java decompilation + native .so disassembly) to recover the full verification chain including stubbed/no-op service calls
+  - BIP-39/BIP-32/BIP-44 derivation implementation for brute-force candidate testing
+  - Recognizing which externally-called services are no-op stubs vs real constraints before treating their outputs as puzzle data
+exploitation_pattern: "(unresolved) 12-word BIP-39 mnemonic -> 4 what3words triplets checked (stub-always-true) against 4 airport coordinates -> BIP-32/44 derive Ethereum address, must equal a fixed target -> on match, AES-128-GCM decrypt with SHA-256(privkey || context-string) key"
+verification:
+  method: "No flag recovered; the derivation and AES-GCM parameters are fully reversed from the decompiled app, and the derivation/address-check logic was cross-validated against a known reference library (eth_account) on a standard test vector, but no seed producing the target address has been found."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Crypto Wallet/notes/reversal_2026-10-11.md"
+pitfalls:
+  - "Do not treat a service call's returned data as puzzle-relevant without first checking whether the call is a functioning check or an unconditional stub; here the 900m vicinity/perfect-matching check always returns true, so its apparent geospatial constraint is a red herring, not a real narrowing of the search space."
+  - "Converting target coordinates to what3words addresses and checking dictionary membership is a cheap way to falsify a 'the seed equals the location words' hypothesis (here 5 of 12 words are not BIP-39 entries at all) before investing in expensive brute-force search around that hypothesis."
+  - "A large-scale brute-force (millions of candidates) against a single fixed target (here, one Ethereum address) is only worth running after confirming the search space genuinely contains the answer; absence of a hit after a well-powered search is itself useful negative evidence the hypothesis is wrong, not just unlucky."
+failed_paths:
+  - "what3words-converted the 4 target airport coordinates directly into a 12-word phrase; 5 of 12 words are not in the APK's own bip39_english.txt, so this exact phrase cannot be the seed."
+  - "Swept +/-10 what3words grid cells (~30m) around all 4 airports (2.5M combinations), filtered to ~158k BIP-39-checksum-valid mnemonics, and derived the Ethereum address for every one; none matched the target address."
+  - "Scanned all 150 bundled PNG resources' pixel bit-planes (0 and 1, native and interleaved channels, every 132-bit window, ~3.27M windows) for a checksum-valid BIP-39 mnemonic; 3,772 unique valid candidates were derived and none matched the target address."
+tools:
+  - APK decompilation tooling
+  - Python (hashlib pbkdf2_hmac, hmac, cryptography ec module, eth_hash) for BIP-32/44 derivation
+  - PIL/Pillow for PNG pixel-plane extraction
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Crypto Wallet/notes/reversal_2026-10-11.md"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Crypto Wallet/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Crypto Wallet/solve/apk_pixel_bitplane_probe.py"
+time_heuristic: "When reversing an app's verification chain, check every externally-called service for whether it's a real check or an unconditional stub before treating its apparent constraint as narrowing the puzzle's search space; a stub returning a fixed 'not implemented' success removes a constraint rather than providing one."
+last_verified: "2026-11-04"

@@ -1,0 +1,44 @@
+id: securinetsquals2026_misdirection_part_2
+event: Securinets CTF Quals 2026
+category: crypto/invalid-curve-prf-oracle
+challenge_name: "Misdirection: Part 2"
+status: solved
+flag: "Securinets{c0unterfeiting_d0Ma1ns_like_th3_M4fiA}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - forgePrf scalar-multiplies an unchecked 64-byte salt and returns SHA256 of the shared x
+  - WebAuthn prf.eval.first is copied into that salt and the digest comes back as userHandle
+  - constructor.prototype.baseURL pollution redirects login_start
+  - hint ciphertext is AES-256-ECB under SHA256 of the ASCII hex scalar
+key_idea: Invalid-curve oracle on a=-3 mod P-256. Small-order points, CRT of the x-only residues, then the Part 1 AES-ECB alternate path.
+prerequisites:
+  - a point of odd order so doubling never inverts 2y=0
+  - the PRF salt left as a base64 string; simplewebauthn only converts challenge and allowCredentials
+exploitation_pattern: pollute baseURL, serve login options with prf.eval.first = x||y, read userHandle, brute kP, CRT, AES-ECB
+verification:
+  method: "AES-256-ECB decrypt of the hint with SHA256(hex(d)) yields the flag, and the portal accepted that flag"
+  evidence: "Securinets{c0unterfeiting_d0Ma1ns_like_th3_M4fiA}"
+pitfalls:
+  - Part 1's fixed nonce is gone. keyPair.sign uses a random k.
+  - The .env.example scalar does not match the deployed key. Securinets{not_real_lol} is the sample flag.
+  - Output is only x, so each query yields d and -d. Need enough coprime moduli to leave one 32-byte candidate.
+  - Order-2 points make the doubling inverse fail and the bot returns no userHandle.
+  - atob in the stub wants a padded base64 salt.
+  - The bot page will not show a success word. The report JSON says authentication failed even when userHandle was captured.
+failed_paths:
+  - reusing the Part 1 admin scalar
+  - forging a live admin WebAuthn assertion
+tools:
+  - python
+  - pari-gp
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local group law plus one bot oracle per modulus."
+sources: []
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Crypto/Misdirection_ Part 2/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Crypto/Misdirection_ Part 2/solve/solve.py"
+time_heuristic: "About 13 bot visits, 10 seconds each, plus a few minutes to brute the smooth moduli."
+last_verified: "2026-10-18"

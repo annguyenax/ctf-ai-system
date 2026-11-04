@@ -1,0 +1,40 @@
+id: fortidctf2026_osint_exam_ii
+event: FortID CTF 2026
+category: osint/multi-stage-live-quiz-public-record-chain
+challenge_name: "OSINT Exam II"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes: []
+signals:
+  - "A live multi-question quiz service accepts one answer at a time and only reveals the next question after an accepted answer, so progress must be tracked and replayed stage by stage."
+  - "Each question is solvable via a different class of public-record source: official race-result timing pages, conference-agenda session listings, and a school's public exam-report PDF plus a YouTube video description."
+  - "Public-record identity linking (LinkedIn directory + school report + YouTube video metadata) successfully resolved an individual's identity across three independent sources for one question."
+key_idea: "Multi-stage live-quiz OSINT challenges require replaying already-accepted answers to reach the current unanswered question on any fresh instance; three of four questions were solved via official public-record sources (race timing results, conference agenda, school exam report + video metadata cross-reference), but the fourth question depends on an internal scoreboard/leaderboard link that has not yet been located via public searches of the referenced organization's GitHub and web presence."
+prerequisites:
+  - A replay script that resubmits all previously-accepted answers in order against a freshly-started instance before attempting the next unanswered question
+  - Cross-referencing multiple independent public-record source types (sports timing results, conference agendas, school/exam reports, video platform search, LinkedIn directories) for identity resolution
+exploitation_pattern: "(partially resolved) sequential live-quiz questions, each answered from a distinct public-record source class, replayed against each new instance via a saved accepted-answers list; final question blocked on locating an internal/organizational scoreboard link"
+verification:
+  method: "Three of four questions were confirmed accepted by the live challenge service itself (it advanced to the next question each time); no flag has been recovered since question 4 remains unanswered."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/OSINT/OSINT Exam II/notes/progress_2026-10-11.md"
+pitfalls:
+  - "For a live multi-stage quiz/verifier service, build a replay mechanism from the start that resubmits every already-accepted answer against each fresh instance; an expired/reset instance is not a rejected answer and should not be treated as invalidating prior progress."
+  - "Passing several questions in a staged live-quiz challenge is partial progress, not a solved challenge; do not conflate 'service advanced to next question' with 'flag recovered'."
+  - "Do not guess at list-based or enumerable answers (e.g. player name permutations) without an evidence basis; search the relevant platform/organization's own public records (certificate transparency, public repos, agendas) directly instead."
+failed_paths:
+  - "Considered Petra Krizan as the Q3 musician based on employer association alone; rejected for lack of supporting music evidence once the actual video source directly identified a different person."
+tools:
+  - Python replay script (solve/replay_exam.py) that resubmits accepted answers against a fresh instance
+  - "Public web search targeted at the specific platform (e.g. YouTube's own search) rather than general search engines"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/OSINT/OSINT Exam II/notes/progress_2026-10-11.md"
+playbook: recon_external_search.md
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/OSINT/OSINT Exam II/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/OSINT/OSINT Exam II/solve/replay_exam.py"
+time_heuristic: "For a live multi-stage OSINT quiz that only reveals the next question after an accepted answer, always build and use a replay script for already-accepted answers before spending effort on a fresh instance, and search within the specific relevant platform (not general web search) when a general search stalls."
+last_verified: "2026-11-04"

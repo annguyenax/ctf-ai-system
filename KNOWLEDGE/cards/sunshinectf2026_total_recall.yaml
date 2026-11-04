@@ -1,0 +1,36 @@
+id: sunshinectf2026_total_recall
+event: "SunshineCTF 2026"
+category: "pwn/srop-minimal-gadgets"
+challenge_name: "Total Recall"
+status: solved
+flag: "sun{r3caLl_ev3Ry_reGist3r_sR0p}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A tiny static, stripped ELF with almost no usable ROP gadgets, but the remote stack is non-executable (NX) despite the binary lacking a PT_GNU_STACK header -- gadget scarcity rules out a normal ROP chain."
+  - "One function leaks a stack address by pushing rsp and writing it out, then reads a small fixed-size buffer at a known offset from that leaked address -- enough to place a controlled return value."
+  - "A second function has a classic stack buffer overflow that overwrites the return address, and among the few available gadgets is a 'read N bytes, set rax from its return value, ret' gadget -- exactly what's needed to set rax=15 (SYS_rt_sigreturn) before the next ret."
+key_idea: "When a binary has almost no ROP gadgets but DOES have a read-like gadget whose return value lands in rax, that is enough to perform a full Sigreturn-Oriented Programming (SROP) attack: use it to set rax=15 (rt_sigreturn), return into a bare syscall;ret gadget, and let the kernel restore an attacker-crafted sigcontext structure that sets every register (including rdi/rsi/rdx and a direct rip to a second syscall instruction) in one shot -- enabling execve('/bin/sh') with no other gadgets needed."
+prerequisites:
+  - "SROP / sigcontext structure layout on x86-64 Linux (offsets for rdi, rsi, rdx, rax, rsp, rip, csgsfs within the frame)"
+  - "Identifying any single gadget whose own return value controls rax, to set up rt_sigreturn's syscall number without a `pop rax; ret` gadget"
+exploitation_pattern: "leak a stack address via the info-leak function -> compute /bin/sh string placement relative to that leak -> overflow the return address of the vulnerable function with the read-gadget address -> send exactly 15 bytes so the gadget's return value sets rax=15 -> that gadget's own ret lands on a bare syscall;ret gadget, invoking rt_sigreturn -> rt_sigreturn restores a forged sigcontext with rax=59 (execve), rdi=&'/bin/sh', rsi=rdx=0, and rip=syscall again -> shell spawns"
+verification:
+  method: "Live run against the remote service returned an interactive shell; flag retrieval confirmed in the recorded output."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Total Recall/writeup/writeup.md"
+pitfalls:
+  - "Gadget-starved stripped binaries are not necessarily un-exploitable -- check specifically for any gadget whose return value ends up in rax, since that alone is sufficient to pivot into SROP (rt_sigreturn) without a dedicated pop-rax gadget."
+failed_paths: []
+tools:
+  - "python3 (manual sigcontext/SROP frame construction)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Total Recall/files/total_recall"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Total Recall/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Pwn/Total Recall/solve/srop.py"
+time_heuristic: "Stripped binary with almost no ROP gadgets: look for any gadget whose return value lands in rax -- that alone is enough to pivot into SROP (rt_sigreturn) and set every register via a forged sigcontext, bypassing the gadget shortage entirely."
+last_verified: "2026-11-04"

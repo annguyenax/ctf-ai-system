@@ -1,0 +1,45 @@
+id: compfest18ctf2026_redis_cli_0day
+event: "CTF COMPFEST 18 (2026)"
+category: "pwn/cluster-manager-oob-write"
+challenge_name: "redis-cli 0-day"
+status: paused
+flag: ""
+confidence: 0.3
+artifact_hashes:
+  - file: "files/redis-cli"
+    sha256: "af3f4fc786853724115375d369649c088a15f3d48fac4a92e422a38ce0f7c067"
+signals:
+  - "clusterManagerNodeLoadInfo parses an attacker-controlled 'CLUSTER NODES' response line and writes node->slots[atoi(slotsdef)] = 1 with no bounds check against the 16384-byte slots array."
+  - "DWARF-derived struct layout places slots at offset 0x54 and slots_count at offset 0x4054 within clusterManagerNode (size 16528), so index 16384 lands exactly on the low byte of slots_count."
+  - "The range grammar (e.g. '0-20000') compiles to an unbounded memset into slots+start, giving a wider out-of-bounds write than the single-index path."
+  - "Leading '-' in the slot field is the range separator, not a sign, so apparent negative indices must be expressed via 32-bit wraparound (e.g. 4294967212 for -84), not a literal minus sign."
+key_idea: "An unbounded array index/range parsed from an untrusted 'CLUSTER NODES' response line in redis-cli's clusterManagerNodeLoadInfo allows single-byte or memset-sized out-of-bounds writes past the fixed 16384-entry slots array into adjacent struct fields (slots_count, replicas_count, friends/migrating/importing pointers, context). This reliably corrupts heap metadata and adjacent pointers (malloc abort, SIGSEGV) under MALLOC=libc, but full RCE was not achieved — no reliable PC control or file read was built before the engagement was blocked by a CTFd access-token gate on the remote instance."
+prerequisites:
+  - "ELF/DWARF static analysis (addr2line, readelf, source correspondence against upstream redis-cli.c)"
+  - "An isolated RESP2 server harness to feed controlled CLUSTER NODES responses to the target redis-cli build without a real cluster"
+  - "WSL/Linux loader to run the shipped glibc-linked binary with its own ld.so/libc pair when the bundled runtime aborts"
+exploitation_pattern: "attacker-controlled CLUSTER NODES text -> unvalidated slot index/range parsed from it -> out-of-bounds byte write or memset past a fixed-size array -> adjacent heap/struct field corruption -> crash signals observed, but no further weaponization (pointer-tail overwrite into a vtable-like field, or heap-chunk-size corruption for a controlled allocation primitive) was completed."
+verification:
+  method: "Local deterministic runs against an isolated RESP2 harness using the shipped redis-cli ELF under an extracted glibc userland (WSL); observed crash signatures (malloc corruption, SIGSEGV on tail pointers, SIGSEGV via context LSB write) matched the DWARF-derived struct-field predictions exactly."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Pwn/redis-cli 0-day/solve/evidence/runtime_crash_2026-08-29.txt and solve/evidence/slot_index_oob_proof.txt"
+pitfalls:
+  - "run.sh discards the cli's stdout/stderr, so a remote crash would be silent — a working local PoC does not by itself prove remote exploitability is observable."
+  - "The remote instance requires an authorized CTFd access token before the RESP2/host:port wrapper is reachable at all; one connect attempt without a token returned only the token prompt."
+  - "Docker Desktop's engine did not stay running locally; the ELF had to be executed directly against an extracted glibc userland via the loader instead of inside the shipped container."
+failed_paths:
+  - "Attempting to run the shipped Docker/loader/libc combination directly aborted before reaching a usable harness; had to extract and run with ld-linux-x86-64.so.2 --library-path against a separate glibc."
+tools:
+  - "readelf, nm, objdump, addr2line"
+  - "Python RESP2 harness (solve/local_poc.py)"
+  - "WSL Ubuntu noble glibc 2.39 as loader"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Pwn/redis-cli 0-day/files/redis-cli"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Pwn/redis-cli 0-day/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Pwn/redis-cli 0-day/solve/local_poc.py"
+time_heuristic: "When a pwn challenge targets a client-side parser of an untrusted server response (here CLUSTER NODES), use DWARF/addr2line to map the exact struct field an out-of-bounds index lands on before attempting RCE; this turns blind heap fuzzing into a precise field-overwrite plan and quickly separates 'crash primitive confirmed' from 'full exploit chain built'."
+last_verified: "2026-11-04"

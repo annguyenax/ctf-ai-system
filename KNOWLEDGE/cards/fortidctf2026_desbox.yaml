@@ -1,0 +1,37 @@
+id: fortidctf2026_desbox
+event: FortID CTF 2026
+category: crypto/fixed-point-key
+challenge_name: "DESBox"
+status: solved
+flag: "FortID{C0MP11m3n75_0N_3xp101tiN6_C0MPl3Ment5!!1}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "load_key() permutes a user-supplied N-byte key before XOR with a secret MASK."
+  - "Key-pair validators compare equality, effective-byte multisets, and bitwise complement of the two keys, but never check whether a key is a fixed point of the permutation."
+  - "The oracle server keeps session state across a FLAG-encrypt command and a separate decrypt-oracle command."
+key_idea: "A key made of one repeated byte is invariant under any byte-position permutation, so permute(c^N)=c^N deterministically regardless of the secret shuffle seed. Two such constant keys (e.g. 0x00^N and 0x02^N) differ from each other and are not complements, so they pass every pairwise validator while both still resolving to attacker-predictable post-permutation values; use one as the encrypt key and the other as the decrypt key in a second session to turn the encrypt step into a decrypt oracle for the flag ciphertext."
+prerequisites:
+  - Reading the key-validation logic (equality/multiset/complement checks) before attacking the primitive
+  - Session-stateful oracle interaction (two sequential encrypt/decrypt calls)
+exploitation_pattern: "repeated-byte key -> permutation invariant -> bypasses pairwise key-difference validators -> encrypt(key_a) then decrypt(key_b=key_a-equivalent) recovers plaintext"
+verification:
+  method: "Remote TLS service returned the flag in cleartext after the two-step oracle exchange; solver script captured and decoded the hex output."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/DESBox/solve/solve.py"
+pitfalls:
+  - "Key-difference validators that check equality, multiset, or XOR-complement can all be satisfied simultaneously by two different constant keys, because none of them test permutation invariance."
+  - "Must keep the same TCP session across the encrypt and decrypt prompts since server state (loaded flag ciphertext) does not persist across reconnects."
+failed_paths: []
+tools:
+  - Python socket/ssl
+hexstrike:
+  used: false
+  useful: false
+  notes: "Pure protocol/crypto logic puzzle; no binary analysis needed."
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/DESBox/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/DESBox/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Crypto/DESBox/solve/solve.py"
+time_heuristic: "When a crypto oracle validates two user-supplied keys only via equality/multiset/complement, test whether a constant-byte key is a fixed point of any internal permutation/shuffle step before trusting those validators."
+last_verified: "2026-11-04"

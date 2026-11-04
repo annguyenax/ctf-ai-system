@@ -24,7 +24,7 @@ prerequisites:
 exploitation_pattern: overview spectrogram -> segment by band -> decode each mode (morse auto, text visual, speech by ear)
 verification:
   method: "PARTIAL. Morse decode reproducible via solver; spectrogram texts read visually. Flag NOT assembled (2 parts in speech need ASR)."
-  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyRF/solve/evidence/manifest.md
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/BabyRF/solve/evidence/manifest.md
 partial_results:
   part4_uppercase: "R3QU1RES (Morse, all-uppercase)"
   spectrogram_reversed: "Pr0c3ss1ng"
@@ -51,7 +51,7 @@ hexstrike:
   notes: pure DSP/visual; no scanner
 sources: []
 playbook: PLAYBOOKS/rf_multimode_audio_spectrogram.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyRF/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/BabyRF/solve/analyze.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/BabyRF/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/BabyRF/solve/analyze.py
 time_heuristic: "96kHz wav + multi-band -> split & decode per band; check low-freq for speech"
 last_verified: "2026-08-01"

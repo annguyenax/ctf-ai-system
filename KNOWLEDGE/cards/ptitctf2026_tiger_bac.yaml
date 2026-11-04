@@ -1,0 +1,39 @@
+id: ptitctf2026_tiger_bac
+event: "PTITCTF2026"
+category: "reverse/osint-github-history-crackme"
+challenge_name: "Tiger Bạc"
+status: paused
+flag: ""
+confidence: 0.2
+artifact_hashes: []
+signals:
+  - "The challenge's files/ directory is empty, and the prompt names a real GitHub handle whose personal repos must be OSINT'd for a leaked license artifact ('luonginfosec/key', hosting key.html)."
+  - "Walking the git commit history of key.html (not just its current HEAD, which has been wiped to an empty array) reveals an earlier commit that wraps a 64-hex-char value in a custom flag-closer format (LuongVD{...HASH..._VDL}) which has the same shape as the platform's own flag format (PTITCTF{...})."
+  - "A different, unrelated public repo by the same account contains an exported Burp proxy XML with a base64-encoded HTTP body that DOES contain a PTITCTF{...}-shaped string, but it is leftover from an earlier, different web challenge solve ('_in_tetos' suffix gives it away) and was confirmed wrong on submission."
+key_idea: "Pure OSINT + git-history mining on a named individual's public GitHub account recovered a strongly flag-shaped candidate (a 64-hex value wrapped first in a custom LuongVD{..._VDL} format, later re-wrapped and then emptied across commits) but the actual Reverse-category points (500 pts, implying a binary/crackme component) were never reachable because no crackme/attachment was ever provided locally. Multiple plausible flag-wrapping variants exist (PTITCTF{hash}, PTITCTF{hash_VDL}, LuongVD{hash_VDL}, PTITCTF{LuongVD{hash_VDL}}, PTITCTF{commit-sha}) and none were confirmed; a tempting decoy flag found in an unrelated repo was submitted and rejected."
+prerequisites:
+  - "GitHub OSINT across a named individual's full public repo list, including commit-history diffing on files that were later emptied/wiped"
+  - "Caution to distinguish a genuinely planted CTF artifact from an unrelated leftover artifact (e.g. a different challenge's solve evidence sitting in the same person's public repos)"
+exploitation_pattern: "OSINT a named handle from the prompt -> find a repo whose file content changed/was wiped across commits -> diff commit history to recover the pre-wipe secret value and its wrapping format -> cross-check against unrelated repos by the same account for decoy/leftover flag-shaped strings that must be ruled out, not assumed correct."
+verification:
+  method: "No deterministic verification achieved. One decoy candidate was submitted to the live scoreboard and rejected. The remaining 5 ranked candidates based on the recovered hash/format variants were not confirmed."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026/Reverse/Tiger Bạc/notes/SESSION.md documents the exact commit hashes, recovered strings, decoy rejection, and remaining candidate list."
+pitfalls:
+  - "A flag-shaped string found anywhere in an OSINT target's public repos is not automatically the right one -- check whether its surrounding content (filenames, timestamps, other strings nearby) belongs to a different, unrelated challenge before submitting it (here, a leaked Burp export from a prior web-challenge solve was mistaken for the target flag)."
+  - "Leaked API keys found incidentally during OSINT (Gemini/OpenAI/HuggingFace-shaped strings in CSV files) must not be used live against the real provider APIs even if technically valid-looking -- they are third-party secrets, not a planted oracle, and some apparent keys are actually public non-secret values (e.g. Chrome's public Suggest API key) misidentified by pattern matching alone."
+  - "When a points value (e.g. 500 for Reverse) strongly implies a missing binary/crackme component that OSINT alone cannot substitute for, treat the challenge as blocked on a missing attachment rather than over-fitting candidate flags from available OSINT material alone."
+failed_paths:
+  - "PTITCTF{double_decode_traversal_in_tetos} -- submitted and rejected; traced to a leftover artifact from an unrelated prior web-challenge Burp export, not this challenge."
+tools:
+  - "GitHub web/API OSINT (commit history diffing)"
+  - "grep across cloned repo trees for flag-pattern and secret-pattern matches"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "recon_external_search.md"
+writeup: ""
+solver: ""
+time_heuristic: "When a challenge names a real individual/handle with no local attachment, mine that account's public repos' commit history (not just current HEAD) for wiped/rotated secrets, but always cross-check any flag-shaped string's surrounding provenance against unrelated repos/challenges by the same account before submitting it, especially under a limited-attempt budget."
+last_verified: "2026-11-04"

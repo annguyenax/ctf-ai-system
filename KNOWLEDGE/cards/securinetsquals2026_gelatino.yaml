@@ -1,0 +1,42 @@
+id: securinetsquals2026_gelatino
+event: "Securinets CTF Quals 2026"
+category: "hardware/luks2-manual-unlock-iv-unit-pitfalls"
+challenge_name: "Gelatino"
+status: solved
+flag: "Securinets{n3xt_time_buy_s0m3th1ng_h34lthy}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A GPT disk image's first partition is LUKS2 (not a plain ext filesystem as a quick scan might suggest); two 'flag-shaped' decoy strings exist, one at a raw byte offset before the LUKS partition and one zero-width-encoded in a FAT text file explicitly labeled a 'tmp cache' -- both are self-describing decoys, not the real flag."
+  - "The boot chain is a custom GNU-EFI loader reading a `GLT1`-packed cpio archive via a simple per-byte rotate+XOR cipher with CRC32 validation, then chainloading stock GRUB which never calls `cryptomount` -- the unpack logic and its decoded cpio (containing an order-history text file) are the actual passphrase hint delivery mechanism."
+  - "The LUKS2 passphrase is derived from narrative text ('the register wrote tickets as flavor-ticket number', 'pistachio was always the owner's favorite') combined with the flavor's 1-based line number in a separate menu file -- i.e. the KDF input itself is an OSINT-style puzzle hidden in game-world flavor text, not a crypto weakness."
+key_idea: "Manually implementing LUKS2 unlock (PBKDF2 keyslot-area decrypt -> AF-merge -> master key -> segment decrypt) requires getting two IV conventions exactly right: the keyslot area's AES-XTS sector counter is RELATIVE TO THE AREA START (starts at 0), not the absolute device sector; and `aes-xts-plain64`'s IV/tweak counter is always expressed in 512-BYTE UNITS even when the segment's actual sector size is larger (e.g. 4096 bytes advances the tweak by 8 per sector, not by 1) -- getting either wrong can still produce a plausible-looking (but garbage) decrypt of the first sector, masking the bug until later sectors are checked."
+prerequisites:
+  - "LUKS2 on-disk format (keyslot area, AF splitter, digest)"
+  - "AES-XTS tweak/IV semantics"
+  - "GPT/FAT/cpio parsing"
+  - "OpenSSL enc 'Salted__' container format"
+exploitation_pattern: "parse GPT partitions -> identify LUKS2 vs plain filesystem by magic bytes -> extract the custom GLT1-packed EFI loader payload to find narrative/order-history clues -> derive the passphrase from the narrative puzzle (favorite item + its menu line number) -> manually implement LUKS2 unlock with area-relative keyslot IV and 512-byte-unit segment IV -> decrypt the resulting ext filesystem -> OpenSSL-decrypt the Salted__ container inside it with the same passphrase."
+verification:
+  method: "Verified two independent ways: a hand-rolled Python LUKS2/XTS/AF-merge implementation and the system `openssl` CLI in WSL both produced the identical flag plaintext."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Hardware/Gelatino/solve/solve.py"
+pitfalls:
+  - "A LUKS2 keyslot area's internal AES-XTS sector counter restarts at 0 relative to the area's own start offset, NOT the absolute device sector number -- using the absolute sector silently decrypts to garbage that may still superficially 'look' plausible for sector 0."
+  - "`aes-xts-plain64` always counts its IV/tweak in 512-byte units regardless of the segment's actual logical sector size -- for a 4096-byte-sector segment, each sector must advance the tweak by 8, not 1, or only sector 0 (tweak 0) decrypts correctly while everything after it is garbage."
+  - "Flag-shaped strings that explicitly self-describe as a 'cache' or come with a 'don't use this' hint embedded nearby are deliberate decoys in this challenge style -- treat any such string as disproven until independently corroborated."
+failed_paths:
+  - "Tried the owner's name/ticket in several literal shapes (pistachio-1816, 1816-pistachio, pistachio-18, raw blend index 37 alone, joined ticket list, reel files as keyfiles, header sentences, the zero-width decoy string, visible cache lines) -- only the exact 'pistachio-37' (flavor name + its 1-based menu-file line number) matched the digest."
+tools:
+  - "Python 3 (pycryptodome, manual LUKS2/XTS/AF-merge implementation)"
+  - "openssl CLI (cross-verification)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Hardware/Gelatino/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Hardware/Gelatino/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Hardware/Gelatino/solve/solve.py"
+time_heuristic: "When manually reimplementing LUKS2 (rather than using cryptsetup), double-check both the keyslot-area IV baseline (area-relative, not absolute-device) and the segment IV unit convention (always 512 bytes for plain64, regardless of logical sector size) before concluding a passphrase is wrong -- a wrong IV convention can still decrypt sector 0 plausibly while corrupting everything after it."
+last_verified: "2026-11-04"

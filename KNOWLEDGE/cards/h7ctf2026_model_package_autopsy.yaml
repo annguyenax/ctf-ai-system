@@ -1,0 +1,36 @@
+id: "h7ctf2026_model_package_autopsy"
+event: "H7CTF 2026 Quals"
+category: "ai/malicious-pickle-checkpoint"
+challenge_name: "Model Package Autopsy"
+status: "solved"
+flag: "H7CTF{64080f42b43c8e48033c}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "README instructs loading the checkpoint with torch.load(..., weights_only=False)."
+  - "pytorch_model.bin is actually a ZIP containing a pickled data.pkl stream."
+key_idea: "A PyTorch checkpoint loaded with weights_only=False is an arbitrary-pickle-execution vector; inspect the embedded data.pkl bytecode statically (pickletools / regex) instead of ever loading it, to find and decode an injected payload (e.g. base64+zlib exec/eval string) without executing untrusted code."
+prerequisites:
+  - "Treating .bin/.pt/.pth files as ZIP archives"
+  - "Reading pickle opcodes/strings without unpickling"
+exploitation_pattern: "unzip the checkpoint -> read pickled stream as raw bytes -> regex out embedded base64 payload -> base64-decode + zlib-decompress -> flag or malicious script is plaintext inside."
+verification:
+  method: "Deterministic static extraction; flag regex-matched directly out of the decompressed payload text."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/AI/Model Package Autopsy/final_flag.txt"
+pitfalls:
+  - "Never actually call torch.load/pickle.load on untrusted model files; the whole point is the payload executes on load."
+failed_paths: []
+tools:
+  - "Python"
+  - "pickletools"
+  - "zipfile"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/AI/Model Package Autopsy/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/AI/Model Package Autopsy/solve/solve.py"
+time_heuristic: "Any \"model package\"/checkpoint challenge that mentions weights_only=False is pointing at pickle RCE; unzip and statically scan data.pkl for base64/exec/eval patterns rather than loading it."
+last_verified: "2026-11-04"

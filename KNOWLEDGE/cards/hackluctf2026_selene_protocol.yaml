@@ -1,0 +1,40 @@
+id: hackluctf2026_selene_protocol
+event: "Hack.lu CTF 2026"
+category: "rev/layered-packer-dead-code-key-recovery+invertible-arx"
+challenge_name: "Selene.Protocol.v1.1-LNR"
+status: solved
+flag: "flag{n0_m0r3_nuk3z_th15_0n3_1z_pr0p3r}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "An installer's payload binary is stored in a custom-format `.lnr0` section as a rolling-key ChaCha20-encrypted archive, where each 64-byte block XORs the first 32 bytes of its own keystream into the running key for the next block."
+  - "The installer deliberately short-jumps OVER the code that computes bytes 16-31 of the initial key, but the dead/skipped code is still present in the binary and fully reconstructable, revealing those bytes come from an FNV-1a hash chain seeded by the first 16 (plaintext ASCII) key bytes."
+  - "The unpacked payload's licensing check runs 3 rounds of an ARX (add-rotate-xor) mixing function on a 256-bit key across two cooperating parent/child debugger processes; the round function (add/xor/rotate/swap) is strictly invertible, so the expected post-mix values (derived from a CRC32 of .text plus constants) can be inverted straight back to the original 256-bit key."
+key_idea: "When an installer deliberately jumps over dead code that computes part of a decryption key, don't assume those bytes are unrecoverable -- disassemble the skipped block anyway, since the compiler still emitted real, replayable logic for it; separately, when a licensing check applies N rounds of an invertible ARX mix to a secret key and compares against a computable target, invert the mix function round-by-round from the target backward to recover the key without ever needing to brute-force or dynamically extract it."
+prerequisites:
+  - "ChaCha20 block function implementation"
+  - "FNV-1a hash"
+  - "ARX round-function inversion (modular subtraction/rotate-right/XOR undoing add/rotate-left/XOR)"
+  - "PE section/CRC32 extraction"
+exploitation_pattern: "disassemble the jumped-over dead code to recover the FNV-1a-derived key bytes 16-31 -> rolling-key ChaCha20-decrypt the embedded LNR1 archive to extract the real payload exe -> compute CRC32(.text) and the expected post-mix register values from constants in .rodata -> invert the 3-round ARX mix backward to recover the 256-bit license key -> ChaCha20-decrypt the flag ciphertext with that key."
+verification:
+  method: "Full offline solve script (no dynamic execution needed) reproduced the exact flag bytes from the static binary alone."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Selene.Protocol.v1.1-LNR/writeup/writeup.md"
+pitfalls:
+  - "Code a jump instruction skips over at runtime is NOT deleted from the binary -- disassemble and replay it anyway when it's the only source of key material; it's a common 'looks dead but isn't' trick."
+failed_paths: []
+tools:
+  - "Capstone/manual disassembly"
+  - "pefile"
+  - "Python 3 (ChaCha20/FNV-1a/ARX-inversion implementations)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Selene.Protocol.v1.1-LNR/files"
+playbook: "rev_template_feistel.md"
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Selene.Protocol.v1.1-LNR/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Selene.Protocol.v1.1-LNR/solve/solve.py"
+time_heuristic: "Always disassemble code a conditional/unconditional jump skips over when it's the only apparent source of missing key material; for any multi-round ARX/Feistel-style mixing check, verify round-function invertibility before reaching for brute force or dynamic extraction."
+last_verified: "2026-11-04"

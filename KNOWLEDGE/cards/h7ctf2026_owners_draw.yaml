@@ -1,0 +1,36 @@
+id: "h7ctf2026_owners_draw"
+event: "H7CTF 2026 Quals"
+category: "crypto/sha256-length-extension-webhook-forgery"
+challenge_name: "Owner's Draw"
+status: "solved"
+flag: "H7CTF{893e7ead-9245-4a93-ba23-1253d79e3a01}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Webhook signature is X-Signature = SHA256(secret || body), i.e. a naive hash MAC rather than HMAC."
+  - "A sample valid (body, signature) pair is provided, and the body is URL-encoded form data where the server (parse_qs-style) keeps the LAST occurrence of a duplicate key."
+key_idea: "SHA256(secret||msg) with unknown secret length is vulnerable to Merkle-Damgard hash length extension: brute-force the unknown secret length, compute the correct padding for secret_len+msg_len, re-seed a SHA-256 implementation's internal state from the leaked digest, and hash an arbitrary attacker-chosen suffix to get a valid signature for body+pad+suffix without ever knowing the secret. Pair this with a parameter-pollution trick (append a duplicate key like &role=owner) so the appended suffix silently overrides an earlier field during parsing."
+prerequisites:
+  - "Custom/portable SHA-256 compression function implementation to reseed state from leaked hash"
+  - "Knowledge of exact Merkle-Damgard padding format"
+exploitation_pattern: "for secret_len in plausible range: compute padded original length -> seed SHA-256 state from the known signature's 8 32-bit words -> compress the chosen suffix -> send body+pad+suffix with the new signature as X-Signature -> correct secret_len yields server acceptance."
+verification:
+  method: "Live replay; server returned {\"ok\": true, \"payout\": \"authorized\", \"flag\": ...} at the correct guessed key length."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Owner's Draw/writeup/writeup.md"
+pitfalls:
+  - "A plain SHA256(secret||msg) \"MAC\" (not HMAC) is always length-extendable; don't waste time looking for other crypto flaws first."
+  - "Must brute the unknown secret length (padding depends on total length secret_len+msg_len), not just the suffix."
+failed_paths: []
+tools:
+  - "Python"
+  - "custom SHA-256 compression implementation"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "pwn_auth_hash.md"
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Owner's Draw/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Owner's Draw/solve/solve.py"
+time_heuristic: "Any signature scheme described as HASH(secret||message) rather than HMAC is a length-extension target; combine with parameter pollution (append a later-wins duplicate key) when the message is URL-encoded form data."
+last_verified: "2026-11-04"

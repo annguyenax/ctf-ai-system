@@ -40,14 +40,14 @@ hexstrike:
   useful: false
   notes: steghide/zsteg/ghidra false or unused; local Python+capstone sufficient
 sources:
-  - D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\notes\SESSION.md
+  - D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\Pablo Escobar\notes\SESSION.md
 playbook: ""
-writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\solve\decrypt_config.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\Pablo Escobar\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\Pablo Escobar\solve\decrypt_config.py
 time_heuristic: long
 last_verified: ""
 paths:
-  writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\writeup\writeup.md
-  notes: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\Pablo Escobar\notes\SESSION.md
+  writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\Pablo Escobar\writeup\writeup.md
+  notes: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\Pablo Escobar\notes\SESSION.md
   output: C:\Users\ADMIN\.grok\skills\ctf-ai-system\OUTPUT\ptitctf2026_pablo_escobar\report.md
   scratch: D:\download\ctf-scratch\ptitctf2026_pablo_escobar\

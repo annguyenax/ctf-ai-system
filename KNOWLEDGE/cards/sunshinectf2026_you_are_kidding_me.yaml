@@ -1,0 +1,35 @@
+id: sunshinectf2026_you_are_kidding_me
+event: "SunshineCTF 2026"
+category: "web/jwt-kid-path-disclosure-hmac-key-reuse"
+challenge_name: "You Are Kidding Me"
+status: solved
+flag: "sun{h0tw1r3d_4dm1n_jwt}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "JWT header carries a `kid` (key ID) claim that is used as a filename to load the HMAC verification key -- `kid` is attacker-controlled input (any value can be placed in a JWT header without knowing the signing key)."
+  - "When signature verification fails, a debug feature dumps the ENTIRE content of the file referenced by `kid` into the page (`<pre id=\"disclosed\">`), regardless of whether the signature was valid -- an arbitrary-file-read-via-failed-auth oracle."
+  - "A path-traversal-aware protected-files check (PROTECTED_FILES, checked via os.path.realpath) blocks the real HMAC key files and the flag path specifically by name, but does not block arbitrary OTHER files (e.g. /etc/passwd) from being loaded and disclosed via the same `kid` mechanism."
+key_idea: "When `kid` (or any attacker-controlled field) selects which file's bytes are used as the verification key, and a failed-verification debug path discloses that file's full contents, the flow is: (1) set `kid` to any readable file NOT on the explicit protected-list (e.g. /etc/passwd) with any garbage signature to get its contents disclosed, then (2) resign a NEW token with `kid` pointing at that SAME file and sign using its just-leaked contents as the HMAC secret -- the server will recompute the identical HMAC and accept the forged token, achieving full authentication/authorization bypass without ever learning the real protected key."
+prerequisites:
+  - "HMAC-SHA256 JWT construction with a chosen `kid` header and arbitrary secret bytes"
+  - "Recognizing a `kid`-as-filename pattern as both a file-read oracle AND a key-selection oracle in the same field"
+exploitation_pattern: "forge a JWT with kid=/etc/passwd and an arbitrary (wrong) key -> submit to the protected endpoint -> signature fails, but the debug path discloses /etc/passwd's full contents in the response HTML -> forge a SECOND JWT, again with kid=/etc/passwd, this time signing with the just-disclosed /etc/passwd bytes as the HMAC key and payload claims escalated (e.g. role=editor) -> submit -> signature now verifies correctly against the server's own load of that same file -> privileged content (flag) renders"
+verification:
+  method: "Live two-request exploit against the remote service reproduced the exact flag."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/You Are Kidding Me/writeup/writeup.md"
+pitfalls:
+  - "An explicit protected-file allowlist/denylist checked via os.path.realpath correctly blocks path-traversal to the REAL key files and the flag file directly, but does nothing to stop the kid-as-key-material confusion against any OTHER readable file -- a denylist on the exact secret files does not close the broader kid-controls-the-key-source vulnerability class."
+failed_paths: []
+tools:
+  - "python3 (hmac, hashlib, requests, manual JWT construction)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/You Are Kidding Me/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/You Are Kidding Me/solve/solve.py"
+time_heuristic: "JWT `kid` header selects a key FILE by attacker-controlled path, and failed verification discloses that file's contents: leak any non-denylisted file's bytes via one forged token, then resign a second token using that same file as the HMAC key to pass verification."
+last_verified: "2026-11-04"

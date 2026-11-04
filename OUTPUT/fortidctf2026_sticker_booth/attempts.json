@@ -1,0 +1,12 @@
+{
+  "challenge_id": "fortidctf2026_sticker_booth",
+  "event": "FortID CTF 2026",
+  "challenge_name": "Sticker Booth",
+  "flag_status": "verified",
+  "attempts": [
+    {"t": "2026-10-10", "phase": "TRIAGE", "hypothesis_id": "H1", "action": "Disassemble main/xalloc/unhex", "result": "Pool allocator + items model; builtin print gated by in-pool ticket", "evidence_path": "scratch main_disasm.txt", "notes": "read-file primitive identified"},
+    {"t": "2026-10-10", "phase": "TEST", "hypothesis_id": "H1", "action": "Assume xalloc free-reuse offset/size bug", "result": "No controllable overflow; hypothesis killed", "evidence_path": "solve.py history", "notes": "wrong path"},
+    {"t": "2026-10-10", "phase": "EXPLOIT", "hypothesis_id": "H2", "action": "mono off-by-one -> refcount zero -> dangling caption -> leak -> fake builtin", "result": "Local flag.txt dumped; remote flag obtained", "evidence_path": "Pwn/Sticker Booth/solve/solve.py", "notes": "chain deterministic"},
+    {"t": "2026-10-10", "phase": "CAPTURE", "hypothesis_id": "H2", "action": "submit_flag.py", "result": "platform accepted", "evidence_path": "Pwn/Sticker Booth/final_flag.txt", "notes": ""}
+  ]
+}

@@ -1,0 +1,37 @@
+id: htbtryout_an_unusual_sighting
+event: HTB Try Out
+category: forensics/log-timestamp-correlation
+challenge_name: "An unusual sighting"
+status: solved
+flag: "HTB{4n_unusual_s1ght1ng_1n_SSH_l0gs!}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "bash_history.txt (root) contains one clear malicious command block (recon, typosquatted-domain download, shred evidence-destruction, dropper execution) with timestamps."
+  - "sshd.log lists session start/end windows per source IP; exactly one session window fully contains the malicious command block's timestamp range."
+  - "The environment's normal logins come from an internal VPN-style IP range; the suspect session originates from a public IP at an off-hours time."
+key_idea: "Correlate a suspicious command-timestamp window in shell history against SSH session start/end windows to uniquely identify the attacking session/IP; offline analysis builds high confidence but the actual flag in this instance was only released by an interactive quiz service that had to be queried live, not guessed from the IP string itself."
+prerequisites:
+  - Timestamped shell history
+  - Timestamped session-level auth log (login + disconnect events)
+exploitation_pattern: "malicious-command timestamp window -> unique overlapping SSH session -> session's source IP/user is the answer, then confirmed via the challenge's own interactive Q&A service (not a literal HTB{ip} wrap)"
+verification:
+  method: "A live interactive socket Q&A sequence accepted the derived answers (6 correct responses) and the server then emitted the real flag text."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/forensics/An unusual sighting/final_flag.txt"
+pitfalls:
+  - "Don't assume the obvious plaintext answer (e.g. the attacker's IP) is wrapped directly into the flag format; some challenges require submitting derived facts to a live interactive verifier that generates the actual flag string, distinct from any offline-guessed format."
+failed_paths:
+  - "Assuming flag = HTB{2.67.182.119} (the derived attacker IP) without querying the live interactive service; the real flag text is unrelated to the IP string."
+tools:
+  - Python log parsing
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/forensics/An unusual sighting/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/forensics/An unusual sighting/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/forensics/An unusual sighting/solve/solve.py"
+time_heuristic: "In log-correlation forensics challenges, verify whether the final flag comes from a literal artifact or from submitting your derived answer to a live interactive verifier before assuming any string format."
+last_verified: "2026-11-04"

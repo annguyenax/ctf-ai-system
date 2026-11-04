@@ -10,7 +10,7 @@ tools:
   - zip2john
   - john
 hexstrike_usefulness: High (provided access to john and large wordlists)
-writeup: D:\download\CTFTimeWriteup\LIT2026\misc\pw_zip\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\misc\pw_zip\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\misc\pw_zip\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\misc\pw_zip\solve\solve.py
 time_heuristic: 10 minutes
 last_verified: 2026-08-03

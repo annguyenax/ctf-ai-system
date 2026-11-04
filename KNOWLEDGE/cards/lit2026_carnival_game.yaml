@@ -37,7 +37,7 @@ hexstrike:
   notes: "No scanner needed; pure logic exploit against a network service."
 sources: []
 playbook: PLAYBOOKS/crypto_prng_time_seed_commitment.md
-writeup: D:\download\CTFTimeWriteup\LIT2026\crypto\carnival_game\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\crypto\carnival_game\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\crypto\carnival_game\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\crypto\carnival_game\solve\solve.py
 time_heuristic: "<10 min: spot time-seeded random + commitment; brute seconds window."
 last_verified: "2026-08-03"

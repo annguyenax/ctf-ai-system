@@ -38,3 +38,6 @@ venv/
 node_modules/
 .DS_Store
 Thumbs.db
+
+# Local archive of deleted events (regex-redacted only)
+OUTPUT/_archive/

@@ -1,0 +1,35 @@
+id: htbtryout_shush_protocol
+event: HTB Try Out
+category: forensics/modbus-vendor-function-code-exfil
+challenge_name: "Shush Protocol"
+status: solved
+flag: "HTB{50m371m35_cu570m_p2070c01_423_n07_3n0u9h7}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Most Modbus/TCP traffic on port 502 uses standard function codes 0x01/0x03 (coils/holding registers) and carries only noise/zeros."
+  - "One TCP stream uses an unusual, vendor-specific function code (>=0x41/65, here 0x66) outside the standard Modbus function-code range."
+  - "The vendor-specific-function frames carry plaintext ASCII payload including the flag string directly in the Modbus data field."
+key_idea: "Modbus function codes >= 65 (0x41) are reserved for vendor-specific/custom protocol extensions; when a pcap shows mostly standard-function noise traffic plus one stream using an out-of-range function code, that stream is the intended 'custom protocol' channel and is worth inspecting byte-for-byte for plaintext secrets."
+prerequisites:
+  - Manual or scripted pcap + Modbus/TCP ADU parsing (Transaction ID, Protocol ID, Length, Unit ID, Function code, data)
+exploitation_pattern: "filter pcap to port 502 -> parse Modbus ADU function codes -> flag the one stream using a vendor-reserved function code (>=0x41) -> read its payload directly"
+verification:
+  method: "Two independent extraction paths (raw strings scan of the pcap, and a structured Modbus ADU parser isolating function 0x66) produced the identical flag string."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/ics/Shush Protocol/final_flag.txt"
+pitfalls:
+  - "Don't assume all Modbus traffic in a pcap is equally interesting; standard read-holding/read-coil polling traffic is usually noise, while function codes in the vendor-specific range (>=65) are the challenge-relevant 'custom protocol'."
+failed_paths: []
+tools:
+  - Python struct-based pcap/Modbus parser
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/ics/Shush Protocol/writeup/writeup.md"
+playbook: forensics_pcap.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/ics/Shush Protocol/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/ics/Shush Protocol/solve/solve.py"
+time_heuristic: "In ICS/Modbus pcap forensics, isolate the one stream using a function code outside the standard IANA-documented range; vendor-specific function codes are a common place for CTF authors to hide exfiltrated secrets."
+last_verified: "2026-11-04"

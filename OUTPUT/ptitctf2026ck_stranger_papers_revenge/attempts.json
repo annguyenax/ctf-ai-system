@@ -1,0 +1,9 @@
+{
+  "challenge_id": "ptitctf2026ck_stranger_papers_revenge",
+  "flag_status": "verified",
+  "attempts": [
+    {"t":"2026-09-13T09:00:00","phase":"TRIAGE","hypothesis_id":"H1-acrostic","action":"OCR cover (1.jpg) + instructions (2.jpg)","result":"6 instruction sentences; first letters spell UPSIDE; instructions describe 67-tooth wheel + base64 catalog","evidence_path":"OUTPUT/ptitctf2026ck_stranger_papers_revenge/raw/cover_ocr.txt","notes":"filing word = 6 letters"},
+    {"t":"2026-09-13T09:05:00","phase":"EXPLOIT","hypothesis_id":"H1-acrostic","action":"Extract first letter of each cover sentence","result":"U P S I D E = UPSIDE","evidence_path":"OUTPUT/ptitctf2026ck_stranger_papers_revenge/raw/cover_ocr.txt","notes":"matches 'six-letter filing word'"},
+    {"t":"2026-09-13T09:08:00","phase":"VERIFY","hypothesis_id":"H1-acrostic","action":"solve.py replay asserts filing_word == UPSIDE","result":"flag = PTITCTF{UPSIDE}","evidence_path":"OUTPUT/ptitctf2026ck_stranger_papers_revenge/raw/cover_ocr.txt","notes":"theme: Upside Down = Thế giới ngược"}
+  ]
+}

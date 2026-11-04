@@ -1,0 +1,42 @@
+id: bytemectf2026_soul_harvester
+event: ByteMe CTF 2026
+category: misc/static-malware-analysis
+challenge_name: SOUL STONE — THE SOUL HARVESTER
+status: solved
+flag: "OWASP{forensics_harvester_complete}"
+confidence: 0.98
+artifact_hashes:
+  - file: files/soul_harvester.cpp
+    sha256: 0e99397a72b6da9e90341d6c937da85e3c335aff5271538e01b31618d327f234
+  - file: files/soul_harvester
+    sha256: d0783d7d6fa90f1bac267992dc2d474a059d59a820309f4111515c6ffa9bb23f
+signals:
+  - Fixed 64-bit seed and deterministic per-file selector.
+  - Special Soul-fragment handling bypasses the general targeting branch.
+  - Final fragment uses a byte-indexed XOR stream derived from the fixed seed.
+key_idea: Reverse the final fragment's XOR stream, use tags 1 and 2 for body order, and put the unique OWASP wrapper fragments at the boundaries.
+prerequisites:
+  - C++ unsigned integer wraparound
+  - Translating a 64-bit mixing function to Python
+verification:
+  method: Deterministic source-derived reconstruction; XOR round trip; source and ELF fragment-literal checks; final format assertion
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Miscellaneous/SOUL STONE — THE SOUL HARVESTER/solve/evidence/recovery.json"
+pitfalls:
+  - The numeric tags do not mean blindly concatenate prefix, body, suffix in numeric order; detect the wrapper delimiters and order the body pieces.
+  - runtime.dat's MINDSTONE token is not the key for the special final fragment.
+  - Local static reconstruction does not prove isolated runtime behavior or portal acceptance.
+failed_paths: []
+tools:
+  - Python 3 standard library
+  - PowerShell file/hash inspection
+hexstrike:
+  used: false
+  useful: false
+  notes: The provided source and compiled artifact were sufficient; executing the sample was unnecessary for the static reconstruction.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Miscellaneous/SOUL STONE — THE SOUL HARVESTER/files/soul_harvester.cpp"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Miscellaneous/SOUL STONE — THE SOUL HARVESTER/files/soul_harvester"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Miscellaneous/SOUL STONE — THE SOUL HARVESTER/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Miscellaneous/SOUL STONE — THE SOUL HARVESTER/solve/solve.py"
+time_heuristic: In a deterministic malware-simulation challenge, inspect the mutation selector and exceptional artifact paths before considering execution; a static model can often regenerate the intended evidence safely.
+last_verified: "2026-10-09"

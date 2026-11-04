@@ -1,0 +1,37 @@
+id: securinets2026_xyz
+event: Securinets CTF Friendly 2026
+category: pwn/gadget-inside-immediate-bytes
+challenge_name: "XYZ"
+status: solved
+flag: "Securinets{unm4rk3d_c00rd1n4t3s_l3d_t0_th3_f1n4l_bu1ld}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A PIE leak gives the binary base (leonida_relay leaks its own address); a 40-byte stack overflow is reachable via a read() into a fixed-size buffer at rbp-0x20."
+  - "The win function (complete_the_handoff) requires rdi/rsi/rdx to equal three specific 'magic' constants that are loaded elsewhere in the binary via movabs immediate instructions."
+  - "No standalone pop rdi/rsi/rdx;ret gadgets were found by normal gadget search, but the trailing bytes of the movabs immediates that load those exact magic constants happen to decode (when execution starts mid-instruction) as pop reg;ret sequences."
+key_idea: "When a binary needs specific immediate constants loaded via movabs (a 10-byte instruction whose last bytes are the constant itself), search for usable ROP gadgets not just among normally-disassembled instruction boundaries but also by jumping into the MIDDLE of those movabs instructions -- the tail bytes of a constant can coincidentally decode as a short, useful gadget (here, byte pairs like 5f c3 / 5e c3 / 5a c3 decode as pop rdi;ret / pop rsi;ret / pop rdx;ret respectively) directly at the address where that exact register needs to be set to that exact constant, conveniently solving both 'find a pop gadget' and 'load this exact value' at once."
+prerequisites:
+  - "x86-64 ROP gadget discovery including unaligned/mid-instruction execution (byte-level disassembly re-sync, not just linear disassembly)"
+  - "Recognizing movabs/other long immediate-bearing instructions as a secondary gadget source when their trailing bytes are needed register values anyway"
+exploitation_pattern: "stack overflow with PIE leak -> win function demands specific register values matching constants already embedded as movabs immediates elsewhere in the binary -> locate the byte offset inside each movabs instruction where the trailing 1-2 bytes of the constant plus the next instruction's bytes decode as pop reg;ret -> chain those unaligned gadget addresses as the ROP gadgets, each simultaneously supplying the correct register value."
+verification:
+  method: "ROP chain built from the unaligned gadget addresses and submitted to the live service opened flag.txt and returned the flag."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Pwn/XYZ/writeup/writeup.md"
+pitfalls:
+  - "A normal linear/aligned gadget scan can miss useful gadgets that only appear when execution starts at a non-instruction-boundary offset inside an existing instruction (e.g. partway through a movabs's immediate bytes); if the needed gadgets aren't found cleanly, re-scan at every byte offset within candidate multi-byte instructions, especially ones carrying constants you already need."
+failed_paths: []
+tools:
+  - pwntools
+  - objdump / ROPgadget (byte-offset-aware re-scan)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Pwn/XYZ/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/SecurinetsFriendly2026/Pwn/XYZ/writeup/writeup.md"
+solver: ""
+time_heuristic: "When a ROP target requires register values matching constants already present as instruction immediates elsewhere in the binary, and no clean pop;ret gadget is found by normal disassembly, check whether the tail bytes of those same immediate-bearing instructions decode as a usable gadget when entered mid-instruction."
+last_verified: "2026-11-04"

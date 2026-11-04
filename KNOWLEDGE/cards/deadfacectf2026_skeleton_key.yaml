@@ -1,0 +1,37 @@
+id: deadfacectf2026_skeleton_key
+event: DeadfaceCTF2026
+category: pwn/ret2win-arg-gated
+challenge_name: "Pwn / Skeleton Key"
+status: solved
+flag: "deadface{R355UR3CT_D34D_C0D3}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Binary reads into a fixed stack buffer with `gets()` (no length check) — classic stack buffer overflow.
+  - "A `win` function exists and prints the flag, but only if its first argument (rdi) equals a specific magic constant (0xdeadc0de) — a plain ret2win address jump is not enough."
+  - Binary conveniently leaves usable ROP gadgets (`pop rdi; ret` and a bare `ret`) in its own code, no PIE/libc gadget-hunting needed.
+key_idea: When a ret2win target function checks one of its arguments before doing anything useful, extend the simple return-address overwrite into a short ROP chain that sets up the required register (via `pop reg; ret`) with the exact expected value before jumping to the target function — plus a leading `ret` for 16-byte stack alignment if the target does movaps/SSE internally.
+prerequisites:
+  - Known buffer-to-saved-RBP offset (pwntools cyclic or static analysis) to size the padding
+  - At least one `pop <arg-register>; ret` gadget present in the binary
+exploitation_pattern: pad to return address (`offset = buffer_size + 8` for saved RBP) -> [optional `ret` for alignment] -> `pop rdi; ret` gadget -> magic value -> `win` function address -> send over the socket.
+verification:
+  method: Payload sent to the remote instance returned the flag string in the service response, matching final_flag.txt.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Pwn/Skeleton Key/writeup/writeup.md"
+pitfalls:
+  - Forgetting the stack-alignment `ret` before the real gadget chain can crash the win function if it or anything it calls uses SSE instructions requiring 16-byte alignment.
+failed_paths: []
+tools:
+  - pyelftools / capstone (static analysis)
+  - pwntools-style payload construction
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Pwn/Skeleton Key/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: pwn_stack_overflow.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Pwn/Skeleton Key/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Pwn/Skeleton Key/solve/analyze_elf.py"
+time_heuristic: If a ret2win target function gates on an argument value, don't stop at overwriting the return address — chain a `pop reg; ret` gadget to load the exact expected value into the argument register first.
+last_verified: "2026-11-04"

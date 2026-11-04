@@ -1,0 +1,42 @@
+{
+  "challenge_id": "compfest18_compfest_coin",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-08-29T14:20:00Z",
+      "phase": "TRIAGE",
+      "hypothesis_id": "A",
+      "action": "Static audit of pool/registry/vault; reverse direct key and unbacked LP.",
+      "result": "Source path complete; earned=1000 in verify_path.py.",
+      "evidence_path": "Blockchain/Compfest Coin/solve/verify_path.py",
+      "notes": "No chain IDs yet."
+    },
+    {
+      "t": "2026-08-29T14:35:00Z",
+      "phase": "TEST",
+      "hypothesis_id": "A",
+      "action": "POW + POST /launch on 34.2.147.230:8501 and 34.128.118.122:8502.",
+      "result": "8501 pay-sui gRPC reset; first 8502 launch returned IDs then node reset.",
+      "evidence_path": "D:/download/ctf-scratch/compfest18_compfest_coin/",
+      "notes": "Retry until Setup and coins exist."
+    },
+    {
+      "t": "2026-08-29T14:50:00Z",
+      "phase": "EXPLOIT",
+      "hypothesis_id": "A",
+      "action": "Six @mysten/sui txs with explicit gasBudget on instance 71ac88bb.",
+      "result": "IncentivesClaimed 1000; Setup.solved true.",
+      "evidence_path": "Blockchain/Compfest Coin/solve/evidence/onchain_result.json",
+      "notes": "vector<u8> drop witness worked."
+    },
+    {
+      "t": "2026-08-29T14:51:00Z",
+      "phase": "VERIFY",
+      "hypothesis_id": "A",
+      "action": "GET /flag with launcher session cookie.",
+      "result": "HTTP 200 success Congratulations; COMPFEST18{...} accepted.",
+      "evidence_path": "Blockchain/Compfest Coin/solve/evidence/flag_response.json",
+      "notes": "flag sha256 116a76999daf9436ae45029bf238d516dc03917eddf58f3c3b725554df850ff0"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+id: hackluctf2026_every_7x7_nonoflag
+event: "Hack.lu CTF 2026"
+category: "rev/exhaustive-puzzle-space-brute-force"
+challenge_name: "Every 7x7 Nonoflag"
+status: solved
+flag: "flag{c0ngrats_my_fri3nd_y0u_are_the_r3al_puzzle_m4ster}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A web app claims to generate 'every' 7x7 nonogram (2,427,000 total via 2427 xorshift64 seeds x 1000 puzzles each), but the generator deliberately permutes/overrides hints so that almost all generated puzzles are internally contradictory (unsolvable)."
+  - "On successfully solving a puzzle, a 49-bit solution-grid bitmask feeds a splitmix64-based hash construction (`cellBits`) whose output XORs against a fixed seed table to produce the flag's base32 characters -- i.e. the flag is only computable once you find the ONE solvable puzzle index out of 2.4M."
+  - "A quick parity check (sum of row-hint 1-bits must equal sum of column-hint 1-bits) prunes almost all of the 2.4M candidates cheaply before running a full backtracking nonogram solver on the rest."
+key_idea: "When a generator claims exhaustive coverage of a huge discrete puzzle space but most instances are provably unsolvable by construction, don't try to find the flaw analytically -- write a parallel (OpenMP) brute-force solver that cheaply prunes by an invariant (row/col 1-bit count parity) before running a full backtracking solve on survivors, since the intended solution is simply to locate the single solvable instance."
+prerequisites:
+  - "WASM data-segment extraction (LEB128 parsing)"
+  - "nonogram/Picross backtracking solver"
+  - "basic OpenMP parallelism"
+exploitation_pattern: "extract WASM data segments (seed table, override bitmap) via a hand-rolled LEB128 parser -> reimplement the xorshift64/hint-derivation logic in C -> parity-prune candidates -> backtracking-solve survivors in parallel -> on the unique solvable index, compute cellBits and decode the base32 flag string."
+verification:
+  method: "Deterministic re-derivation: the unique solvable puzzle index (#1461121) and its decoded flag were reproduced from the raw WASM bytes by the C solver."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Every 7x7 Nonoflag/writeup/writeup.md"
+pitfalls: []
+failed_paths: []
+tools:
+  - "Python (WASM data-segment extraction)"
+  - "C + OpenMP (brute-force backtracking solver)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Every 7x7 Nonoflag/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Every 7x7 Nonoflag/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Reverse/Every 7x7 Nonoflag/solve/find_solvable.c"
+time_heuristic: "When a challenge generates a huge space of puzzle instances most of which are unsolvable by design, favor a cheaply-pruned parallel brute force over analytic cryptanalysis to locate the single intended instance."
+last_verified: "2026-11-04"

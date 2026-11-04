@@ -1,0 +1,43 @@
+id: fortidctf2026_baby_rev
+event: "FortID CTF 2026"
+category: "intro/reverse-python-bytecode"
+challenge_name: "Baby Rev"
+status: solved
+flag: "FortID{nokia_3310_is_still_the_most_robust_piece_of_technology_i_have_ever_owned}"
+confidence: 1.0
+artifact_hashes:
+  - "files/chall.pyc: 32D584F6E8FEB6F7224735F5AEBB21FA7F6DE3F622E6E3FC9F4C0EBC9626426C"
+  - "solve/verify.py: 999D41D1C87A59E369FDA7E4EB78586A1E1809C3B08F07056FC244FB44A5CC6A"
+signals:
+  - "Python pyc artifact with a reversed T9 tone sequence."
+  - "A SHA-256 digest disambiguates possible T9 word mappings."
+key_idea: >
+  Translate candidate words with the standard phone keypad, reverse the full
+  tone sequence, and use the embedded SHA-256 to resolve T9 ambiguity.
+prerequisites:
+  - "Static Python bytecode constant inspection"
+  - "T9 keypad mapping"
+  - "SHA-256"
+exploitation_pattern: >
+  Extract constants without executing the pyc -> map phrase to T9 digits ->
+  reverse -> compare embedded tone target -> verify exact candidate by SHA-256.
+verification:
+  method: "Reproducible verifier checks the 81-character flag's T9 transform and SHA-256 against constants embedded in chall.pyc; read-only status check also listed Baby Rev as SOLVED."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Rev/solve/evidence/verification.txt"
+pitfalls:
+  - "T9 sequences are ambiguous; use the hash to identify the exact phrase."
+  - "Do not claim scoreboard acceptance without checking the platform."
+failed_paths: []
+tools:
+  - "Python standard library"
+hexstrike:
+  used: false
+  useful: false
+  notes: "Local static inspection was sufficient; no remote service is listed."
+sources:
+  - "Supplied challenge artifact: CTFTimeWriteup/FortIDCTF2026/Intro/Baby Rev/files/chall.pyc"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Rev/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Rev/solve/verify.py"
+time_heuristic: "Inspect pyc constants first; use deterministic hash constraints to disambiguate T9 words."
+last_verified: "2026-10-10"

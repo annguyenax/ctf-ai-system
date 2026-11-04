@@ -1,0 +1,24 @@
+{
+  "challenge_id": "fortidctf2026_crypto_wallet",
+  "status": "paused",
+  "attempts": [
+    {
+      "phase": "TEST",
+      "action": "Scan float32 bit representations of the 12 hard-coded chart values for BIP-39 132-bit phrases",
+      "result": "no_match",
+      "notes": "14,404 windows; 463 checksum-valid phrases; none derived the target Ethereum address. Output SHA-256 816F815DEE58858B7B15DB5B8AFE24D94BFA3104D47B53DEB73FC27FA6F71B2C."
+    },
+    {
+      "phase": "TEST",
+      "action": "Inventory APK resources and parse every PNG for hidden metadata or appended data",
+      "result": "no_match",
+      "notes": "724 APK entries; 150 PNGs; no text chunks, unknown non-Nine-Patch chunks, trailing bytes, or malformed images. Evidence hashes are in the event notes."
+    },
+    {
+      "phase": "TEST",
+      "action": "Audit exported Android components and MainActivity intent handling for a direct flag path",
+      "result": "no_match",
+      "notes": "Only the launcher Activity is exported and it has no deep-link or extra-data route; the profile receiver is protected by DUMP permission. Evidence is in D:/download/ctf-scratch/fortid2026_crypto_wallet/manifest_entrypoint_probe.txt."
+    }
+  ]
+}

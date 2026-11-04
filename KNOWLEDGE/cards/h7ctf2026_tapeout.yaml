@@ -1,0 +1,34 @@
+id: "h7ctf2026_tapeout"
+event: "H7CTF 2026 Quals"
+category: "misc/z3-equivalence-checker-incomplete-sampling-trojan"
+challenge_name: "Tapeout"
+status: "solved"
+flag: "H7CTF{81fd0a63-2662-4c0c-b904-c23c12938813}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "An equivalence certifier uses z3.ZeroExt(WIDTH - SAMPLE_BITS, sample) to extend a smaller symbolic sample before comparing reference vs. submission, then separately a single fixed audit input tests the \"real\" full-width value."
+key_idea: "When a formal-equivalence checker widens/zero-extends a smaller symbolic variable to compare against a full-width reference instead of using a full-width free symbolic variable, it only ever proves equivalence over the restricted subspace reachable by that extension (e.g. only inputs whose high bits are all zero) -- build a design that is provably identical to the reference everywhere in that restricted subspace (so the SMT equivalence check returns UNSAT/equal) but diverges sharply (triggers a payload) for a specific full-width value outside the subspace (e.g. one with nonzero high bits), which the later concrete audit will actually exercise."
+prerequisites:
+  - "Reading the certifier's own source to find exactly which sample width/extension it uses"
+  - "A target-domain language or mux-capable ISA to implement an equality-gated trojan (compute reference function normally; mux in a magic constant when input == specific audit value)"
+exploitation_pattern: "read verifier.py -> note SAMPLE_BITS < WIDTH and ZeroExt usage -> build submission = mux(input == audit_value, magic_constant, reference_function(input)) -> submit; certify() returns UNSAT because is_target is provably false whenever the top bits are zero -> run with the real audit_value -> mux selects magic_constant -> flag/trojan triggers."
+verification:
+  method: "Server-side acceptance; the service's own certify() call returned UNSAT (equivalence holds for the sampled subspace) and the subsequent concrete audit at the full-width value returned the trojan output."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Tapeout/writeup/writeup.md"
+pitfalls:
+  - "The mux/equality-trigger approach only works if you can identify the exact audit input in advance (it was given in the prompt here); without that, this technique doesn't apply."
+failed_paths: []
+tools:
+  - "z3 (read-only, to understand the checker)"
+  - "custom Tiny-HDL authoring"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Tapeout/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Misc/Tapeout/solve/solve.py"
+time_heuristic: "Before trusting any formal-verification/equivalence-checker challenge, read exactly how its symbolic sampling variable is sized and extended relative to the real input width -- a ZeroExt/SignExt from a narrower symbolic variable is a reliable sign the checker only covers a provable subspace, leaving room for an equality-gated trojan at the known audit value."
+last_verified: "2026-11-04"

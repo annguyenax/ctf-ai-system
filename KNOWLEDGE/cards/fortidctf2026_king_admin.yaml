@@ -1,0 +1,39 @@
+id: fortidctf2026_king_admin
+event: FortID CTF 2026
+category: web/stored-xss-csp-nonce-bank-oid4vci
+challenge_name: "King Admin"
+status: solved
+flag: "FortID{4DM1N_15_F0RT1D_C0MPL14NT_BUT_5T1LL_U535_QR_C0D35_T0_L0G1N_57cac57479}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "admin.html renders an attacker-influenced 'announcement' with |safe, and the sanitizer only strips on... attributes, leaving <script> tags intact."
+  - "CSP nonce values are drawn from a small finite set of ten legitimate hint-script nonces visible in the challenge source, not generated per-request-unpredictably from the attacker's perspective."
+  - "The admin-token-issuing API (/api/admin/offer) has no CSRF protection on the endpoint that publishes its result to the public announcement."
+key_idea: "Because CSP nonces are drawn from a small known set, pre-compute ten <script nonce=...> tags (one per possible nonce) so whichever one the bot's CSP picks will execute; that script reads the admin session's CSRF token, requests an admin-scoped credential offer, and POSTs the resulting offer URI into the public, CSRF-unprotected announcement endpoint, where a real OID4VCI wallet client (issue -> present) can then collect and present the privileged verifiable credential to the verifier for the flag."
+prerequisites:
+  - "Stored XSS sink that keeps <script> tags despite on*-attribute stripping"
+  - CSP nonce space small/finite enough to brute-force client-side with multiple candidate script tags
+  - Working OID4VCI wallet client flow (issue/initiate, pre-authorized-code grant, credential presentation)
+exploitation_pattern: "stored XSS with finite-nonce CSP bypass (shotgun all known nonces) -> admin session action (issue admin credential offer) -> CSRF-unprotected announcement write exfiltrates offer URI -> wallet collects + presents admin credential"
+verification:
+  method: "Verifier endpoint returned AUTHORIZED plus the flag after presenting the collected admin-scoped credential; sanitized transcript recorded in solve/verification.txt."
+  evidence: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/King Admin/final_flag.txt"
+pitfalls:
+  - "A CSP nonce allowlist drawn from a small, enumerable set of legitimate script nonces is not meaningfully random from an attacker's perspective; inject one <script> per known nonce value."
+  - "An XSS sanitizer that strips only inline event-handler attributes (on...) but not <script> tags is not a functioning XSS defense."
+  - "A sensitive action (publishing an admin-issued offer) exposed through a non-CSRF-protected public write endpoint can be used purely as an exfiltration channel even without directly controlling the admin's browser output."
+failed_paths: []
+tools:
+  - Custom OID4VCI wallet client scripts (issue_credential.py, present_admin.py)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/King Admin/writeup/writeup.md"
+playbook: web_xss.md
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/King Admin/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Web/King Admin/solve/issue_credential.py"
+time_heuristic: "When CSP nonces are drawn from a small finite set visible in source/config, don't treat CSP as blocking XSS: enumerate <script nonce=X> for every known X."
+last_verified: "2026-11-04"

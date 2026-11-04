@@ -68,11 +68,11 @@ Model generation, visual guessing, padding validity, a public writeup, or flag-s
 CTF sits inside a bigger cybersecurity practice. When a task is NOT a CTF challenge
 (live pentest, red-team TTP, DFIR/IR, malware analysis, threat hunting, detection
 engineering, cloud/AD/mobile security, compliance), route to the external skills
-libraries under `..\refs\` instead of forcing it through the CTF skills above.
+libraries under `..\cyber\refs\` instead of forcing it through the CTF skills above.
 
-| Reference (under `D:\download\refs\`) | Use it for | How to look up |
+| Reference (under `D:\download\cyber\refs\`) | Use it for | How to look up |
 |---|---|---|
-| `Anthropic-Cybersecurity-Skills\` | 817 agentskills.io skills across 29 domains, mapped to MITRE ATT&CK (v16, 291 techniques). Primary router for real-world work. | Grep `index.json` (`{skills:[{name,description}]}`) or `skills\<name>\SKILL.md`; see `ATTACK_COVERAGE.md` to route by ATT&CK technique. |
+| `Anthropic-Cybersecurity-Skills\` | Primary reference library for real-world work. Read its current index and coverage instead of assuming fixed skill counts or an ATT&CK version. | Search `index.json` by name/description or open `skills\<name>\SKILL.md`; see `ATTACK_COVERAGE.md` to route by ATT&CK technique. |
 | `reverse-skill\` | Broad skills router (api/apk/ghidra/ida reverse, firmware-pentest, cloud-k8s, llm-security, edr-bypass, ...). | `skills\INDEX.md` / `MASTER-ROUTING.md`. |
 | `Awesome-Cybersecurity-Handbooks\` | Red-team/CTF payload & cheatsheet reference notes. | `handbooks\` by topic. |
 

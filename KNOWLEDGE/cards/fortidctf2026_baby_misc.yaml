@@ -1,0 +1,51 @@
+id: fortidctf2026_baby_misc
+event: "FortID CTF 2026"
+category: "misc/archive-ascii-paths"
+challenge_name: "Baby Misc"
+status: solved
+flag: "FortID{D0_or_D0_N07_Th3r3_15_n0_Tri3}"
+confidence: 1.0
+artifact_hashes:
+  - "files/drive_archive.zip: 6e4b56f34ca79cc50c37b2beb08d58f402b81c0e087759130257eb8e070c1a6b"
+  - "solve/solve.py: e111c3bbb82fc5c0f36b4d99890a8f8185abc147662096eebe0274ccd70bbeb5"
+  - "singleton IHDR/PLTE/IDAT core: 697de53fe9c61ffc263b61a0ba3da4b27d7498434604f0daa565a4561de63ae6"
+signals:
+  - "Every path under retrieve contains decimal ASCII components and ends at eow.png."
+  - "The archive has 7,000 PNGs but only two IHDR/PLTE/IDAT fingerprints; one appears once."
+key_idea: >
+  Decode the numeric path components, but use the unique PNG core fingerprint
+  rather than a FortID prefix to distinguish the real entry from flag-shaped
+  decoys.
+prerequisites:
+  - "ZIP member iteration"
+  - "PNG chunk structure"
+  - "Decimal-to-ASCII decoding"
+exploitation_pattern: >
+  Validate archive paths -> parse PNG core chunks without extraction -> group
+  by IHDR/PLTE/IDAT fingerprint -> select the unique image -> decode its path.
+verification:
+  method: "Independent Python core-chunk fingerprinting and PowerShell/.NET IHDR scan selected the same unique image and decoded the same flag."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Intro/Baby Misc/solve/evidence/verification.txt"
+pitfalls:
+  - "Do not trust strings merely because they match the flag format; the archive contains many decoys."
+  - "Whole-PNG hashes differ because comments vary, even when the rendered image is identical."
+  - "Do not extract all 7,000 deeply nested files to disk."
+failed_paths:
+  - "Flag-prefix and syntax filters alone left 33 candidates."
+  - "The unique image's long hex comment had no embedded ordinary comment and did not yield a coherent plaintext under focused checks."
+tools:
+  - "Python standard library zipfile and hashlib"
+  - "PowerShell/.NET System.IO.Compression"
+  - "Pillow for visual inspection of the singleton image"
+hexstrike:
+  used: false
+  useful: false
+  notes: "All required ZIP and PNG checks were local and bounded."
+sources:
+  - "Public challenge archive: https://drive.google.com/file/d/1wO1AjeWmnOqxzDoucXueFLPdpLEi_ZHb/view?usp=sharing"
+  - "Local archive: CTFTimeWriteup/FortIDCTF2026/Intro/Baby Misc/files/drive_archive.zip"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Misc/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Intro/Baby Misc/solve/solve.py"
+time_heuristic: "For a large archive of repeated images, fingerprint the visual chunks and decode directory names; do not begin with OCR or broad extraction."
+last_verified: "2026-10-10"

@@ -33,7 +33,7 @@ answers:
   q7_original_name: "SoulSearch (forensic) - REJECTED by service, unresolved"
 verification:
   method: "live ncat service accepted 6/7; flag gated on all 7. Q7 unresolved."
-  evidence: ../CTFTimeWriteup/L3akCTF2026/Beginner/Transcendent Renovation/solve/evidence/manifest.md
+  evidence: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/Transcendent Renovation/solve/evidence/manifest.md
 pitfalls:
   - "answer format matters: droid GUID lowercase no-braces; format is 'OLE CF' not 'CDF V2'"
   - "DestList entry droid fields are offset ~8 bytes vs the LNK TrackerDataBlock; trust the tracker"
@@ -49,7 +49,7 @@ hexstrike:
   notes: manual OLE/LNK parsing
 sources: []
 playbook: PLAYBOOKS/forensics_windows_jumplist.md
-writeup: ../CTFTimeWriteup/L3akCTF2026/Beginner/Transcendent Renovation/writeup/writeup.md
-solver: ../CTFTimeWriteup/L3akCTF2026/Beginner/Transcendent Renovation/solve/solve.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/Transcendent Renovation/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/L3akCTF2026/Beginner/Transcendent Renovation/solve/solve.py
 time_heuristic: "jumplist -> olefile DestList -> stream LNK -> TrackerDataBlock for host/droid"
 last_verified: "2026-08-01"

@@ -1,0 +1,35 @@
+id: "h7ctf2026_hear_no_evil"
+event: "H7CTF 2026 Quals"
+category: "hardware/ble-gatt-provkey-from-adv-data"
+challenge_name: "Hear No Evil"
+status: "solved"
+flag: "H7CTF{d92a2c1b-2a02-483e-a080-8b43fc5ec9e1}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A BLE pcap contains a GATT Read Response that is itself a plaintext firmware debug string documenting the exact decryption scheme for two other handles."
+  - "A provisioning key is sent in cleartext inside BLE advertising manufacturer data, then reused to XOR-protect a \"secure\" characteristic."
+key_idea: "Scan BLE captures for any GATT read/notification whose payload is plaintext firmware debug output describing the crypto scheme (handle offsets, key source, keystream construction) -- this is a very common CTF pattern (the firmware \"helpfully\" documents itself). Then simply follow the recipe: extract the provisioning key from advertising manufacturer-specific data (after the company-ID + type bytes), XOR-decrypt a cyclic-XOR-protected handle directly, and for a second \"vault\" handle derive a SHA-256-based keystream from provkey||nonce||counter (nonce pulled from a notification) and XOR it against the ciphertext."
+prerequisites:
+  - "Raw pcap/BLE link-layer packet parsing (or pyshark/scapy BLE dissectors)"
+  - "Locating manufacturer-specific AD structures by company ID"
+exploitation_pattern: "parse pcap packets -> find debug GATT read response describing the scheme -> extract provkey from advertising manufacturer data -> XOR-decode cyclic-key handle directly -> for SHA256-keystream handle, pull nonce from its notification, generate keystream blocks SHA256(provkey||nonce||i) for i=0,1,.. concatenated, XOR against ciphertext."
+verification:
+  method: "Deterministic XOR/keystream decode of two independent handles each produced a well-formed flag string."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Hear No Evil/writeup/writeup.md"
+pitfalls:
+  - "Don't assume BLE captures need live decryption tools -- check first for a plaintext debug characteristic that documents the whole scheme."
+failed_paths: []
+tools:
+  - "Python struct-based pcap/BLE parsing"
+  - "hashlib"
+sources: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Hear No Evil/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Hardware/Hear No Evil/solve/solve.py"
+time_heuristic: "In BLE/GATT capture challenges, grep every Read Response/Notification for plaintext debug strings before attempting any protocol reverse engineering -- firmware often documents its own crypto scheme on a readable characteristic."
+last_verified: "2026-11-04"

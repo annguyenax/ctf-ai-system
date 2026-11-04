@@ -1,0 +1,50 @@
+id: hackluctf2026_lauschangriff
+event: "Hack.lu CTF 2026"
+category: "crypto"
+challenge_name: "Lauschangriff"
+status: solved
+flag: "flag{5429d271438bd9cd7be14be8d17507e2}"
+confidence: 1.0
+artifact_hashes:
+  - "capture.pcap sha256:8d88ce2a2959beed207696099cee27586a4cb9285f8e2c1a5f26faf24eae759d"
+  - "lauschangriff.zip sha256:94d3a48b249835222b6f634b38d3277444c131e20fada3820c6d4490a812e582"
+signals:
+  - "drivers/char/random.c patched to a single global non-crypto PRNG (all getrandom consumers share one stream)"
+  - "TLS 1.3 server, ServerHello.random is plaintext = direct leak of N PRNG outputs"
+  - "server CurvePreferences lists X25519MLKEM768 first; README says post-quantum"
+  - "pcap of the session is downloadable; bot posts flag over TLS on a fixed interval"
+key_idea: >
+  The kernel RNG is a 96-bit ARX PRNG leaking its top 32 bits per step. ServerHello.random
+  (32 B = 8 words, in the clear) lets Z3 recover the state; the server's ephemeral key
+  material is drawn from the SAME stream right after. Step forward and brute a tiny
+  getrandom offset, verifying against the public ServerHello key_share: recover the X25519
+  scalar (offset 0) AND the ML-KEM-768 Encaps coins m (offset 32). Rebuild the hybrid
+  shared secret (mlkem_ss||x25519_ss) and decrypt TLS 1.3 to read the bot's POST body.
+prerequisites:
+  - "the instance pcap (per-instance flag lives only in captured traffic)"
+  - "z3, cryptography (X25519/AEAD/HKDF), dpkt, kyber-py (deterministic ML-KEM Encaps)"
+exploitation_pattern: "weak-kernel-PRNG -> recover TLS ephemeral keygen randomness -> decrypt captured TLS 1.3 (hybrid KEM)"
+verification:
+  method: "ServerHello key_share match (X25519 pubkey + ML-KEM ciphertext) + 2 independent sessions + both directions agree"
+  evidence: "CTFTimeWriteup/HackluCTF2026/Crypto/Lauschangriff/solve/evidence/manifest.md; conn4 id:1 09:36:02, conn9 id:2 09:36:47 (+45s)"
+pitfalls:
+  - "NOT plain X25519: 8/10 sessions negotiate X25519MLKEM768 (0x11ec); parse the group"
+  - "ML-KEM shared secret comes from the SERVER's Encaps coins (weak RNG), not a client secret"
+  - "ClientHello/ServerHello hybrid key_shares span multiple TCP segments -> must reassemble TCP, not parse per-packet"
+  - "8 ServerHello words do not uniquely fix x0; enumerate Z3 solutions and disambiguate by key_share match"
+  - "hybrid SS order for 0x11ec is ML-KEM||X25519"
+failed_paths:
+  - "prior solver/notes assumed plain X25519: binds only to the 2 probe sessions (no flag) and misparses the hybrid share"
+tools: ["z3", "python-cryptography", "dpkt", "kyber-py"]
+hexstrike:
+  used: false
+  useful: false
+  notes: "pure offline crypto; no network tooling needed"
+sources:
+  - "handout src/kernel/rng.h, random.c.patch, src/server/main.go, src/bot/bot.py"
+  - "draft-kwiatkowski-tls-ecdhe-mlkem (X25519MLKEM768 wire format), RFC 8446 (TLS 1.3 schedule), FIPS 203 (ML-KEM)"
+playbook: "PLAYBOOKS/crypto_weak_kernel_rng_tls.md"
+writeup: "CTFTimeWriteup/HackluCTF2026/Crypto/Lauschangriff/writeup/writeup.md"
+solver: "CTFTimeWriteup/HackluCTF2026/Crypto/Lauschangriff/solve/solve.py"
+time_heuristic: "fingerprint group + recover PRNG (Z3 ~sec) + offset search (sub-sec) per session"
+last_verified: "2026-10-25"

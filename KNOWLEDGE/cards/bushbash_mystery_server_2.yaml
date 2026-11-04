@@ -34,7 +34,7 @@ tools:
   - objdump
   - python socket
 playbook: PLAYBOOKS/rev_protobuf_wire_dwarf.md
-writeup: ../../CTFTimeWriteup/BushBash2026/rev/mystery server I/writeup.md
+writeup: ../../ctf-ai-system/OUTPUT/_archive/BushBash2026/rev/mystery server I/writeup.md
 related_series: "part II of bushbash_mystery_server_1"
 time_heuristic: >
   CLI-unexposed oneof/protobuf field discovered during part I recon -> probe

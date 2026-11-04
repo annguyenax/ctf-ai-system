@@ -1,0 +1,39 @@
+id: dctf2026quals_legacy
+event: DefCamp CTF 2026 Quals
+category: pwn/privesc-via-cron-dos-coredump
+challenge_name: "legacy"
+status: solved
+flag: "CTF{L3g4cy_Syst3ms_H4v3_Fun_Att4cks_D0s_on_python2}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A root cron job runs backup.sh/backup.py every 2 minutes wrapped in 'timeout --signal=QUIT --kill-after=5s 10s', and backup.py loads the root password into a variable it never actually uses."
+  - "backup.py parses user-controlled JSON note files (via a world-writable note app running as root) and Python2's int()/json.loads has O(n^2) cost on very large integer literals."
+  - "The timeout wrapper sends SIGQUIT on expiry, and something in the cron chain (gcore triggered by the SIGQUIT handler) dumps a core file that ends up world-readable (0644)."
+key_idea: "Force the root-owned backup parser to blow its timeout budget by planting a note containing one absurdly large (~850k-digit) integer literal, so Python2's O(n^2) big-int parsing takes long enough (~16s) to trip the cron's SIGQUIT/timeout path; that path's SIGQUIT handler core-dumps the still-running root process (gcore) into a world-readable file, and the root password string (loaded into memory earlier but never used) can be recovered by walking the core dump for Python2 str objects matching a hex-token pattern."
+prerequisites:
+  - "Timing-DoS intuition: inflate a known-slow parsing primitive (big-int conversion) rather than looking for a classic memory-corruption bug"
+  - "CPython2 str object memory layout (refcnt|type|size|hash|sstate header, 20 bytes, then raw chars) to carve strings directly out of a raw core dump without 'strings' being available on the box"
+  - "Recognizing a SIGQUIT-triggered coredump path as an unintended secret-exfiltration channel"
+exploitation_pattern: "control content fed to a privileged slow-parser -> inflate one input to make root's process exceed the cron timeout window -> root process gets core-dumped by the timeout chain's SIGQUIT handler -> dump file left world-readable -> carve raw bytes for the known Python2 str-type pointer signature to recover any secret string the root process had loaded into memory, even if it was never printed or used."
+verification:
+  method: "Password string carved from the core dump was used to su to root locally, confirmed by 'id' showing uid=0 and reading /root/flag.txt which matched the recorded flag."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/legacy/writeup/writeup.md"
+pitfalls:
+  - "Loading a secret into a variable that is never printed/used is NOT safe if the process can be made to crash/core-dump while the secret is still live in memory -- a coredump written with permissive permissions is itself a leak."
+  - "No 'strings' binary on the target box; carving secrets out of a raw core dump requires knowing the interpreter's internal object header layout (here CPython2's str type pointer + size field) to locate candidate strings directly."
+failed_paths: []
+tools:
+  - gcore (indirectly, via the box's own SIGQUIT handler)
+  - Python (re/struct/gzip for core-dump string carving)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/legacy/writeup/writeup.md"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/legacy/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Misc/legacy/solve/solve.py"
+time_heuristic: "When a privileged scheduled job parses attacker-influenced input under a timeout/kill-after wrapper, check what signal/action fires on timeout (core dump, log, restart) -- a timeout-triggered core dump of a process that loaded a secret earlier is a privesc path even without any classic overflow bug, via a pure resource-exhaustion DoS."
+last_verified: "2026-11-04"

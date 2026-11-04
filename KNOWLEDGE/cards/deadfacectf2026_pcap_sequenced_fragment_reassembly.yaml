@@ -1,0 +1,39 @@
+id: deadfacectf2026_pcap_sequenced_fragment_reassembly
+event: DeadfaceCTF2026
+category: forensics/pcap-covert-channel-reassembly
+challenge_name: "TrafficAnalysis (A Pirate's Life for Me: Part 1, Data Go Brrrrr, Return to Sender)"
+status: solved
+flag: ""
+confidence: 0.9
+artifact_hashes: []
+signals:
+  - A pcap is dominated by normal/background traffic (common browsing, standard ping, routine HTTP) with only a handful of anomalous packets/requests standing out (rare User-Agent, custom headers, unusual ICMP payload, odd destination).
+  - The flag is split across several packets, each carrying one chunk plus an explicit or implicit ordering cue (numbered custom header name, POST seq= parameter, packet arrival order within an isolated anomalous stream).
+  - Chunks are typically further encoded (Base64) and need concatenation before decoding, not decoding-then-concatenation.
+key_idea: For a covert-exfiltration-style pcap challenge, first isolate the small anomalous subset of traffic (odd User-Agent/host/destination/protocol described in the prompt), then extract each chunk plus its explicit order field (numbered header, seq param, or just capture order within that isolated stream), concatenate chunks in that order, and only then Base64/hex-decode the joined string.
+prerequisites:
+  - A hint in the challenge description narrowing which traffic/protocol/host is relevant (avoids blindly diffing the whole pcap)
+  - Ability to parse the relevant protocol layer (HTTP headers/body, ICMP payload, DNS query) with scapy or raw byte scanning
+exploitation_pattern: filter pcap to the anomalous subset (by User-Agent / host / protocol) -> extract chunk + order key from each matching packet -> sort by order key -> concatenate chunk bytes/strings -> base64-decode (or similar) the joined result -> read flag.
+verification:
+  method: Each sub-challenge's script filtered, sorted and joined chunks, then decoded to a flag string that matched final_flag.txt.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/A Pirate's Life for Me_ Part 1/writeup/writeup.md"
+pitfalls:
+  - Joining chunks in raw packet-arrival order instead of the explicit numeric cue embedded in each chunk (header name number, seq param) can silently scramble the message if packets were reordered or retransmitted.
+  - The flag may be split across two different fields of the same exchange (e.g. HTTP body carries most of it, a header carries the tail) — check all fields of the anomalous packets, not just one.
+failed_paths: []
+tools:
+  - Python scapy / re / base64
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/A Pirate's Life for Me_ Part 1/writeup/writeup.md"
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Data Go Brrrrr/writeup/writeup.md"
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/Return to Sender/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: forensics_pcap.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/A Pirate's Life for Me_ Part 1/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/TrafficAnalysis/A Pirate's Life for Me_ Part 1/solve/scan_pcap.py"
+time_heuristic: In a covert-channel pcap challenge, isolate the small anomalous traffic subset first, then look for an explicit per-chunk order cue (numbered header/param) before concatenating and decoding — don't trust raw capture order.
+last_verified: "2026-11-04"

@@ -1,0 +1,37 @@
+id: "h7ctf2026_vouchsafe"
+event: "H7CTF 2026 Quals"
+category: "crypto/x509-asn1-context-tag-confusion-webauthn"
+challenge_name: "Vouchsafe"
+status: "solved"
+flag: "H7CTF{884b24fb-2ccb-4ac5-8e16-b324746bcaed}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A WebAuthn/FIDO2 relying party has a legacy self-enrollment path for authenticators not in the pinned MDS3 metadata, gated by a custom X.509 extension with an explicit context-tagged BOOLEAN \"elevated\" field."
+  - "An internal changelog states the elevation tag number is now computed relative to a variable-length preceding SEQUENCE (aaguids) rather than hardcoded, \"so the parser stays stable if earlier optional fields change.\""
+key_idea: "When a custom ASN.1 structure derives a context tag number dynamically from the length of a preceding variable-length field rather than using a fixed tag, the attacker's and the spec's expected tag number diverge: the documented/rejected tag (e.g. [7]) is blocked by validation, but supplying the value at the *actual* tag the parser computes for your chosen field lengths (e.g. [8], because your SEQUENCE has a different element count than the spec assumed) bypasses the explicit rejection check while still satisfying the parser's real elevation condition."
+prerequisites:
+  - "DER/ASN.1 encoding by hand (or with an ASN.1 library) including explicit context tags"
+  - "Access to a changelog/spec describing the tag-derivation logic"
+exploitation_pattern: "build a self-signed attestation cert with the custom policy extension -> set the aaguid section length so the \"elevated\" field's computed tag shifts (e.g. to [8] instead of the rejected [7]) -> set that tag's value to TRUE -> register succeeds with tier=enterprise -> authenticate with the enrolled credential to reach the admin-only endpoint for the flag."
+verification:
+  method: "Live replay; /register/finish accepted the crafted certificate and /assert/finish returned {\"flag\":..., \"status\":\"granted\", \"tier\":\"enterprise\"}."
+  evidence: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Vouchsafe/writeup/writeup.md"
+pitfalls:
+  - "The straightforward attempt (set the documented tag [7] = TRUE) is explicitly rejected by the service -- re-read the changelog for how the real tag number is derived before assuming the field is unreachable."
+failed_paths:
+  - "Submitting context tag [7]=TRUE directly returned 403 \"attestation rejected\"."
+tools:
+  - "Python"
+  - "cryptography (x509)"
+  - "custom CBOR/ASN.1 encoding"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Vouchsafe/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/H7CTF2026/Crypto/Vouchsafe/solve/solve.py"
+time_heuristic: "When a spec/changelog says a parser's context-tag numbering is \"derived relative to\" a preceding variable-length field rather than fixed, don't trust the documented tag number for the bypassed field -- recompute what tag your actual encoding will land on and target that instead."
+last_verified: "2026-11-04"

@@ -1,0 +1,42 @@
+id: dctf2026quals_bitdebit
+event: DefCamp CTF 2026 Quals
+category: pwn/seccomp-missing-arch-check
+challenge_name: "bitdebit²"
+status: paused
+flag: ""
+confidence: 0.0
+artifact_hashes: []
+signals:
+  - "A scanf('%lu')-sized malloc() whose returned pointer is printed; a size of 0x200000 makes malloc mmap a chunk immediately below libc, so leak+0x200ff0 gives libc_base deterministically (verified locally)."
+  - "A one-arbitrary-bit-flip primitive (xor byte[addr], 1<<bit) is available at any writable, known address after the libc leak."
+  - "After the program sets up prctl(PR_SET_SECCOMP, filter) and returns, the installed BPF filter loads the syscall number at offset 0 but NEVER checks the seccomp_data.arch field, and only allows nr==9 and nr==295."
+key_idea: "A seccomp-bpf filter that checks only the syscall number and never the arch field is exploitable across calling conventions on x86: the SAME numeric nr means a different syscall depending on whether it is invoked via the x86_64 'syscall' instruction or the i386 'int 0x80' path. Here nr=295 is x86_64 preadv via syscall but i386 openat via int 0x80, and nr=9 is x86_64 mmap via syscall but i386 link via int 0x80 -- so the intended exploit path is: int 0x80 with nr=295 to openat('flag') (i386 ABI), then syscall with nr=295 to preadv(fd,...) (x86_64 ABI) to read it into memory, with mmap (x86_64 nr=9 via syscall) providing scratch space. No write/send syscall maps to either allowed number in either ABI, so exfiltration of the already-read flag bytes requires a side channel (e.g. branch on bits of the flag to produce a crash-vs-hang oracle distinguishable per remote connection) rather than a direct read-and-print. Read primitive (i386-openat-then-x86_64-preadv) was confirmed feasible locally; the bit-flip-to-RIP-control step (targeting the exit-time FILE flush/FSOP) and the resulting side-channel exfiltration client were NOT completed -- this card records the identified seccomp-arch-check gap and the confirmed read primitive, not a working end-to-end exploit."
+prerequisites:
+  - "seccomp-bpf filter internals (BPF_LOAD of struct seccomp_data fields, specifically offsetof(nr) vs offsetof(arch))"
+  - "x86 dual calling-convention syscall number collisions (int 0x80 32-bit ABI vs syscall 64-bit ABI assign different syscalls to the same numeric nr)"
+  - "glibc FILE/_IO vtable internals for an exit-time FSOP hijack (candidate RIP-control route from a single bit flip: _IO_list_all head redirect or stdout vtable corruption, triggered by the libc exit-time flush)"
+exploitation_pattern: "seccomp filter allows syscall numbers without checking arch -> pick a number that maps to a privileged read op in one ABI and a harmless/needed op in the other ABI -> switch calling convention (int 0x80 vs syscall instruction) per step to get both the open and the read through the same two allowed numbers -> exfiltrate without a write syscall via a crash/hang timing oracle driven by one-bit-at-a-time branches on the read data."
+verification:
+  method: "Not completed -- no server acceptance or deterministic flag recovery; status recorded as paused per author's own notes."
+  evidence: ""
+pitfalls:
+  - "Checking only seccomp_data.nr without seccomp_data.arch in a BPF filter makes syscall number allow-lists meaningless: the attacker chooses which ABI (hence which actual syscall) a given number resolves to."
+  - "setcontext-based gadgets in glibc are not usable directly under a tight seccomp filter if the full function prologue issues a disallowed syscall (here rt_sigprocmask) before reaching the useful register-load half -- jump into the function body past the disallowed prologue instead of calling it from the start."
+  - "A read-only syscall primitive (no write/send mapped) still has no direct exfil path; a crash-vs-hang side channel per remote connection is the fallback, but is a large, multi-stage construction (large effort, 'insane' difficulty by design)."
+failed_paths:
+  - "Calling glibc's setcontext from its normal entry point triggers rt_sigprocmask (a disallowed syscall) before reaching the useful register-restore code, immediately killing the process under the seccomp filter."
+  - "No clean 'mov rsp,[rdi+X]; ret' stack-pivot gadget was found in the provided libc for this bit-flip-sized corruption target; only jmp-based or register-dependent pivots were available, none fully resolved."
+tools:
+  - pwntools
+  - gdb (local WSL instrumentation rig)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals/Pwn/bitdebit\u00b2/notes/ANALYSIS_claude.md"
+playbook: null
+writeup: ""
+solver: ""
+time_heuristic: "Whenever a seccomp-bpf filter is reverse engineered, explicitly check whether it loads and compares seccomp_data.arch in addition to .nr -- if arch is unchecked, every allowed syscall number is actually TWO allowed syscalls (one per x86 ABI), which can turn a narrow allow-list into a usable read (or worse) primitive."
+last_verified: "2026-11-04"

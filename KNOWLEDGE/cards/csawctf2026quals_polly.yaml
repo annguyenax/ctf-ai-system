@@ -1,0 +1,40 @@
+id: csawctf2026quals_polly
+event: "CSAW CTF Qualifications 2026"
+category: "crypto/xorshift-jump-table-gf2-recovery"
+challenge_name: "Polly"
+status: solved
+flag: "csaw{Am4Z3s_m3_thE_W1lL_0f_1nst1nct}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Server state transition is an xorshift64-style PRNG: pure XOR/shift ops, strictly linear over GF(2)."
+  - "A 'jump table' / matrix-doubling function computes state_at(x, seed) == T^x(seed) in O(64) steps, and is itself linear in seed for fixed x."
+  - "Oracle leaks only the low 8 bits of state_at(x, seed) per query (via a truncated nonce byte), but each leak gives 8 linear equations over GF(2) in the unknown seed."
+  - "Nonce is only 24 bits of the 64-bit internal state -> a ChaCha20 nonce/key reuse (two-time pad) is reachable by brute-forcing x in a 2^24 search once the state generator is fully known."
+key_idea: "When a server state machine is built from xorshift-style XOR/shift/rotate operations only (no addition/multiplication), the entire transition is linear over GF(2); any oracle that leaks even a few bits per query, repeated with queries at x=2^k, yields enough independent linear equations to solve for the full internal secret via Gaussian elimination over GF(2), after which the generator can be run forward/backward freely."
+prerequisites:
+  - "GF(2) linear algebra / Gaussian elimination"
+  - "Matrix-doubling 'jump ahead' trick for linear recurrences (xorshift jump table)"
+  - "Stream cipher two-time-pad flag recovery once nonce/key reuse is achieved"
+exploitation_pattern: "identify xorshift-only transition -> build GF(2) jump matrices for x=2^k -> query oracle at x=0,1,2,4,...,64 collecting 8-bit leaks -> solve 64x64 GF(2) system for seed -> brute-force x in 2^24 space to reproduce the flag's nonce suffix -> request encryption of a zero-plaintext at that x to get the keystream -> XOR with flag ciphertext"
+verification:
+  method: "Live remote run against the challenge instance reproduced the exact flag end-to-end."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Polly/writeup/writeup.md (full solver transcript with recovered seed 0x9e22f8e574ebe125 and matched x=5940159)"
+pitfalls:
+  - "Do not try to brute-force the full 64-bit seed directly; exploit the GF(2) linearity instead (8 queries is enough for 64 bits of leak at 8 bits/query)."
+  - "The 24-bit nonce truncation is what makes a 2^24 brute-force search for a matching x tractable; a fast C/compiled search helps (50M steps in ~0.02s here) but a tight Python loop may also suffice depending on time budget."
+failed_paths: []
+tools:
+  - "python3"
+  - "C (fast_search.c, compiled helper for the 2^24 state-matching search)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Polly/files/Polly.zip"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Polly/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Crypto/Polly/solve/solve_polly.py"
+time_heuristic: "Custom PRNG oracle built only from XOR/shift/rotate: check GF(2) linearity first; a handful of queries at powers-of-two inputs plus Gaussian elimination recovers the full internal state far faster than brute force."
+last_verified: "2026-11-04"

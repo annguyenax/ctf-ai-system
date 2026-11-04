@@ -1,0 +1,42 @@
+﻿{
+  "challenge_id": "bytemectf2026_soul_fragment",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Compare the attachments named by current metadata with unsuffixed files",
+      "result": "Versioned attachments contain timestamp-selection and field-order instructions missing from the older snapshots",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/Soul Fragment/solve/evidence/recovery.json",
+      "notes": "Used only the current metadata-named copies."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Use timestamp 21:17 to select records and extract the requested fields",
+      "result": "Record 21 gives SOUL/LOST; the archive header gives fragment-17; record 08 gives VORMIR",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/Soul Fragment/solve/evidence/recovery.json",
+      "notes": "Record 17's FRAGMENT label is a decoy because it conflicts with the selected SOUL label."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "REASSESS",
+      "hypothesis_id": "H2",
+      "action": "Re-read the transformation wording to decide whether the exact archive-label punctuation changes",
+      "result": "The instructions join the four fields with underscores and specify only letter substitutions; the hyphen inside fragment-17 is preserved",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/Soul Fragment/files/mirror_snippets_w5IyGzB.txt",
+      "notes": "No rule authorizes replacing punctuation inside a field."
+    },
+    {
+      "t": "2026-10-09 step 04",
+      "phase": "VERIFY",
+      "hypothesis_id": "H3",
+      "action": "Replay the deterministic field extraction and leetspeak solver",
+      "result": "Solver emits the exact flag OWASP{fr4gm3nt-17_s0ul_l0st_v0rm1r}",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/Soul Fragment/solve/evidence/recovery.json",
+      "notes": "Deterministic local verification; not submitted to the portal."
+    }
+  ]
+}

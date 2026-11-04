@@ -1,0 +1,33 @@
+{
+  "challenge_id": "bytemectf2026_forgotten_guardian",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Read challenge description and both supplied text artifacts",
+      "result": "Archive table, curator key instruction, and social archive number were present",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/The Forgotten Guardian/solve/evidence/recovery.json",
+      "notes": "No existing solver or final_flag.txt was present."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Join social archive number to archive table and cross-check the mark clues",
+      "result": "Archive 27 uniquely maps to VOR; the mark is three letters and the curator defines it as the record key",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/The Forgotten Guardian/solve/evidence/recovery.json",
+      "notes": "Deterministic solver replay produced OWASP{VOR}; portal submission was not attempted."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "RESEARCH",
+      "hypothesis_id": "H2",
+      "action": "Search exact challenge title and distinctive clue phrase for an independent public walkthrough",
+      "result": "No matching public results",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/OSINT/The Forgotten Guardian/writeup/writeup.md",
+      "notes": "Local evidence was already decisive; external research was stopped."
+    }
+  ]
+}

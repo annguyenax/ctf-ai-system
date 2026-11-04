@@ -1,0 +1,49 @@
+id: fortidctf2026_flag_from_the_future
+event: FortID CTF 2026
+category: misc
+challenge_name: Flag from the Future
+status: solved
+flag: "FortID{R3al_L1f3_H45_N0_R3w1nd_Bu7t0n}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Game of Life rendered text"
+  - "reverse generation recovery"
+  - "font rasterization model fitting"
+  - "beam search over text against cellular automaton"
+key_idea: >-
+  Flag was typed into a Game-of-Life text renderer and evolved 18 generations;
+  recover the exact 36x382 board from 6x6-in-8x8 tiles, fix renderer model
+  (DejaVuSansMono-Bold 16px, >=128 threshold, B3/S23) by search, then beam-search
+  text left-to-right comparing the causally-safe left window of the FINAL board.
+  Critical: browser quantizes font advance to 1/64 px half-up -> 617/64=9.640625
+  px, not the raw hmtx 9.6328125 px which breaks after ~15 chars.
+prerequisites:
+  - "PIL font rasterization"
+  - "Game of Life simulation"
+  - "beam search"
+exploitation_pattern: "extract exact grid -> search (font,size,threshold,N) on prefix -> fix advance quantization -> left-to-right beam on causal window -> deterministic verify 0 mismatches"
+verification:
+  method: "forward-simulate seed 18 gens; all 909 live cells reproduced; platform accepted"
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Misc/Flag from the Future/final_flag.txt"
+pitfalls:
+  - "raw font advance width derails long text reconstruction; browsers quantize to 1/64 px half-up (Math.round)"
+  - "N must be swept; wrong N only survives a few characters into the causal window"
+  - "center-of-tile sampling: live cell = 6x6 block inside 8x8 tile, first tile at x=7"
+failed_paths:
+  - "Causality/inverse-Life per-column search (exponential)"
+  - "synthetic style sweeps without exact pen model"
+tools:
+  - "PIL"
+  - "numpy"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "single screenshot"
+playbook: ""
+writeup: "CTFTimeWriteup/FortIDCTF2026/Misc/Flag from the Future/writeup/writeup.md"
+solver: "CTFTimeWriteup/FortIDCTF2026/Misc/Flag from the Future/solve/solve.py"
+time_heuristic: "2-4h"
+last_verified: "2026-10-11"

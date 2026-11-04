@@ -1,0 +1,41 @@
+id: deadfacectf2026_aurora_db_forensics
+event: DeadfaceCTF2026
+category: database/websocket-sql-shell-forensics
+challenge_name: "Database series (Admitted Under Another Name, After the Lock, Ghost in the Registry, Heavy Hand, Prying Eyes, The Attending, The Original Reading)"
+status: solved
+flag: ""
+confidence: 0.9
+artifact_hashes: []
+signals:
+  - "Remote service exposes a raw SQL shell only over a WebSocket endpoint (wss://host/ws), not a normal DB port — generic DB clients don't apply."
+  - Multiple separate schemas/databases exist on the same server (aurora_ehr, aurora_pharmacy, aurora_trials, aurora_audit) and findings in one feed queries in the next.
+  - Each challenge is a one-off analytic/forensic SQL query (JOIN, LEFT JOIN + HAVING count=0, window/aggregate with ORDER BY/LIMIT, audit-trail diff) rather than an injection — access is already granted.
+key_idea: When a challenge's "database access" is literally a SQL console wrapped in a WebSocket text/binary frame, hand-roll a minimal WS client (or reuse one script across the series) and solve each flag with a single targeted analytic SQL query (JOIN patients/encounters/prescriptions/audit tables, LEFT JOIN + HAVING for "has X but not Y", or filter an audit/change-log table for an out-of-policy edit).
+prerequisites:
+  - Raw socket/SSL client capable of building/parsing WebSocket frames (or a websockets library) since no HTTP upgrade helper may be bundled
+  - Schema exploration (SHOW TABLES / SELECT * LIMIT) before writing the targeted query
+exploitation_pattern: "open WS connection to /ws -> send raw SQL text -> read streamed result -> iterate: discover schema -> join relevant tables -> filter by the condition described in the prompt (VIP flag, DEA schedule, date-lock boundary, zero-count anti-join) -> flag is a specific column value in the one matching row."
+verification:
+  method: Each sub-challenge's solver connected via WebSocket, ran the SQL, and the returned row's column exactly matched the submitted flag (confirmed against final_flag.txt for each).
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Database/Admitted Under Another Name/writeup/writeup.md"
+pitfalls:
+  - A manual WebSocket frame builder must mask client->server frames (RFC 6455) or the server may reject/hang.
+  - Results often need `\G` / vertical format to read wide rows cleanly in a terminal-emulating shell.
+  - Facts chain across challenges in the series (e.g. a patient_id or MRN found in one challenge is the key input to the next) — do these in series order.
+failed_paths: []
+tools:
+  - Python socket/ssl (manual WS frame) or python-websockets
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Database/Admitted Under Another Name/writeup/writeup.md"
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Database/After the Lock/writeup/writeup.md"
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Database/Ghost in the Registry/writeup/writeup.md"
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Database/Heavy Hand/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Database/Admitted Under Another Name/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Database/Admitted Under Another Name/solve/solve_all_db.py"
+time_heuristic: If a "database" challenge connection string is wss:// or ws://, don't look for a DB port — write/reuse a minimal WebSocket SQL client, then treat the rest as ordinary forensic SQL (JOINs, anti-joins, audit-trail diffs) against whatever schema SHOW TABLES reveals.
+last_verified: "2026-11-04"

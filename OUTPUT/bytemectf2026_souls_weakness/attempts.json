@@ -1,0 +1,42 @@
+{
+  "challenge_id": "bytemectf2026_souls_weakness",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-09 step 01",
+      "phase": "INTAKE",
+      "hypothesis_id": "H0",
+      "action": "Inspect the supplied ELF, challenge prompt, and archive",
+      "result": "ELF64 x86-64; prompt provides scoped service host/port; archive contains soul binary",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Soul's Weakness/solve/evidence/recovery.json",
+      "notes": "No previous solver or flag file was present."
+    },
+    {
+      "t": "2026-10-09 step 02",
+      "phase": "TEST",
+      "hypothesis_id": "H1",
+      "action": "Inspect ELF headers, symbols, strings, and vault() disassembly",
+      "result": "No PIE/canary, NX enabled; gets reads a 32-byte frame buffer; soul_stone() at 0x4011b6 prints the flag literal",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Soul's Weakness/solve/evidence/recovery.json",
+      "notes": "checksec wrapper lacked pwnlib; readelf/objdump/strings gave sufficient local evidence."
+    },
+    {
+      "t": "2026-10-09 step 03",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "Run offset-40 payload against local ELF in Kali WSL",
+      "result": "soul_stone() printed OWASP{S0ul_St0ne_Buff3r_0v3rfl0w}; solver saved the flag and hashes",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Soul's Weakness/solve/evidence/recovery.json",
+      "notes": "Process crashed after the print because the overwritten return address remained on the stack."
+    },
+    {
+      "t": "2026-10-09 step 04",
+      "phase": "VERIFY",
+      "hypothesis_id": "H2",
+      "action": "Attempt one scoped remote connection to the challenge endpoint",
+      "result": "Socket response output could not be rendered because a control byte triggered Windows cp1252 encoding failure",
+      "evidence_path": "D:/download/CTFTimeWriteup/ByteMeCTF2026/Binary Exploitation/Soul's Weakness/solve/evidence/recovery.json",
+      "notes": "No remote flag is claimed and no retry was made; local exact flag output is decisive."
+    }
+  ]
+}

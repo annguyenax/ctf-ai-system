@@ -9,7 +9,7 @@ verification: Extracted and found flag LITCTF{th3_fl4g_1s_in_th3_ru1e5}
 tools:
   - Python
   - Pillow
-writeup: D:\download\CTFTimeWriteup\LIT2026\misc\read_the_rules\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\misc\read_the_rules\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\misc\read_the_rules\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\misc\read_the_rules\solve\solve.py
 time_heuristic: 15 minutes
 last_verified: 2026-08-03

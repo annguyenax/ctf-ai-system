@@ -1,0 +1,36 @@
+id: deadfacectf2026_exfiltration
+event: DeadfaceCTF2026
+category: stego/exif-timestamp-ordered-reassembly
+challenge_name: "Steganography / Exfiltration"
+status: solved
+flag: "deadface{timing-is-everything}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - 20 JPEGs given with filenames in no meaningful order (image_01.jpg..image_20.jpg are NOT the assembly order).
+  - Each image's EXIF `ImageUniqueID` tag holds a short hex fragment (`IMG_<hex>`), and each has a distinct `DateTimeOriginal` EXIF timestamp.
+  - Filename order and byte-content order do not reconstruct the message; only chronological EXIF timestamp order does.
+key_idea: When a set of files looks unordered or deliberately shuffled (misleading filenames) but each carries its own metadata timestamp, sort by that timestamp field first — the true message order is often encoded in a metadata field (EXIF DateTimeOriginal, file ctime/mtime, etc.) rather than filename or file order.
+prerequisites:
+  - EXIF metadata intact on all images (PIL `_getexif()` or exiftool)
+  - Knowing which EXIF tag IDs correspond to DateTimeOriginal (36867) and ImageUniqueID (42016) when using raw tag numbers
+exploitation_pattern: extract (DateTimeOriginal, ImageUniqueID) per image -> sort list by DateTimeOriginal -> strip the `IMG_` prefix from each ID, concatenate the hex strings in sorted order -> bytes.fromhex(...).decode() to get the flag.
+verification:
+  method: Sorting by EXIF timestamp and concatenating hex IDs decoded directly to the exact flag string.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Steganography/Exfiltration/writeup/writeup.md"
+pitfalls:
+  - Sorting by filename or directory listing order instead of the EXIF timestamp produces garbled output — always re-sort explicitly by the metadata field.
+failed_paths: []
+tools:
+  - Python PIL (_getexif)
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Steganography/Exfiltration/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Steganography/Exfiltration/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Steganography/Exfiltration/solve/solve.py"
+time_heuristic: When a set of files appears unordered or has misleading names, re-sort by their own embedded metadata timestamp before trying to concatenate/reassemble any per-file fragment.
+last_verified: "2026-11-04"

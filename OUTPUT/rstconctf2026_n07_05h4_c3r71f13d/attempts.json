@@ -1,0 +1,8 @@
+{
+  "challenge_id": "rstconctf2026_n07_05h4_c3r71f13d",
+  "flag_status": "verified",
+  "attempts": [
+    {"t":"2026-10-25","phase":"EXPLOIT","hypothesis_id":"H1","action":"Submit corrected ladder rungs for six PLC questions","result":"Simulator accepted all rungs and returned six letters: Y T A F E S keyed by question id.","evidence_path":"D:\\download\\CTFTimeWriteup\\RSTCONCTF2026\\Misc\\n07_05h4_c3r71f13d\\solve\\evidence\\api_solve_response.json","notes":"Slots reorder them to SAFETY."},
+    {"t":"2026-10-25","phase":"VERIFY","hypothesis_id":"H1","action":"Submit assembled word SAFETY to simulator /api/flag","result":"rstcon{LD_better_than_ST}","evidence_path":"D:\\download\\CTFTimeWriteup\\RSTCONCTF2026\\Misc\\n07_05h4_c3r71f13d\\solve\\evidence\\api_flag_response.txt","notes":"Official submit helper independently confirmed acceptance."}
+  ]
+}

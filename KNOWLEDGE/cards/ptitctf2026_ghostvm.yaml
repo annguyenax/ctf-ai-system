@@ -34,7 +34,7 @@ hexstrike:
   notes: ""
 sources: []
 playbook: PLAYBOOKS/rev_template_feistel.md
-writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\GhostVM\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\GhostVM\solve\invert_feistel.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\GhostVM\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\GhostVM\solve\invert_feistel.py
 time_heuristic: stacked VM then Feistel inverse, not full symbolic
 last_verified: "2026-08-22"

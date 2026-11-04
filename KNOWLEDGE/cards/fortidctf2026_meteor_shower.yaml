@@ -1,0 +1,47 @@
+﻿id: fortidctf2026_meteor_shower
+event: "FortID CTF 2026"
+category: "reverse/6502-baconian-input-check"
+challenge_name: "Meteor Shower"
+status: solved
+flag: "FortID{SCIENTIA_POTENTIA_EST}"
+confidence: 1.0
+artifact_hashes:
+  - "files/meteor_shower.nes: B33D3EE1D0422DDDE72B7493CCC2200F67D3457AEA4ED08E1A6450E456996569"
+  - "solve/solve.py: ECD69BFCACA635B485C250C68D554DF7FC372298064D38134430EA11D1A742E6"
+signals:
+  - "The game verifies 95 A/B bits using two 128-byte PRG tables and a permuted index."
+  - "The ending says BACON and FIVE STRIPS, hinting at a five-bit Bacon cipher."
+key_idea: >
+  Reconstruct the 95-bit accepted controller input from the verifier's table
+  lookup, then decode nineteen five-bit groups as Baconian letters.
+prerequisites:
+  - "iNES PRG extraction and CPU address mapping"
+  - "6502 control-flow analysis"
+  - "Bitstream and Baconian cipher decoding"
+exploitation_pattern: >
+  Trace input mapping and carry success -> calculate each expected bit from
+  T1[state] XOR T2[state] XOR index -> advance state modulo 128 -> group into
+  5-bit letters -> normalize the plaintext phrase.
+verification:
+  method: "Independent recomputation decodes SCIENTIAPOTENTIAEST; the preserved submission transcript reports success and read-only platform status reports SOLVED."
+  evidence: "CTFTimeWriteup/FortIDCTF2026/Reverse/Meteor Shower/solve/evidence/verification.txt"
+pitfalls:
+  - "The displayed Easter Egg text is a clue rather than the final phrase."
+  - "Check whether zero or nonzero mismatch returns success by following carry behavior."
+  - "Confirm A=0 and B=1 from the input handler."
+failed_paths:
+  - "An initial guess based only on the visible Easter Egg prose was incorrect."
+tools:
+  - "Capstone 6502 disassembly"
+  - "Python standard library"
+hexstrike:
+  used: false
+  useful: false
+  notes: "Static PRG and table analysis was sufficient; no emulator or remote instance was needed."
+sources:
+  - "Challenge ROM: CTFTimeWriteup/FortIDCTF2026/Reverse/Meteor Shower/files/meteor_shower.nes"
+playbook: ""
+writeup: "D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Meteor Shower/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/FortIDCTF2026/Reverse/Meteor Shower/solve/solve.py"
+time_heuristic: "For unusual game endings, inspect the input-validation path and derive the required stream; visible screen text may explain the cipher rather than reveal the answer."
+last_verified: "2026-10-10"

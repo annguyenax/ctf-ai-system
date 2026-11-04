@@ -1,0 +1,55 @@
+﻿id: bytemectf2026_infinity_vault
+event: ByteMe CTF 2026
+category: crypto/lcg-derived-multilock
+challenge_name: "Infinity Vault"
+status: needs_verification
+flag: ""
+confidence: 0.6
+artifact_hashes:
+  - file: "files/Infinity Vault Participants/fragments.txt"
+    sha256: "8288ef3b02b595a4ce529bbd5db5802b9788e8cf80ed5813a5a770f63184cabe"
+  - file: "files/Infinity Vault Participants/observations.txt"
+    sha256: "6649780e083504705bcdb701fc84cc955ce3bc796765701bc694354a9de7e0b2"
+  - file: "files/Infinity Vault Participants/seal.txt"
+    sha256: "a932c13d8bf5c3f4a09340df64c16172e2e764af89cfca3dfdd73ee87bdc7f2f"
+  - file: "files/Infinity Vault Participants/vault.bin"
+    sha256: "5713c2f109b5989dc4285c9695b913592a6c364193c0cac703ce111c9841b2aa"
+signals:
+  - W00-W13 exactly match the seeded 32-bit LCG after XOR mask, indexed rotate, and byte reversal.
+  - The IV3L container has three length-prefixed records of 124, 106, and 83 bytes.
+  - FINAL-STATE and SECOND-LINK do not directly equal raw, masked, transformed, or adjacent generated state words.
+key_idea: Reconstruct and verify the live state sequence first; the two-lock encryption/KDF remains unknown, and the seal values are checks rather than keys.
+prerequisites:
+  - LCG state generation modulo 2^32
+  - Bit rotation and byte-order inversion
+  - Authenticated decryption or exact plaintext verification
+exploitation_pattern: observed words -> invert indexed transform -> verify LCG sequence -> derive the specified lock chain -> validate both seals.
+verification:
+  method: No flag verified; sequence reconstruction was replayed and matched all fourteen W words.
+  evidence: "D:/download/ctf-scratch/bytemectf2026_infinity_vault/analyze_sequence_result.txt"
+pitfalls:
+  - Do not include the six OLD-series entries in the live state sequence.
+  - The final-state and second-link values are checks, not encryption keys.
+  - Do not trust a flag-shaped plaintext without both seals.
+  - Existing generic cipher guesses should not be repeated without a new lock/KDF specification.
+failed_paths:
+  - Direct raw, masked, transformed, and adjacent-state comparisons do not match the seals.
+  - Existing stream/key and bounded AES candidate probes did not produce an authenticated plaintext.
+tools:
+  - Python 3 standard library
+  - PyCryptodome (prior bounded AES probes)
+  - ExifTool
+hexstrike:
+  used: false
+  useful: false
+  notes: File-only sequence reconstruction did not require network tools.
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Vault/files/Infinity Vault Participants/README.txt"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Vault/files/Infinity Vault Participants/fragments.txt"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Vault/files/Infinity Vault Participants/observations.txt"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Vault/files/Infinity Vault Participants/seal.txt"
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Vault/files/Infinity Vault Participants/vault.bin"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Vault/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/Cryptography/Infinity Vault/solve/explore.py"
+time_heuristic: Verify the clue-derived PRNG transformation against every observed word before decrypting; stop generic cipher enumeration when the lock/KDF remains unspecified and no authentication signal exists.
+last_verified: "2026-10-09"

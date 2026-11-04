@@ -1,0 +1,35 @@
+id: sunshinectf2026_groundhog_day
+event: "SunshineCTF 2026"
+category: "web/ssrf-gopher-wkhtmltopdf-local-file-read"
+challenge_name: "Groundhog Day"
+status: needs_verification
+flag: "sun{s1x_m0r3_w33ks_0f_g0ph3r_ssrf}"
+confidence: 0.4
+artifact_hashes: []
+signals:
+  - "A public console has a commented-out `feed=<url>` override parameter in its client-side source -- a disabled-but-still-functional SSRF entry point."
+  - "The outer URL fetcher supports the gopher:// scheme, which can be abused to smuggle an arbitrary raw TCP payload (here, a full HTTP POST request) to an internal-only service."
+  - "An internal archive service (127.0.0.1:8000, POST /report) uses wkhtmltopdf 0.12.5 to render attacker-supplied HTML to PDF -- wkhtmltopdf executes JavaScript during rendering, including synchronous XHR, which can read local files via file:// URLs."
+key_idea: "A disabled/commented-out URL-override parameter left in client source is still worth testing server-side; if the fetcher supports gopher://, it can smuggle a complete raw protocol payload (e.g. a full HTTP request) to an internal service reachable only from the server's own network, and if that internal service is a wkhtmltopdf-based HTML-to-PDF renderer, its JS execution (synchronous XHR to file:// URLs) becomes a local-file-read primitive inside the generated PDF."
+prerequisites:
+  - "gopher:// URL-scheme payload construction (CRLF-terminated raw TCP payload embedding a full HTTP request)"
+  - "wkhtmltopdf JS execution quirks (synchronous XHR can read local files and inject their contents into the rendered page/PDF)"
+exploitation_pattern: "(per writeup, not independently re-verified from source in this pass) re-enable the commented-out feed= override via direct request -> target gopher://127.0.0.1:8000/_<raw HTTP POST to /report with HTML body> -> HTML body contains a <script> that does a synchronous XHR to file:///flag.txt and writes the response into the page DOM -> wkhtmltopdf renders that DOM into the returned PDF -> extract/decode the returned PDF (likely base64) and run pdftotext to read the flag text"
+verification:
+  method: "writeup.md states the technique and flag but solve.py in this challenge folder is an unimplemented TODO stub with no captured run output or request/response log confirming this exact chain was executed against the live instance."
+  evidence: ""
+pitfalls:
+  - "A commented-out parameter in client-side JS/HTML is not proof the server-side handler was removed -- test it directly."
+  - "gopher:// SSRF payloads must get byte-for-byte protocol framing right (CRLF line endings, Content-Length) since the target service parses it as a literal raw request, not just a URL fetch."
+failed_paths: []
+tools: []
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "web_ssrf.md"
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/Groundhog Day/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Web/Groundhog Day/solve/solve.py"
+time_heuristic: "A disabled-looking URL-override parameter plus a gopher-capable fetcher: test the parameter server-side anyway, and if an internal wkhtmltopdf-based renderer is reachable via gopher-smuggled HTTP, its JS execution (sync XHR to file://) is a local-file-read primitive inside the rendered PDF."
+last_verified: "2026-11-04"

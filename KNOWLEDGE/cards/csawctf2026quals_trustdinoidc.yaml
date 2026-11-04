@@ -1,0 +1,38 @@
+id: csawctf2026quals_trustdinoidc
+event: "CSAW CTF Qualifications 2026"
+category: "web/jwt-x5c-asymmetric-cert-pinning-bypass"
+challenge_name: "TrustDinOIDC"
+status: solved
+flag: "csaw{str4ta_sk1pped_th3_p1n}"
+confidence: 0.9
+artifact_hashes: []
+signals:
+  - "Server supports two JWT-issuing IdPs on the same origin; each token's header carries its own x5c (self-describing) certificate instead of the client fetching a fixed JWKS."
+  - "Self-signing a forged cert with CN matching the FIRST IdP (PaleoID) is rejected -- that IdP's cert IS properly pinned/verified server-side."
+  - "The exact same forging technique against the SECOND IdP (StrataID) succeeds -- certificate pinning was implemented inconsistently across the two IdPs."
+  - "The privileged section is gated on a scope claim (flagosaurus:redeem) that the UI never requests through either IdP's normal login flow, not on subject identity (sub=admin was never required)."
+key_idea: "When a service trusts a self-describing certificate embedded in a JWT header (x5c) across multiple issuers, cert pinning/verification strength must be checked independently per issuer -- one issuer being properly pinned does not mean a sibling issuer is; and once any one issuer's signing key is forgeable, check which scopes/claims the backend honors that were never exposed through the legitimate UI flow."
+prerequisites:
+  - "JWT/x5c structure (self-signed cert embedded in the token header rather than a fixed JWKS)"
+  - "Generating a throwaway RSA keypair + self-signed X.509 cert with a chosen CN"
+exploitation_pattern: "probe both IdPs' token issuance and callback verification -> confirm the callback/index route re-verifies tokens directly from a session cookie (not only right after a vetted /oauth/callback) -> forge a self-signed cert+JWT per IdP to find which one's cert check is weak -> once found (StrataID), mint an arbitrary-claims token requesting a scope never offered by the UI (flagosaurus:redeem) -> set it as the session cookie -> GET / -> flag renders"
+verification:
+  method: "solve.py reproduces the flag end-to-end with zero manual steps against the live instance, per the writeup's explicit verification note."
+  evidence: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/TrustDinOIDC/writeup/writeup.md"
+pitfalls:
+  - "Don't stop after the first IdP's forged-cert attempt fails; a multi-IdP trust setup frequently pins certs inconsistently across issuers."
+  - "Authorization gated by a scope string rather than subject identity means privilege escalation may not require impersonating an admin user at all -- just requesting a scope the UI never exposes."
+failed_paths:
+  - "Self-signed forged certificate with CN=paleoid.example.com (and any claims) is rejected/ignored -- PaleoID's certificate is properly pinned against the real known cert."
+tools:
+  - "python3 (cryptography library: x509, rsa)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/TrustDinOIDC/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/CSAWCTF2026Quals/Web/TrustDinOIDC/solve/solve.py"
+time_heuristic: "Multi-IdP JWT/OIDC setup trusting embedded x5c certs: test cert-pinning strength per issuer independently, and check for backend scopes/claims honored but never exposed by the UI."
+last_verified: "2026-11-04"

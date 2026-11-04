@@ -32,7 +32,7 @@ hexstrike:
   notes: "Not needed for source code review and custom Python scripting."
 sources: []
 playbook: ""
-writeup: "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Web\\Palworld Mod\\writeup\\writeup.md"
-solver: "D:\\download\\CTFTimeWriteup\\PTITCTF2026\\Web\\Palworld Mod\\solve\\solve.py"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\\Web\\Palworld Mod\\writeup\\writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\\Web\\Palworld Mod\\solve\\solve.py"
 time_heuristic: "30-45 minutes"
 last_verified: "2026-08-23"

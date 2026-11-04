@@ -1,0 +1,36 @@
+id: sunshinectf2026_flameon
+event: "SunshineCTF 2026"
+category: "rev/bps-patch-embedded-xor-asm"
+challenge_name: "FlameOn"
+status: solved
+flag: "sun{F1aM3_oN_M4r10}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Only a 140-byte BPS patch file is given, not a full ROM; applying it to a real SNES ROM is optional, the patch itself fully contains the injected payload."
+  - "The BPS 'TargetRead' chunks are literal bytes to be written into the target at known output offsets -- parsing the patch format directly recovers those bytes without needing the base ROM at all."
+  - "One TargetRead chunk injects 65816 assembly that XORs a trailing byte array with a repeating constant (EOR #$5A) and stores it elsewhere -- the encrypted flag bytes sit immediately after that routine in the same chunk."
+key_idea: "A binary-patch-format challenge (BPS/IPS/xdelta) does not require reconstructing the full patched target to extract an embedded secret -- parse the patch's own literal-byte chunks directly; if one chunk injects a small decryption routine (recognizable from its opcodes, e.g. a single-byte XOR constant like 0x5A), the data it operates on is very likely stored adjacent to that routine within the SAME patch chunk."
+prerequisites:
+  - "BPS patch format parsing (VLI-encoded header + action-coded chunks: SourceRead/TargetRead/SourceCopy/TargetCopy)"
+  - "Basic 65816 (SNES CPU) opcode recognition, specifically immediate XOR (EOR #imm)"
+exploitation_pattern: "parse BPS header (source_size, target_size, metadata) -> iterate action-coded chunks, collecting TargetRead literal byte spans -> for each span longer than a few bytes, scan for a plausible single-byte XOR key by brute-forcing candidate keys against short windows and checking for the known flag prefix after XOR -> decode the full flag once the key (0x5A here) and offset are found"
+verification:
+  method: "Deterministic XOR decode of the extracted bytes yields a well-formed flag string."
+  evidence: "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/FlameOn/writeup/writeup.md"
+pitfalls:
+  - "Do not assume a ROM-patch challenge requires sourcing the full base ROM; the patch's own literal-insertion chunks may carry the entire payload (code + encrypted data) needed to solve it."
+failed_paths: []
+tools:
+  - "python3 (manual BPS parsing)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/FlameOn/files/ctf.bps"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/FlameOn/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SunshineCTF2026/Re/FlameOn/solve/solve.py"
+time_heuristic: "A game-ROM-patch (BPS/IPS) challenge with only the patch file given: parse the patch's literal-byte chunks directly for an embedded decryption routine and adjacent encrypted data, rather than reconstructing the full patched ROM first."
+last_verified: "2026-11-04"

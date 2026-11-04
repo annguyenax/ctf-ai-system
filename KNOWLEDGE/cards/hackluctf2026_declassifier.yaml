@@ -1,0 +1,39 @@
+id: hackluctf2026_declassifier
+event: "Hack.lu CTF 2026"
+category: "pwn/string-replace-expansion-overflow+srop"
+challenge_name: "Declassifier"
+status: solved
+flag: "flag{00p5-57r1ng_r3pl4c3m3n7_w17h0u7_4dju571ng_57r1ng_l3ng7h_15_4_b4d_1d34:<per-instance>}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A 512-byte stack buffer is in-place rewritten by a 'redact' function that replaces every 4-byte match with a 10-byte string, shifting the tail right by 6 bytes per match with no bound check against the original buffer size -- N matches grow the content by 6*N bytes past the end."
+  - "The target is static, no-PIE, no stack canary; the only usable gadgets are `__restore_rt` (sigreturn trampoline) and a bare `syscall; ret` -- no clean pop-rdi/rsi/rdx chain exists, ruling out classic ROP."
+  - "Only one SROP frame fits in the single 512-byte overflow, so the first frame must bootstrap a second stage by pivoting the stack to a fixed `.bss` address via a `read(0, bss, big_size)` syscall whose return then pops the next (fully attacker-controlled, size-unlimited) stage from `.bss`."
+key_idea: "When a string-replace routine expands its match in place without adjusting the destination buffer's bound check, the overflow length is exactly `(replacement_len - match_len) * match_count`, giving byte-precise control over where the overflow lands; combine that with hand-built SROP (no pwntools dependency) through a two-stage sigreturn chain that first pivots to a fixed, size-unlimited `.bss` landing zone, defeating the single-request 512-byte size cap."
+prerequisites:
+  - "sigreturn-oriented programming (amd64 248-byte sigcontext layout)"
+  - "stack-pivot via second syscall stage"
+  - "no-PIE/no-canary gadget hunting with only __restore_rt and syscall;ret available"
+exploitation_pattern: "compute k*match_len + pad + gadget+sigframe1 == overflow target offset -> sigframe1 does read(0,.bss,big) with rsp=.bss, pivoting the stack -> second (unbounded) write delivers sigframe2 (execve('/bin/sh')) plus the '/bin/sh' string at a fixed .bss offset -> catv /flag over the resulting shell."
+verification:
+  method: "Local gdb run on the provided binary spawned /usr/bin/dash, confirming offsets/gadgets/frames; remote run over TLS against the live instance returned the server's real /flag contents."
+  evidence: "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/Declassifier/writeup/writeup.md"
+pitfalls:
+  - "An in-place string-replace that expands content (replacement longer than match) without re-checking the destination buffer's capacity is a precise, attacker-controllable-length stack overflow -- compute the exact byte offset the overflow reaches as a function of match count, not just 'it overflows'."
+  - "When no clean multi-argument pop-gadget chain exists in a no-PIE binary, check for `__restore_rt`/any `mov eax,15; syscall` sequence to build SROP frames by hand; a single input-size cap can be bypassed by using the first SROP frame to `read()` an unbounded second stage into a fixed, writable segment."
+failed_paths: []
+tools:
+  - "Python 3 (struct, socket, ssl)"
+  - "gdb (local verification)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/Declassifier/files"
+playbook: null
+writeup: "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/Declassifier/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/HackluCTF2026/Pwn/Declassifier/solve/solve.py"
+time_heuristic: "For an in-place expanding string-replace overflow, derive the exact byte-reach formula from match count first; for no-PIE/no-canary binaries lacking multi-arg ROP gadgets, check for a sigreturn trampoline and plan a two-stage SROP stack-pivot to escape any single-request size limit."
+last_verified: "2026-11-04"

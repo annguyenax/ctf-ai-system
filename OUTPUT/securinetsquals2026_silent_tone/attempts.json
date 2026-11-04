@@ -1,0 +1,78 @@
+{
+  "challenge_id": "securinetsquals2026_silent_tone",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-18/session3/1",
+      "phase": "format",
+      "hypothesis_id": "H1",
+      "action": "Rejected the old flat-int16 loader; skipped native chunk rendering pyramids",
+      "result": "6554396 samples/channel, chunk continuity checked",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\SecurinetsQuals2026\\Forensics\\Silent Tone\\solve\\evidence\\recovery.json",
+      "notes": "See event writeup for failed paths and limitations."
+    },
+    {
+      "t": "2026-10-18/session3/2",
+      "phase": "sync",
+      "hypothesis_id": "H2",
+      "action": "Matched RRC/ZC plus UID pilots",
+      "result": "A UID C1E20DC4 at +22 kHz; first packet RS+CRC verified",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\SecurinetsQuals2026\\Forensics\\Silent Tone\\solve\\evidence\\recovery.json",
+      "notes": "See event writeup for failed paths and limitations."
+    },
+    {
+      "t": "2026-10-18/session3/3",
+      "phase": "decode",
+      "hypothesis_id": "H3",
+      "action": "Deinterleaved before LFSR descrambling",
+      "result": "Old firmware 51x40, seed crc8, Fibonacci shift-left LFSR",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\SecurinetsQuals2026\\Forensics\\Silent Tone\\solve\\evidence\\recovery.json",
+      "notes": "See event writeup for failed paths and limitations."
+    },
+    {
+      "t": "2026-10-18/session3/4",
+      "phase": "sic",
+      "hypothesis_id": "H4",
+      "action": "Compared complete A codewords, reconstructed and cancelled strong source",
+      "result": "Repeated complete A packets identical; UID B 145D75BF, root104",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\SecurinetsQuals2026\\Forensics\\Silent Tone\\solve\\evidence\\recovery.json",
+      "notes": "See event writeup for failed paths and limitations."
+    },
+    {
+      "t": "2026-10-18/session3/5",
+      "phase": "soft",
+      "hypothesis_id": "H5",
+      "action": "Combined repeated B frames with phase refinement and RS parity equations",
+      "result": "Part2 31 bytes, CRC32 13491388; matching independent recovery variants",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\SecurinetsQuals2026\\Forensics\\Silent Tone\\solve\\evidence\\recovery.json",
+      "notes": "See event writeup for failed paths and limitations."
+    },
+    {
+      "t": "2026-10-18/session3/6",
+      "phase": "sic",
+      "hypothesis_id": "H6",
+      "action": "Cancelled B and synchronized C root47",
+      "result": "UID C0F4E5B2; part1 30 bytes, CRC32 3f075e45",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\SecurinetsQuals2026\\Forensics\\Silent Tone\\solve\\evidence\\recovery.json",
+      "notes": "See event writeup for failed paths and limitations."
+    },
+    {
+      "t": "2026-10-18/session3/7",
+      "phase": "decrypt",
+      "hypothesis_id": "H7",
+      "action": "Sorted binary UIDs; SHA256(key||uint32be counter)",
+      "result": "61-byte flag; exact ciphertext re-encryption",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\SecurinetsQuals2026\\Forensics\\Silent Tone\\solve\\evidence\\recovery.json",
+      "notes": "See event writeup for failed paths and limitations."
+    },
+    {
+      "t": "2026-10-18/session3/8",
+      "phase": "verify",
+      "hypothesis_id": "H8",
+      "action": "Packaged solver and replayed original SAL in fresh temporary directory",
+      "result": "All three RS parity and CRC32 checks pass; no scoreboard submission",
+      "evidence_path": "D:\\download\\CTFTimeWriteup\\SecurinetsQuals2026\\Forensics\\Silent Tone\\solve\\evidence\\recovery.json",
+      "notes": "See event writeup for failed paths and limitations."
+    }
+  ]
+}

@@ -9,7 +9,7 @@ verification: Found flag LITCTF{y0u_f0umd_h3@d_239seaj9}
 tools:
   - Python
   - curl
-writeup: D:\download\CTFTimeWriteup\LIT2026\web\head\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\LIT2026\web\head\solve\solve.py
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\web\head\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/LIT2026\web\head\solve\solve.py
 time_heuristic: 5 minutes
 last_verified: 2026-08-03

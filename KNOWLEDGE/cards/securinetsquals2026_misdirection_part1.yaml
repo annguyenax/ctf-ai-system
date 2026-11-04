@@ -1,0 +1,39 @@
+id: securinetsquals2026_misdirection_part1
+event: "Securinets CTF Quals 2026"
+category: "crypto/ecdsa-public-nonce-plus-soft-locked-forge"
+challenge_name: "Misdirection: Part 1"
+status: solved
+flag: "Securinets{sm0l_b0t_biG_DREAAAAAAMS}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "A WebAuthn admin bot signs every assertion with an ECDSA nonce `k = SHA256(rpId)` where `rpId` is a PUBLIC string -- the nonce is not secret at all, so one captured signature yields the full private key via `d = r^-1*(s*k - z) mod n`."
+  - "The recovered key's public point matched the admin's stored passkey exactly, but forging a live login was permanently blocked: webauthn-rs 0.5.4 rejects any assertion whose sign-counter is `<=` the stored counter, and the shared instance's stored counter had already been pushed by other teams to the u32 maximum (4294967295), making every possible counter value fail the check."
+  - "The organizers published an 'alternate path': the flag is AES-256-ECB-encrypted with key = SHA256 of the ASCII HEX STRING of the recovered private key (not the raw 32 bytes) -- a detail that must be matched exactly or decryption silently produces garbage."
+key_idea: "A fixed/predictable ECDSA nonce derived from any public value (even a hash of a known string) fully breaks the signature scheme via the standard `d=r^-1(sk-z) mod n` formula from a single signature -- but recovering the private key is not always sufficient to WIN if a downstream defense (here, a monotonic-counter replay check on a SHARED, already-exhausted counter) makes live forgery permanently impossible; watch for an announced alternate verification path that consumes the same recovered secret differently (e.g. as a KDF input in a specific string encoding)."
+prerequisites:
+  - "ECDSA signature math (nonce recovery formula)"
+  - "WebAuthn/FIDO2 assertion structure and counter-replay semantics"
+  - "AES-ECB + exact KDF input-encoding awareness (hex string vs raw bytes)"
+exploitation_pattern: "capture one bot-signed WebAuthn assertion -> recover d via d=r^-1(s*k-z) mod n using the public nonce k=SHA256(rpId) -> confirm d*G matches the admin's stored public key -> discover the counter-replay check is permanently soft-locked on the shared instance -> use the organizer-published alternate decrypt path, deriving the AES key as SHA256 of the hex-string representation of d."
+verification:
+  method: "AES-256-ECB decryption with the derived key produced clean PKCS7-padded plaintext containing the real flag."
+  evidence: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Crypto/Misdirection_ Part 1/solve/solve.py"
+pitfalls:
+  - "A monotonic sign-counter check implemented as `new_counter <= stored_counter` can become permanently unsatisfiable on a SHARED challenge instance once any team pushes the stored counter to its maximum representable value (e.g. u32::MAX) -- no counter value, including 0, can then pass."
+  - "When deriving a KDF key from a numeric secret, the exact string encoding matters: SHA256 of the ASCII hex-digit STRING of a value is a completely different key from SHA256 of the value's raw bytes -- always confirm which encoding a challenge's published hint specifies before assuming decryption failed because the secret itself is wrong."
+failed_paths:
+  - "Forging a live admin login with the recovered private key at counters 1, 2, 100, 2^32-2, and 2^32-1 all returned HTTP 400 CredentialPossibleCompromise -- confirming the counter lock rather than a wrong key (a self-registered credential with the identical assertion shape succeeded at 200, isolating the counter as the sole blocker)."
+tools:
+  - "Python 3 (ecdsa math, pycryptodome)"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Crypto/Misdirection_ Part 1/files"
+playbook: "crypto_rsa.md"
+writeup: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Crypto/Misdirection_ Part 1/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/SecurinetsQuals2026/Crypto/Misdirection_ Part 1/solve/solve.py"
+time_heuristic: "Whenever a signature scheme derives its nonce/k from ANY attacker-knowable public value (a hostname hash, a fixed string, a timestamp), immediately apply the standard private-key recovery formula from one signature; separately, if a downstream replay/counter check appears permanently unsatisfiable on a shared instance, look for an organizer-announced alternate path rather than continuing to brute-force the live forge."
+last_verified: "2026-11-04"

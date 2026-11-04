@@ -1,0 +1,40 @@
+id: dctf2026quals_hollowdex
+event: DefCamp CTF 2026 Quals
+category: reverse
+challenge_name: hollowdex
+status: solved
+flag: "CTF{712ce34b07c19165180e69583257151dd56963a04989272bc55a249ab5e98cb5}"
+confidence: 0.95
+artifact_hashes:
+  - "hollowdex.apk sha256:99a661b039e91abcfcfd3506e75a70393e708a08151b1c126c59425d27f63ace"
+signals:
+  - Android APK with JNI_OnLoad and /proc/self/mem
+  - DEX verifyFlag insns do not decode as Dalvik
+  - 16-byte .rodata XOR key then 32-hex ARX checker
+key_idea: Hollow DEX — native XOR-patches the Java checker; restore insns, invert ARX, SHA-256 the hex for CTF{sha256}.
+prerequisites: []
+exploitation_pattern: maps scan for dex\\n, XOR code_item insns, invert 3-round 64-bit ARX
+verification:
+  method: ARX forward replay of recovered 16 bytes matches both constants; portal format CTF{sha256(ascii hex)}
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Reverse\\\\hollowdex\\\\final_flag.txt"
+pitfalls:
+  - jadx of on-disk DEX is a decoy
+  - submitting CTF{32-hex} instead of sha256
+  - hashing raw 16 bytes instead of the hex string
+failed_paths:
+  - DCTF{hex} wrap
+  - CTF{hex} (rejected on CyberEDU)
+tools:
+  - python
+  - androguard
+  - radare2
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: "PLAYBOOKS/android_jni_hollow_dex.md"
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Reverse\\\\hollowdex\\\\writeup\\\\writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/DCTF2026Quals\\\\Reverse\\\\hollowdex\\\\solve\\\\solve.py"
+time_heuristic: offline <10 min after JNI maps/mem strings
+last_verified: "2026-09-18"

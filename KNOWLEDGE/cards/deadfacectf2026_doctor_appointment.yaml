@@ -1,0 +1,37 @@
+id: deadfacectf2026_doctor_appointment
+event: DeadfaceCTF2026
+category: web/sqli-auth-bypass-full-response-disclosure
+challenge_name: "Web / Doctor Appointment (1 of 4 series)"
+status: solved
+flag: "deadface{typical_and_classic}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Login UI only ever displays a generic "Login failed" message, hiding whatever the server actually returns.
+  - "Frontend JS source (readable via view-source) has a comment hinting the real response body may contain more than the UI chooses to show, and to check network traffic."
+  - "/api/login accepts JSON {username, password} and is vulnerable to classic boolean SQL injection in the username field."
+key_idea: A login form showing only a generic error message does not mean the backend response is equally minimal — always inspect the raw HTTP response body (not just what the UI renders) when probing authentication, especially after a classic SQLi payload (`' OR '1'='1`) in a credential field; here the server echoed full account details and the flag directly in the JSON body despite the UI showing a fixed "Login failed" string.
+prerequisites:
+  - Ability to read page source / network requests (view-source, browser devtools, or just curl the API directly)
+  - A standard SQLi payload against a username field backed by string-concatenated SQL
+exploitation_pattern: view page source for hints (comments about hidden response content) -> POST /api/login with username="' OR '1'='1" and any password -> read the full raw JSON response (not the UI's rendered message) -> flag/credentials are directly in the response body.
+verification:
+  method: Raw JSON response to the SQLi payload contained an account object with a literal "flag" field matching final_flag.txt.
+  evidence: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Web/Doctor Appointment (1 of 4 series)/writeup/writeup.md"
+pitfalls:
+  - Trusting only the rendered UI error message would miss the disclosure entirely — always check the actual response payload via devtools/curl for this class of bug.
+failed_paths: []
+tools:
+  - Python urllib / requests
+  - Browser devtools (view-source)
+sources:
+  - "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Web/Doctor Appointment (1 of 4 series)/writeup/writeup.md"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+playbook: web_sqli.md
+writeup: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Web/Doctor Appointment (1 of 4 series)/writeup/writeup.md"
+solver: "D:/download/CTFTimeWriteup/DeadfaceCTF2026/Web/Doctor Appointment (1 of 4 series)/solve/find_docs.py"
+time_heuristic: When a login form shows only a generic failure message, still try the classic `' OR '1'='1` SQLi against the credential field and inspect the raw response body/network traffic — the backend may leak far more than the rendered UI message suggests.
+last_verified: "2026-11-04"

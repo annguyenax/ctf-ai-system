@@ -1,0 +1,15 @@
+{
+  "challenge_id": "rstconctf2026_life_savings",
+  "flag_status": "verified",
+  "attempts": [
+    {
+      "t": "2026-10-25",
+      "phase": "VERIFY",
+      "hypothesis_id": "H1",
+      "action": "PNG dimension recovery and CRC reconstruction; deterministic replay",
+      "result": "Verified locally by deterministic replay; server returned `already_solved` with message `Correct but you already solved this`. This response confirms prior team solve status; local evidence is retained independently.",
+      "evidence_path": "D:/download/CTFTimeWriteup/RSTCONCTF2026/Forensics/Life Savings/solve/evidence/manifest.md",
+      "notes": "Fixing only IHDR leaves 269 corrupt CRCs. The barcode decoder returned no result; the readable VALIDATION text and challenge response provide the flag check."
+    }
+  ]
+}

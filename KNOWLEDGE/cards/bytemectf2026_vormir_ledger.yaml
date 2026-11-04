@@ -1,0 +1,35 @@
+id: bytemectf2026_vormir_ledger
+event: ByteMe CTF 2026
+category: osint/chained-site-trail
+challenge_name: "The Vormir Ledger"
+status: solved
+flag: "OWASP{preikestolen_7734_sacrifice}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - Challenge gives only a single link (a small static site) and a flag-format template with named parts.
+  - The site contains multiple linked pages (blog.html, forum.html), each revealing one component of the flag via plain-text clues or a simple cipher.
+key_idea: Treat the given link as the start of a trail, not the destination. Crawl every linked page on the site; each page tends to encode exactly one flag-format slot (e.g. a location/pin-word clue hidden as regex-extractable text, or a Caesar-shifted word in a styled div). Assemble the flag by extracting each piece per its own sub-puzzle and joining per the stated flag format.
+prerequisites:
+  - Basic HTML scraping/regex extraction
+  - Recognizing classic ciphers (Caesar shift) from short uppercase tokens
+exploitation_pattern: fetch page 1 -> regex-extract clue tokens (location word, numeric PIN) -> fetch page 2 -> extract ciphertext token -> brute/derive Caesar shift -> join tokens per flag_format template.
+verification:
+  method: Deterministic solver script fetches both pages live and reproduces exact recorded flag text.
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Vormir Ledger/solve/solve.py"
+pitfalls:
+  - The flag format in the description dictates exact casing/ordering of the joined parts; mismatches fail to validate even with correct individual clue values.
+  - A single provided URL in an OSINT challenge is often a stub/trailhead with further internal links, not the whole puzzle.
+failed_paths: []
+tools:
+  - Python 3 (urllib, re)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources: []
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Vormir Ledger/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/ByteMeCTF2026/OSINT/The Vormir Ledger/solve/solve.py"
+time_heuristic: OSINT challenge with only one URL and a multi-part flag_format -> crawl all linked pages from that URL first; each linked page usually supplies exactly one flag component.
+last_verified: "2026-11-04"

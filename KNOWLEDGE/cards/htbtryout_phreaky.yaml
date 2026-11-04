@@ -1,0 +1,39 @@
+id: htbtryout_phreaky
+event: HTB Try Out
+category: forensics/pcap-smtp-split-zip-reassembly
+challenge_name: "Phreaky"
+status: solved
+flag: "HTB{Th3Phr3aksReadyT0Att4ck}"
+confidence: 1.0
+artifact_hashes: []
+signals:
+  - "Outer zip containing the pcap is itself password-protected with a common/guessable password ('hackthebox')."
+  - "strings on the raw pcap immediately reveals plaintext SMTP MAIL FROM/RCPT TO/DATA traffic and a 'Password: <12-char>' pattern in each email body."
+  - "Each of 15 emails carries one password plus one small zip attachment holding one sequential fragment (phreaks_plan.pdf.partN) of a larger file."
+key_idea: "A pure-Python pcap/TCP/SMTP parser (no scapy/tshark needed) extracts 15 raw emails from port-25 streams; each email's body supplies the password for its own attached zip fragment, and concatenating the 15 decrypted fragments in numeric order reconstructs a valid PDF containing the flag."
+prerequisites:
+  - Basic manual Ethernet/IPv4/TCP/pcap header parsing
+  - email.message_from_bytes for MIME parsing
+  - zipfile with per-archive AES/ZipCrypto password
+exploitation_pattern: "password-protected outer zip (common password) -> pcap SMTP stream reassembly -> per-email password unlocks its own attached zip fragment -> sequential concatenation reconstructs the original file"
+verification:
+  method: "Reassembled binary began with %PDF-1.3 and ended with %%EOF; the flag string appeared exactly once in the PDF's extracted content stream; the extraction pipeline is fully re-runnable from the pcap."
+  evidence: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/forensics/Phreaky/final_flag.txt"
+pitfalls:
+  - "Always try common/default passwords (e.g. 'hackthebox') on a locked outer archive before reaching for cracking tools."
+  - "When reconstructing a PDF stream manually, watch for the literal substring 'stream' appearing inside 'endstream' and check preceding bytes to avoid mis-locating object boundaries."
+  - "strings is a cheap first pass to confirm protocol/application layer (SMTP/MIME) before writing a full parser."
+failed_paths: []
+tools:
+  - Python (manual pcap/TCP parser, email, zipfile, base64)
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/forensics/Phreaky/writeup/writeup.md"
+playbook: forensics_pcap.md
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/forensics/Phreaky/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/HTB-TryOut/forensics/Phreaky/solve/solve.py"
+time_heuristic: "When a pcap contains SMTP/MIME traffic with multiple small attachments, check whether each message carries its own attachment's password and whether the attachments are sequential fragments of one larger file."
+last_verified: "2026-11-04"

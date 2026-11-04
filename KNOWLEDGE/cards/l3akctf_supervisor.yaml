@@ -1,0 +1,47 @@
+id: l3akctf_supervisor
+event: L3akCTF2026
+category: pwn/seccomp-unotify-sandbox-escape
+challenge_name: "Supervisor"
+status: paused
+flag: ""
+confidence: 0.4
+artifact_hashes: []
+signals:
+  - "Child process installs a one-instruction seccomp-bpf filter (BPF_RET|BPF_K -> SECCOMP_RET_USER_NOTIF) with SECCOMP_FILTER_FLAG_NEW_LISTENER, meaning every syscall the sandboxed child makes is suspended and handed to a userspace supervisor over a notify fd."
+  - "The supervisor only fully emulates 21 of the syscalls the child can make; 2 (execve, mmap) get bookkeeping before being continued to the real kernel; 11 are passed straight through; everything else returns -ENOSYS."
+  - "Among the emulated syscalls, pread64/pwrite64 take an attacker-named offset+length, and lseek stores an attacker-given offset into the fd's own offset field with no bounds check, which then feeds the read/write emulation paths."
+key_idea: >
+  In a seccomp-unotify-based sandbox/supervisor design, the real attack
+  surface is not "can the child escape the seccomp filter" (it can't, by
+  construction) but "does the userspace supervisor's syscall emulation layer
+  correctly validate every attacker-controlled field it trusts" -- especially
+  offsets and lengths threaded through pread64/pwrite64/lseek into whatever
+  the supervisor's own synthetic-filesystem/fd bookkeeping does with them, since
+  that logic runs in the (non-sandboxed) supervisor process itself and a bug
+  there is a path to supervisor-process memory corruption / RIP control, not
+  just a sandbox-filesystem bug.
+prerequisites:
+  - Full syscall-by-syscall map of what the supervisor emulates vs. passes through vs. rejects (checksec-style triage of the notify-handling source, not the sandboxed binary)
+  - Understanding that notify-handler state (req/resp structures) is commonly stack-allocated (alloca) in the supervisor's own notify loop, making it a plausible corruption target
+exploitation_pattern: >
+  Not completed in the available source: the writeup identifies the vulnerable
+  field-handling pattern (pread64/pwrite64 offset+length, lseek's unchecked
+  stored offset feeding read/write) and states the goal is "RIP control in the
+  supervisor and then system(\"/readflag\")", but the source text was cut off
+  before the concrete overflow/corruption primitive and ROP/exploit chain were
+  shown.
+verification:
+  method: ""
+  evidence: ""
+pitfalls:
+  - "PIE/Partial-RELRO-style checksec facts about the SANDBOXED binary are irrelevant here; what matters is the attack surface of the SUPERVISOR process's own syscall-emulation code, which is a different trust boundary."
+failed_paths: []
+tools:
+  - "pwn checksec (for the outer binaries/Dockerfile context)"
+sources:
+  - "https://icctx.xyz/blog/l3akctf26/"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/L3akCTF2026/pwn/Supervisor/writeup/writeup.md"
+solver: ""
+time_heuristic: "For a seccomp-unotify 'supervisor' sandbox challenge, first fully enumerate which syscalls are emulated vs passed through vs rejected, then audit every emulated call that accepts an attacker-named offset/length for missing bounds checks in the supervisor's own (non-sandboxed) code -- that is the real trust boundary, not the child's seccomp filter."
+last_verified: "2026-11-04"

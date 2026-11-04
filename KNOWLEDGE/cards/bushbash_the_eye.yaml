@@ -21,6 +21,6 @@ tools:
   - opencv
   - pycryptodome
 playbook: PLAYBOOKS/osint_annotated_starfield.md
-writeup: ../CTFTimeWriteup/BushBash2026/osint/The Eye/writeup/writeup.md
-solver: ../CTFTimeWriteup/BushBash2026/osint/The Eye/solve/solve.py
+writeup: ../ctf-ai-system/OUTPUT/_archive/BushBash2026/osint/The Eye/writeup/writeup.md
+solver: ../ctf-ai-system/OUTPUT/_archive/BushBash2026/osint/The Eye/solve/solve.py
 time_heuristic: identify named system first; fit the full constellation; visually verify every ambiguous label before AES

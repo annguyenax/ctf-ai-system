@@ -34,7 +34,7 @@ hexstrike:
   notes: ""
 sources: []
 playbook: PLAYBOOKS/rev_strings_password.md
-writeup: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\MMO\writeup\writeup.md
-solver: D:\download\CTFTimeWriteup\PTITCTF2026\Reverse\MMO\solve\README.md
+writeup: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\MMO\writeup\writeup.md
+solver: D:/download/ctf-ai-system/OUTPUT/_archive/PTITCTF2026\Reverse\MMO\solve\README.md
 time_heuristic: unpack then strings, skip GUI
 last_verified: "2026-08-22"

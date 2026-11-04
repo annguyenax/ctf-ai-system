@@ -1,0 +1,42 @@
+id: compfest18ctf2026_the_last_bitbender
+event: "CTF COMPFEST 18 (2026)"
+category: "reverse/keyed-response-protocol"
+challenge_name: "The Last Bitbender"
+status: solved
+flag: "COMPFEST18{0nly_th3_av4t4r_m4st3r3d_4ll_th3m_b1ts_pQlv7EaO9WlPfbnR}"
+confidence: 1.0
+artifact_hashes:
+  - file: "files/chall.exe"
+    sha256: "493d571c6c2b15f8815d21c2e9cad9d711d8b9f9bc2966a44e41efdf31675bc9"
+signals:
+  - "The shipped PE has no password/argv input path and no COMPFEST18{...} bytes anywhere in it; it only runs a hard-coded self-test that prints 'self-test ok' / 'self-test failed'."
+  - "The self-test algorithm uses a WoW64 'Heaven's Gate' style 32-bit to 64-bit far-return transition to resist casual x86-only disassembly, plus three XOR-decrypted stages (64-bit LCG, 32-bit LCG, 64-bit LCG) that reveal the real ARX transform."
+  - "The live network service sends a fresh random 16-byte 'request' per connection and expects 'response = transform(request)' computed by the exact statically-recovered algorithm; correct response returns 'ok' then the flag."
+key_idea: "The flag is never embedded in the binary at all -- the binary's only job is to validate itself against a hard-coded self-test value, and the real target is reversing the staged/obfuscated transform() algorithm precisely enough to answer a live, per-connection, server-random 16-byte challenge-response protocol over netcat. Static recovery (decrypting three XOR-obfuscated ARX stages and modeling the Heaven's Gate 32->64 transition) proved exactly correct: the live server accepted the very first computed response with no retries."
+prerequisites:
+  - "PE32/x86-64 static disassembly and manual stage-by-stage XOR decryption"
+  - "Recognizing WoW64 far-return 'Heaven's Gate' 32-to-64-bit transitions in a PE that otherwise looks pure x86"
+  - "A scriptable TCP client to replay the recovered transform() against the live service per connection"
+exploitation_pattern: "self-test-only binary with no embedded flag -> statically recover the exact keyed transform via staged XOR decryption across a 32-to-64-bit gate -> connect live, receive server-random challenge, compute response offline, send it back, receive the real flag."
+verification:
+  method: "Live network replay: computed response was accepted on first try ('-> ok') and the server then printed the real flag, exactly matching the offline algorithmic model."
+  evidence: "writeup shows the live transcript: request/response pair and '-> COMPFEST18{...}' printed by the server after a single live connection, using solve/solve_live.py"
+pitfalls:
+  - "A self-test that only validates a hard-coded constant (not user input) is a strong signal the real input/output contract lives elsewhere (here: a live network service), not in the static binary."
+  - "An embedded hex string that merely looks flag-shaped inside the PE is not itself the flag; here the self-test's hard-coded 16-byte input/output pair is purely for the binary's own internal self-check."
+  - "A service requiring a CTFd/platform access token before exposing the real request/response contract can look blocked even when the underlying crypto/algorithm recovery is already fully correct -- getting the token (not more reversing) is the remaining step."
+failed_paths: []
+tools:
+  - "Static PE parser + byte extraction (Python)"
+  - "x86/x64 manual disassembly across a Heaven's Gate transition"
+hexstrike:
+  used: false
+  useful: false
+  notes: ""
+sources:
+  - "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Reverse/The Last Bitbender/files/chall.exe"
+playbook: null
+writeup: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Reverse/The Last Bitbender/writeup/writeup.md"
+solver: "D:/download/ctf-ai-system/OUTPUT/_archive/COMPFEST18CTF2026/Reverse/The Last Bitbender/solve/solve_live.py"
+time_heuristic: "When a reversed binary's only observable behavior is a self-test against hard-coded constants with no embedded flag string, suspect a live challenge-response protocol is the real target; recover the exact transform statically, then verify it against one live connection before assuming more reversing is needed."
+last_verified: "2026-11-04"
